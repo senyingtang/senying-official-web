@@ -254,8 +254,14 @@ try {
       for (const role of ['editor', 'viewer']) {
         const { context, page } = await login(role);
         const onPage = new URL(page.url()).pathname === '/admin/cms/site-settings';
-        const disabled = (await page.locator('[data-testid="site-settings-form"] fieldset[disabled]').count()) === 1;
-        const submitDisabled = await page.locator('[data-testid="site-settings-form"] button[type="submit"]').isDisabled();
+        // 等表單實際渲染後再判斷（count() / isDisabled() 不會自動等待，loading 畫面時會誤判）；最多等 15 秒唯讀狀態出現，未出現仍判定失敗
+        await page.locator('[data-testid="site-settings-form"]').waitFor({ state: 'visible', timeout: 30000 }).catch(() => undefined);
+        const disabled = await page
+          .locator('[data-testid="site-settings-form"] fieldset[disabled]')
+          .waitFor({ state: 'attached', timeout: 15000 })
+          .then(() => true)
+          .catch(() => false);
+        const submitDisabled = await page.locator('[data-testid="site-settings-form"] button[type="submit"]').isDisabled().catch(() => false);
         const shows = await page.inputValue('input[name="brand_name_en"]').catch(() => '');
         results.push({ role, ok: onPage && disabled && submitDisabled && shows === TEST.brandNameEn, detail: `readonly=${disabled && submitDisabled} value=${shows}` });
         await context.close();
