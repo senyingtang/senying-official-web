@@ -93,6 +93,8 @@ pnpm dev:admin       # http://localhost:3000（/admin/login、/portal/login）
 | `pnpm local-env:verify` | .gitignore 涵蓋 .env.local、service role 不進 build、repo 無正式 key、報告不含完整 key |
 | `pnpm dev:admin:supabase` / `build:marketing:supabase` | 以本機 Supabase 連線資訊（即時讀取、不寫檔）啟動後台 / build 官網 |
 | `pnpm phase28:verify` | db:verify-sync → db:smoke → site-settings:verify → local-env:verify → phase27:verify（含 phase2:verify，完整 RWD 一次），見 `docs/PHASE_2_8_SUPABASE_SITE_SETTINGS_NOTES.md` |
+| `pnpm git:verify` | Phase 2.8.1 Git baseline：main 分支、origin 為官方 repo、working tree clean、.env / .next / dist / supabase/.temp 被 ignore、tracked 檔案無 secret、HEAD 與 GitHub origin/main 一致 |
+| `pnpm rwd:report:verify` | 確認最近一次完整 RWD 報告為 528 checks / 0 failures（`phase28:verify --skip-rwd` 使用，避免同一輪重跑 RWD） |
 
 RWD 檢查說明：
 
@@ -101,7 +103,7 @@ RWD 檢查說明：
 - 驗收服務預設 port 4410（前台）/ 3310（後台），刻意避開開發常用的 4321 / 3000，避免和本機其他專案的 dev server 互相干擾；被占用時自動往上找空閒 port，不會關閉其他程式（可用 `MARKETING_PORT` / `ADMIN_PORT` 指定）。
 - 只檢查單一 app：`pnpm rwd:check marketing` / `pnpm rwd:check admin`；報告在 `.rwd-report/`。
 - 已有服務時可指定 `MARKETING_URL` / `ADMIN_URL`，腳本就不會自行啟動該服務（ADMIN_URL 必須是 mock 模式）。
-- Chrome 不在預設路徑時設定 `CHROME_PATH`；並行數 `RWD_CONCURRENCY`（預設 3）。
+- Chrome 不在預設路徑時設定 `CHROME_PATH`；並行數 `RWD_CONCURRENCY`（預設 1，可改 2）；同一 app + 帳號 + 寬度共用 browser context，暫時性 socket 錯誤（ERR_NO_BUFFER_SPACE 等）才重試一次，重試紀錄寫入報告。
 
 ## 登入與權限（Phase 2）
 

@@ -13,7 +13,16 @@
 //   pnpm rwd:check admin           只檢查後台
 //   pnpm rwd:check --rebuild       強制重新 build
 //   MARKETING_URL / ADMIN_URL      指定既有服務時，不自動啟動該服務（ADMIN_URL 必須是 DATA_SOURCE=mock）
-//   CHROME_PATH / RWD_CONCURRENCY  自訂 Chrome 路徑 / 並行數（預設 3）
+//   CHROME_PATH / RWD_CONCURRENCY  自訂 Chrome 路徑 / 並行數（預設 1，可改 2）
+//   RWD_PAGE_GAP_MS                每頁之間的間隔（預設 60ms）
+//
+// Socket 壓力（Phase 2.8.1，不減少任何 route / width）：
+//   - 服務與 browser 整輪只啟動一次；每個帳號只登入一次（storageState 重用）
+//   - 同一個 app + 帳號 + 寬度共用一個 browser context（連線可重用），每頁檢查完立即關閉 page，組別完成立即關閉 context
+//   - 只有「全部問題都是暫時性 socket 錯誤」（ERR_NO_BUFFER_SPACE、ERR_CONNECTION_RESET、服務仍在執行時的 ERR_CONNECTION_REFUSED）
+//     才等待約 1 秒後對該頁該寬度重試一次；版面、console / JS 錯誤、auth、404、斷言失敗一律不重試。重試仍失敗 → FAIL
+//   - 報告記錄 retries（retryCount / firstFailure / finalResult）、concurrency、TIME_WAIT
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
@@ -24,7 +33,21 @@ const WIDTHS = [375, 430, 768, 1024, 1280, 1440];
 const VIEWPORT_HEIGHT = 900;
 const args = process.argv.slice(2);
 const onlyApp = args.find((arg) => arg === 'marketing' || arg === 'admin');
-const concurrency = Math.max(1, Number(process.env.RWD_CONCURRENCY ?? 3));
+const concurrency = Math.max(1, Number(process.env.RWD_CONCURRENCY ?? 1));
+const PAGE_GAP_MS = Math.max(0, Number(process.env.RWD_PAGE_GAP_MS ?? 60));
+const RETRY_DELAY_MS = 1000;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function timeWaitCount() {
+  const result = process.platform === 'win32' ? spawnSync('netstat', ['-an', '-p', 'TCP'], { encoding: 'utf8' }) : spawnSync('netstat', ['-an'], { encoding: 'utf8' });
+  return result.status === 0 ? (result.stdout.match(/TIME_WAIT/g) ?? []).length : null;
+}
+
+/** 暫時性 socket 錯誤（可重試一次）；ERR_CONNECTION_REFUSED 只有在服務仍在執行時才視為暫時性 */
+function isTransientProblem(problem, serverAlive) {
+  if (/net::ERR_NO_BUFFER_SPACE|net::ERR_CONNECTION_RESET/.test(problem)) return true;
+  return /net::ERR_CONNECTION_REFUSED/.test(problem) && serverAlive;
+}
 
 const marketingPaths = [
   '/', '/products', '/products/seo-website', '/products/landing-page', '/products/landing-page/group-buy-promo',
@@ -144,12 +167,8 @@ async function inspect(page, width) {
   }, width);
 }
 
-async function checkPage(browser, target, width, sessions) {
-  const context = await browser.newContext({
-    viewport: { width, height: VIEWPORT_HEIGHT },
-    deviceScaleFactor: 1,
-    storageState: target.as ? sessions[target.as] : undefined,
-  });
+/** 在共用 context 中開一個 page 檢查單一 target；結束立即關閉 page */
+async function checkPage(context, target, width) {
   const page = await context.newPage();
   const runtimeErrors = [];
   page.on('pageerror', (error) => runtimeErrors.push(`pageerror: ${error.message}`));
@@ -197,9 +216,9 @@ async function checkPage(browser, target, width, sessions) {
       }
     }
   } catch (error) {
-    problems.push(`navigation failed: ${error.message}`);
+    problems.push(`navigation failed: ${error.message.split('\n')[0]}`);
   } finally {
-    await context.close();
+    await page.close().catch(() => undefined);
   }
   problems.push(...runtimeErrors);
   return problems;
@@ -265,11 +284,43 @@ try {
   ];
   const tasks = targets.flatMap((target) => WIDTHS.map((width) => ({ target, width })));
 
+  // 依 app + 帳號 + 寬度分組：同組共用一個 context（viewport / storageState 相同），減少新連線
+  const groups = new Map();
+  for (const task of tasks) {
+    const key = `${task.target.app}|${task.target.as ?? 'anonymous'}|${task.width}`;
+    if (!groups.has(key)) groups.set(key, { app: task.target.app, as: task.target.as, width: task.width, tasks: [] });
+    groups.get(key).tasks.push(task);
+  }
+
   const failures = [];
-  await runPool(tasks, concurrency, async ({ target, width }) => {
-    const problems = await checkPage(browser, target, width, sessions);
-    if (problems.length) failures.push({ url: target.url, as: target.as ?? 'anonymous', width, problems });
+  const retries = [];
+  const timeWaitBefore = timeWaitCount();
+  console.log(`[rwd] ${tasks.length} checks in ${groups.size} context groups · concurrency ${concurrency} · TIME_WAIT before ${timeWaitBefore ?? 'unknown'}`);
+  await runPool([...groups.values()], concurrency, async (group) => {
+    const context = await browser.newContext({
+      viewport: { width: group.width, height: VIEWPORT_HEIGHT },
+      deviceScaleFactor: 1,
+      storageState: group.as ? sessions[group.as] : undefined,
+    });
+    try {
+      for (const { target, width } of group.tasks) {
+        const serverAlive = () => (target.app === 'admin' ? (adminServer?.isAlive() ?? true) : true);
+        let problems = await checkPage(context, target, width);
+        if (problems.length && problems.every((problem) => isTransientProblem(problem, serverAlive()))) {
+          const firstFailure = problems;
+          await sleep(RETRY_DELAY_MS);
+          problems = await checkPage(context, target, width);
+          retries.push({ url: target.url, as: target.as ?? 'anonymous', width, retryCount: 1, firstFailure, finalResult: problems.length ? 'FAIL' : 'PASS', finalProblems: problems });
+          console.log(`[rwd] retry ${width}px ${target.path} [${target.as ?? 'anonymous'}] → ${problems.length ? 'FAIL' : 'PASS'}`);
+        }
+        if (problems.length) failures.push({ url: target.url, as: target.as ?? 'anonymous', width, problems });
+        if (PAGE_GAP_MS) await sleep(PAGE_GAP_MS);
+      }
+    } finally {
+      await context.close().catch(() => undefined);
+    }
   });
+  const timeWaitAfter = timeWaitCount();
 
   const reportName = `report-${onlyApp ?? 'all'}.json`;
   mkdirSync(path.join(ROOT, '.rwd-report'), { recursive: true });
@@ -280,7 +331,11 @@ try {
         checkedAt: new Date().toISOString(),
         widths: WIDTHS,
         checks: tasks.length,
+        concurrency,
+        contextGroups: groups.size,
+        timeWait: { before: timeWaitBefore, after: timeWaitAfter },
         pages: targets.map((target) => ({ app: target.app, path: target.path, as: target.as ?? 'anonymous' })),
+        retries,
         failures,
       },
       null,
@@ -289,6 +344,7 @@ try {
   );
 
   console.log(`[rwd] checks: ${tasks.length} (${targets.length} pages × ${WIDTHS.length} widths) → .rwd-report/${reportName}`);
+  console.log(`[rwd] retries: ${retries.length}（${retries.filter((item) => item.finalResult === 'PASS').length} recovered）· TIME_WAIT after ${timeWaitAfter ?? 'unknown'}`);
   if (failures.length) {
     exitCode = 1;
     console.log(`[rwd] FAILED: ${failures.length}`);

@@ -14,9 +14,11 @@
 //   pnpm phase27:verify                 完整驗收
 //   pnpm phase27:verify --from ui:verify 從某一步開始（例如 socket 耗盡後重跑）
 //   pnpm phase27:static                 只跑 asset + seo + perf（targeted，無 RWD）
+//   pnpm phase27:verify --skip-rwd      同一輪已完成完整 RWD 時：phase2:verify --skip-rwd（改檢查 RWD 報告為 528 / 0 failures）
 import { spawn, spawnSync } from 'node:child_process';
 import { ROOT } from './lib/servers.mjs';
 
+const skipRwd = process.argv.includes('--skip-rwd');
 const steps = [
   { label: 'asset:verify', command: 'pnpm asset:verify' },
   { label: 'seo:verify', command: 'pnpm seo:verify --skip-build' },
@@ -24,7 +26,7 @@ const steps = [
   { label: 'global-ui:verify', command: 'pnpm global-ui:verify --skip-build --skip-rwd' },
   { label: 'mockup:verify', command: 'pnpm mockup:verify --skip-build --skip-rwd' },
   { label: 'ui:verify', command: 'pnpm ui:verify --skip-build --skip-rwd' },
-  { label: 'phase2:verify', command: 'pnpm phase2:verify', rwd: true },
+  { label: 'phase2:verify', command: skipRwd ? 'pnpm phase2:verify --skip-rwd' : 'pnpm phase2:verify', rwd: !skipRwd },
 ];
 
 const fromIndex = process.argv.indexOf('--from');

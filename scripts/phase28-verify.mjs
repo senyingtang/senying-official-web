@@ -11,16 +11,20 @@
 // site-settings:verify 的 Supabase build 輸出到 .phase28-report/supabase-dist，不影響 phase27 使用的預設 mock build。
 //
 // 前置：本機 Supabase 已啟動（pnpm supabase:start）。本腳本不會 link / push 任何遠端專案。
-// 用法：pnpm phase28:verify [--from <step>]
+// 用法：pnpm phase28:verify [--from <step>] [--skip-rwd]
+//   --skip-rwd：本輪已先執行 pnpm phase2:verify（含完整 528 RWD）時使用，避免重跑 RWD；改由 rwd:report:verify 檢查報告
 import { spawn, spawnSync } from 'node:child_process';
 import { ROOT } from './lib/servers.mjs';
 
+const skipRwd = process.argv.includes('--skip-rwd');
 const steps = [
   { label: 'db:verify-sync', command: 'pnpm db:verify-sync' },
   { label: 'db:smoke', command: 'pnpm db:smoke' },
   { label: 'site-settings:verify', command: 'pnpm site-settings:verify' },
   { label: 'local-env:verify', command: 'pnpm local-env:verify' },
-  { label: 'phase27:verify', command: 'pnpm phase27:verify', includes: 'phase2:verify（完整 RWD 一次）' },
+  skipRwd
+    ? { label: 'phase27:verify', command: 'pnpm phase27:verify --skip-rwd', includes: 'phase2:verify --skip-rwd，RWD 以本輪已完成的 528 / 0 failures 報告為證據' }
+    : { label: 'phase27:verify', command: 'pnpm phase27:verify', includes: 'phase2:verify（完整 RWD 一次）' },
 ];
 
 const fromIndex = process.argv.indexOf('--from');

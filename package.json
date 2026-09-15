@@ -47,7 +47,9 @@
     "local-env:verify": "node scripts/local-env-security-check.mjs",
     "dev:admin:supabase": "node scripts/with-local-supabase.mjs pnpm --filter @syt/admin dev",
     "build:marketing:supabase": "node scripts/with-local-supabase.mjs pnpm --filter @syt/marketing build",
-    "phase28:verify": "node scripts/phase28-verify.mjs"
+    "phase28:verify": "node scripts/phase28-verify.mjs",
+    "git:verify": "node scripts/git-baseline-check.mjs",
+    "rwd:report:verify": "node scripts/rwd-report-check.mjs"
   },
   "devDependencies": {
     "@syt/config": "workspace:*",

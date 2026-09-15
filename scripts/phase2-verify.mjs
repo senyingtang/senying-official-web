@@ -3,16 +3,18 @@
 // phase2:auth 以 --skip-phase1 --skip-rwd 執行：phase1:structure 已在 phase1:verify 內執行、rwd:check 在最後一步執行，
 // 其餘 Phase 2 檢查（guard、service role、DATA_SOURCE、兌換流程、權限 runtime 測試、env leak、secret scan）全部照跑。
 // phase1:verify 以 --skip-rwd 執行（Phase 2.7）：完整 RWD（前台 + 後台、6 種寬度）只在最後一步跑一次，覆蓋範圍不變。
+// --skip-rwd（Phase 2.8.1）：同一輪已經完成完整 RWD 時使用（例如 phase28:verify --skip-rwd），改由 rwd:report:verify 確認報告為 528 / 0 failures。
 import { spawnSync } from 'node:child_process';
 import { ROOT } from './lib/servers.mjs';
 
+const skipRwd = process.argv.includes('--skip-rwd');
 const steps = [
   { label: 'phase1:verify', command: 'pnpm phase1:verify --skip-rwd' },
   { label: 'phase2:auth', command: 'pnpm phase2:auth --skip-phase1 --skip-rwd' },
   { label: 'lint', command: 'pnpm lint' },
   { label: 'typecheck', command: 'pnpm typecheck' },
   { label: 'build', command: 'pnpm build' },
-  { label: 'rwd:check', command: 'pnpm rwd:check' },
+  skipRwd ? { label: 'rwd:report:verify', command: 'pnpm rwd:report:verify' } : { label: 'rwd:check', command: 'pnpm rwd:check' },
 ];
 
 const summary = [];
