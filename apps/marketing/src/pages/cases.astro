@@ -1,0 +1,160 @@
+---
+import { webPageJsonLd } from '@syt/seo';
+import ButtonLink from '../components/ButtonLink.astro';
+import CaseCard from '../components/CaseCard.astro';
+import CategoryChips from '../components/CategoryChips.astro';
+import Container from '../components/Container.astro';
+import FaqSection from '../components/FaqSection.astro';
+import FinalCTA from '../components/FinalCTA.astro';
+import IconGlyph from '../components/IconGlyph.astro';
+import IndustryCardGrid from '../components/IndustryCardGrid.astro';
+import MockupAlignedHero from '../components/MockupAlignedHero.astro';
+import ProductHeroVisual from '../components/ProductHeroVisual.astro';
+import ProofStatsBand from '../components/ProofStatsBand.astro';
+import Section from '../components/Section.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { CASE_METRIC_NOTE, CASE_RESULTS_NOTE, caseCategories, caseIndustries, caseResults, cases } from '../content/cases';
+import { casesFaq } from '../content/faqs';
+import { mediaAssets } from '../content/media';
+import { ogImages } from '../content/ogImages';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteUrl } from '../lib/site';
+import { getBrandRuntime } from '../lib/brand-runtime';
+
+const brand = await getBrandRuntime();
+const description = '森映案例作品：Hungjui 形象官網、品牌電商官網、SEO 文章生產器與預約活動頁，說明產業、需求與使用產品；成效數據整理後公開。';
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '案例作品', href: '/cases' },
+];
+const clientCases = cases.filter((item) => !item.sample).length;
+const sampleCases = cases.length - clientCases;
+---
+
+<BaseLayout
+  seo={{ title: '案例作品｜形象官網、電商、文章生產器與預約活動頁', description, path: '/cases' }}
+  breadcrumbs={breadcrumbs}
+  breadcrumbsInHero
+  faq={casesFaq}
+  jsonLd={[webPageJsonLd(siteUrl, { type: 'CollectionPage', name: '森映案例作品', description, path: '/cases' }, brand.seo)]}
+  ogImage={ogImages.cases}
+>
+  <MockupAlignedHero
+    eyebrow="CASE STUDIES"
+    title="案例作品"
+    subtitle="用數位創意，成就更多可能"
+    lead="整理不同產業的網站需求、做法與使用產品。案例畫面與成效數據取得授權、完成統計後才公開，不放未經確認的數字。"
+    breadcrumbs={breadcrumbs}
+    facts={[
+      { value: `${clientCases} 個`, label: '案例方向' },
+      { value: `${sampleCases} 個`, label: '版型示意' },
+      { value: '整理中', label: '成效數據' },
+      { value: '多元產業', label: '持續整理中' },
+    ]}
+    script="Real Projects"
+  >
+    <ButtonLink href="/contact" size="lg" cta="primary" fullWidthOnMobile>
+      立即諮詢
+      <span aria-hidden="true">→</span>
+    </ButtonLink>
+    <ButtonLink href="/products" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">查看產品服務</ButtonLink>
+    <Fragment slot="visual">
+      <ProductHeroVisual image={mediaAssets.caseVisual} badges={['品牌 × 設計', '技術 × 成長']} caption="案例頁面視覺示意，不是實際客戶畫面，也不代表成效。" />
+    </Fragment>
+  </MockupAlignedHero>
+
+  <!-- 分類篩選 -->
+  <section data-section="filters" aria-label="案例分類" class="bg-surface pt-6 sm:pt-8">
+    <Container>
+      <CategoryChips items={caseCategories} target="cases" label="案例分類" />
+    </Container>
+  </section>
+
+  <!-- 搜尋與排序 -->
+  <section data-section="search-sort" id="case-search" aria-label="搜尋與排序" class="bg-surface pt-4">
+    <Container class="flex flex-col gap-3 border-b border-border-gray pb-4 md:flex-row md:items-center md:justify-between">
+      <p class="text-sm text-slate-gray">共 <span data-filter-count="cases" class="font-semibold text-ink">{cases.length}</span> 個案例與版型方向</p>
+      <div class="flex min-w-0 flex-col gap-2 xs:flex-row">
+        <label class="relative block min-w-0 xs:flex-1 md:w-64 md:flex-none">
+          <span class="sr-only">搜尋案例</span>
+          <input
+            type="search"
+            data-filter-search="cases"
+            placeholder="搜尋案例..."
+            class="block min-h-11 w-full min-w-0 rounded-input border border-border-gray bg-surface py-2 pl-3 pr-9 text-sm text-ink placeholder:text-slate-gray focus:border-teal-strong focus:outline-2 focus:outline-teal/40"
+          />
+          <IconGlyph name="search" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-gray" />
+        </label>
+        <label class="block min-w-0">
+          <span class="sr-only">排序方式</span>
+          <select data-filter-sort="cases" class="block min-h-11 w-full rounded-input border border-border-gray bg-surface px-3 text-sm text-ink focus:border-teal-strong focus:outline-2 focus:outline-teal/40">
+            <option value="Latest">最新整理</option>
+            <option value="Name">名稱排序</option>
+          </select>
+        </label>
+      </div>
+    </Container>
+  </section>
+
+  <!-- 案例列表 -->
+  <Section tone="white" density="compact" name="case-list" id="case-list" labelledby="case-list-heading" class="pt-6 md:pt-8">
+    <SectionHeading id="case-list-heading" title="案例列表" description={CASE_METRIC_NOTE} compact />
+    <ul data-filter-list="cases" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        cases.map((item, index) => (
+          <li data-filter-item data-filter-tags={item.categories.join(' ')} data-sort-latest={String(index).padStart(3, '0')} data-sort-name={item.title} class="min-w-0">
+            <CaseCard item={item} />
+          </li>
+        ))
+      }
+    </ul>
+    <p data-filter-empty="cases" hidden class="mt-4 text-sm text-slate-gray">找不到符合的案例，可以換個關鍵字或分類。</p>
+  </Section>
+
+  <!-- 精選案例成果（示意版面） -->
+  <Section tone="mountain" density="compact" name="results" labelledby="results-heading">
+    <SectionHeading id="results-heading" title="精選案例成果" description="成效指標取得客戶同意並完成統計後才會公開；以下保留設計稿的版面位置。" tone="dark" compact />
+    <ProofStatsBand items={caseResults} note={CASE_RESULTS_NOTE} />
+  </Section>
+
+  <!-- 服務產業領域 -->
+  <Section tone="white" density="compact" name="industries" labelledby="industries-heading">
+    <SectionHeading id="industries-heading" title="服務產業領域" description="橫跨多元產業，依產業特性規劃網站與內容。" action={{ label: '預約討論你的產業', href: '/contact' }} compact />
+    <IndustryCardGrid items={caseIndustries} variant="tile" columns={10} />
+  </Section>
+
+  <!-- 分頁 / 載入更多 -->
+  <section data-section="pagination" aria-label="案例分頁" class="bg-surface pb-12">
+    <Container class="flex flex-col items-center gap-3">
+      <nav aria-label="案例頁碼">
+        <ul class="flex items-center gap-2">
+          <li>
+            <button type="button" disabled class="flex h-10 w-10 items-center justify-center rounded-lg border border-border-gray text-slate-gray disabled:opacity-50" aria-label="上一頁（沒有上一頁）">
+              <IconGlyph name="chevron-left" class="h-4 w-4" />
+            </button>
+          </li>
+          <li>
+            <span aria-current="page" class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal font-semibold text-navy-black">1</span>
+          </li>
+          <li>
+            <button type="button" disabled class="flex h-10 w-10 items-center justify-center rounded-lg border border-border-gray text-slate-gray disabled:opacity-50" aria-label="下一頁（沒有下一頁）">
+              <IconGlyph name="chevron-right" class="h-4 w-4" />
+            </button>
+          </li>
+        </ul>
+      </nav>
+      <p class="text-center text-sm text-slate-gray">目前的案例與版型方向已全部顯示，新案例取得授權後會陸續加入。</p>
+    </Container>
+  </section>
+
+  <!-- 補充：FAQ（SEO 驗收要求） -->
+  <FaqSection items={casesFaq} layout="grid" tone="mist" description="案例數據與公開方式的說明。" />
+
+  <FinalCTA
+    title="下一個案例，也許就是你的品牌"
+    description="無論你屬於哪個產業，森映都能協助整理適合的網站做法。"
+    primary={{ label: '立即諮詢', href: '/contact' }}
+    secondary={{ label: 'Line@ 聯繫我們', href: 'line' }}
+    script="好的案例，源於好的夥伴"
+  />
+</BaseLayout>

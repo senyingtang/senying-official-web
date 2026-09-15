@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" data-temporary-brand-asset="true">
+  <!-- TEMPORARY BRAND ASSET：森映 SEN YING 暫用圖形標誌（山形），不是正式商標設計；正式 Logo 交付後替換本檔或於後台全站設定填入 Logo URL -->
+  <title>森映 SEN YING（TEMPORARY BRAND ASSET）</title>
+  <symbol id="sen-ying-mark" viewBox="0 0 32 32">
+    <rect width="32" height="32" rx="9" fill="#14B8A6"/>
+    <path d="M16 6 8 20h5l-3 6h12l-3-6h5L16 6Z" fill="#020617"/>
+  </symbol>
+  <use href="#sen-ying-mark" width="32" height="32"/>
+</svg>

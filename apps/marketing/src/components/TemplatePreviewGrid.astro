@@ -1,0 +1,25 @@
+---
+import type { TemplatePreview, TemplateTier } from '../content/templates';
+import MockTemplateCard from './MockTemplateCard.astro';
+
+interface Props {
+  templates: TemplatePreview[];
+  tiers: TemplateTier[];
+}
+
+const { templates, tiers } = Astro.props;
+---
+
+<div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+  {templates.map((template) => <MockTemplateCard template={template} />)}
+</div>
+<dl class="mt-8 grid gap-4 rounded-card border border-border-gray bg-surface p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
+  {
+    tiers.map((tier) => (
+      <div class="min-w-0">
+        <dt class="text-sm font-bold text-ink">{tier.tag}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-slate-gray">{tier.description}</dd>
+      </div>
+    ))
+  }
+</dl>

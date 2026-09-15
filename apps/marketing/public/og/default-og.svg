@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- OG image placeholder：正式上線前替換為 1200×630 PNG / JPG（部分社群平台不支援 SVG） -->
+  <rect width="1200" height="630" fill="#020617"/>
+  <rect x="80" y="80" width="96" height="96" rx="26" fill="#14B8A6"/>
+  <path d="M128 104 104 146h15l-9 18h36l-9-18h15l-24-42Z" fill="#020617"/>
+  <text x="80" y="300" fill="#FFFFFF" font-family="Noto Sans TC, Microsoft JhengHei, sans-serif" font-size="64" font-weight="700">森映 SEN YING</text>
+  <text x="80" y="380" fill="#CBD5E1" font-family="Noto Sans TC, Microsoft JhengHei, sans-serif" font-size="36">把網站、App 和內容，做成真的能用的產品</text>
+  <text x="80" y="540" fill="#14B8A6" font-family="Noto Sans TC, Microsoft JhengHei, sans-serif" font-size="28">OG IMAGE PLACEHOLDER</text>
+</svg>

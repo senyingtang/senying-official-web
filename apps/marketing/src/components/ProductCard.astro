@@ -1,0 +1,35 @@
+---
+import { badgeClass } from '@syt/ui';
+
+interface Props {
+  name: string;
+  summary: string;
+  href: string;
+  badge?: string;
+  tags?: string[];
+  headingLevel?: 'h2' | 'h3';
+  linkLabel?: string;
+}
+
+const { name, summary, href, badge, tags = [], headingLevel: Heading = 'h3', linkLabel = '了解內容' } = Astro.props;
+---
+
+<article class="syt-hover-glow group flex h-full min-w-0 flex-col rounded-card border border-border-gray bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover sm:p-6">
+  {badge && <span class={`${badgeClass('teal')} self-start`}>{badge}</span>}
+  <Heading class="mt-3 text-lg font-bold text-ink sm:text-xl">
+    <a href={href} class="after:absolute after:inset-0 after:rounded-card focus-visible:outline-none">
+      {name}
+    </a>
+  </Heading>
+  <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-gray sm:text-base">{summary}</p>
+  {
+    tags.length > 0 && (
+      <ul class="mt-4 flex flex-wrap gap-2" aria-label={`${name} 特色`}>
+        {tags.map((tag) => (
+          <li class={badgeClass('neutral')}>{tag}</li>
+        ))}
+      </ul>
+    )
+  }
+  <p class="mt-5 text-sm font-semibold text-teal-strong">{linkLabel} →</p>
+</article>

@@ -1,0 +1,164 @@
+---
+import { serviceJsonLd } from '@syt/seo';
+import ButtonLink from '../../../components/ButtonLink.astro';
+import CTASection from '../../../components/CTASection.astro';
+import FaqSection from '../../../components/FaqSection.astro';
+import FeaturePill from '../../../components/FeaturePill.astro';
+import MockBrowserFrame from '../../../components/MockBrowserFrame.astro';
+import MockPageWireframe from '../../../components/MockPageWireframe.astro';
+import PageHero from '../../../components/PageHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import Section from '../../../components/Section.astro';
+import SectionHeading from '../../../components/SectionHeading.astro';
+import { landingVariants, type LandingVariant } from '../../../content/landingVariants';
+import { ogImages } from '../../../content/ogImages';
+import { PRICING_NOTICE } from '../../../content/pricing';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { siteUrl } from '../../../lib/site';
+import { getBrandRuntime } from '../../../lib/brand-runtime';
+
+export function getStaticPaths() {
+  return landingVariants.map((variant) => ({ params: { variant: variant.slug }, props: { variant } }));
+}
+
+interface Props {
+  variant: LandingVariant;
+}
+
+const brand = await getBrandRuntime();
+const { variant } = Astro.props;
+const others = landingVariants.filter((item) => item.slug !== variant.slug);
+const number = (index: number) => String(index + 1).padStart(2, '0');
+---
+
+<BaseLayout
+  seo={{ title: variant.seoTitle, description: variant.seoDescription, path: variant.path }}
+  breadcrumbs={[
+    { label: '首頁', href: '/' },
+    { label: '產品方案', href: '/products' },
+    { label: '一頁式網頁', href: '/products/landing-page' },
+    { label: variant.name, href: variant.path },
+  ]}
+  faq={variant.faq}
+  jsonLd={[serviceJsonLd(siteUrl, { name: variant.name, description: variant.seoDescription, path: variant.path, serviceType: '一頁式網頁' }, brand.seo)]}
+  ogImage={ogImages['landing-page']}
+>
+  <PageHero eyebrow={`一頁式網頁 · ${variant.name}`} title={variant.h1} lead={variant.lead} pills={variant.fits}>
+    <ButtonLink href="/checkout" size="lg" cta="primary" fullWidthOnMobile>查看方案與開通流程</ButtonLink>
+    <ButtonLink href="/contact" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/30 text-white hover:bg-white/10">預約討論</ButtonLink>
+    <Fragment slot="visual">
+      <div class="mx-auto grid max-w-md grid-cols-2 items-end gap-4 sm:gap-6">
+        <MockBrowserFrame device="phone" label={`${variant.name}手機畫面示意`}>
+          <MockPageWireframe variant="landing" />
+        </MockBrowserFrame>
+        <div class="grid min-w-0 gap-3 pb-4">
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p class="text-xs font-semibold text-teal">表單欄位</p>
+            <ul class="mt-2 grid gap-1.5">
+              {variant.formFields.slice(0, 4).map((field) => <li class="truncate rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-slate-200">{field}</li>)}
+            </ul>
+          </div>
+          <p class="text-xs text-slate-400">畫面為版型示意</p>
+        </div>
+      </div>
+    </Fragment>
+  </PageHero>
+
+  <Section tone="white" name="fits" labelledby="fits-heading">
+    <SectionHeading id="fits-heading" eyebrow="適合情境" title={`${variant.name}適合這些情況`} />
+    <ul class="grid gap-3 md:grid-cols-3">
+      {
+        variant.fits.map((fit, index) => (
+          <li class="syt-hover-glow flex min-w-0 items-center gap-4 rounded-card border border-border-gray bg-surface p-5 shadow-card">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-soft font-mono text-sm font-bold text-teal-strong">{number(index)}</span>
+            <span class="min-w-0 font-semibold text-ink">{fit}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section name="structure" labelledby="structure-heading">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
+      <div class="min-w-0">
+        <SectionHeading id="structure-heading" eyebrow="頁面結構" title="頁面由上到下會包含的區塊" description="版型已依閱讀順序排好，填入內容即可。" />
+        <ol class="grid gap-4">
+          {
+            variant.sections.map((section, index) => (
+              <li class="flex min-w-0 gap-4 rounded-card border border-border-gray bg-surface p-5 shadow-card">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-black font-mono text-sm font-bold text-teal">{number(index)}</span>
+                <div class="min-w-0">
+                  <h3 class="font-bold text-ink">{section.title}</h3>
+                  <p class="mt-1 text-sm leading-relaxed text-slate-gray">{section.description}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div class="min-w-0 lg:sticky lg:top-24">
+        <div class="rounded-card bg-gradient-to-br from-deep-navy to-deep-navy-soft p-6">
+          <MockBrowserFrame device="phone" label={`${variant.name}區塊結構示意`}>
+            <MockPageWireframe variant="landing" />
+          </MockBrowserFrame>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="white" name="conversion" labelledby="conversion-heading">
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div class="min-w-0">
+        <SectionHeading id="conversion-heading" eyebrow="轉換重點" title="讓訪客更容易完成報名或預約" />
+        <ul class="grid gap-3">
+          {
+            variant.tips.map((tip) => (
+              <li class="min-w-0 rounded-card border border-border-gray bg-surface p-5">
+                <h3 class="font-bold text-ink">{tip.title}</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-gray">{tip.description}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="grid min-w-0 content-start gap-5">
+        <div class="rounded-card border border-border-gray bg-mist-white p-5 sm:p-6">
+          <h3 class="text-lg font-bold text-ink">建議表單欄位</h3>
+          <ul class="mt-4 grid gap-2 sm:grid-cols-2">
+            {variant.formFields.map((field) => <li class="rounded-xl border border-border-gray bg-surface px-3 py-2.5 text-sm text-ink">{field}</li>)}
+          </ul>
+          <p class="mt-4 text-xs text-slate-gray">欄位可依活動或服務調整，送出的資料會保存在客戶後台。</p>
+        </div>
+        <div class="rounded-card border border-teal/40 bg-teal-soft p-5 sm:p-6">
+          <h3 class="text-lg font-bold text-ink">價格說明</h3>
+          <ul class="mt-3 flex flex-wrap gap-2">
+            {
+              PRICING_NOTICE.map((notice) => (
+                <li class="min-w-0">
+                  <FeaturePill label={notice} />
+                </li>
+              ))
+            }
+          </ul>
+          <p class="mt-3 text-sm leading-relaxed text-slate-gray">第一版每組權限代碼可建立 1 個一頁式網頁。</p>
+          <ButtonLink href="/contact" cta="pricing" class="mt-4" fullWidthOnMobile>預約討論</ButtonLink>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section name="other-variants" labelledby="other-heading">
+    <SectionHeading id="other-heading" eyebrow="其他頁型" title="其他一頁式網頁類型" />
+    <div class="grid gap-5 md:grid-cols-3">
+      {others.map((item) => <ProductCard name={item.name} summary={item.cardSummary} href={item.path} badge="一頁式網頁" linkLabel="看頁型結構" />)}
+    </div>
+  </Section>
+
+  <FaqSection items={variant.faq} tone="white" />
+  <CTASection
+    title={`準備好做${variant.name}了嗎？`}
+    description="方案整理中，可以先預約討論活動或服務內容；購買後兌換權限代碼即可開始填寫。"
+    primary={{ label: '預約討論', href: '/contact' }}
+    secondary={{ label: '查看方案與開通流程', href: '/checkout' }}
+  />
+</BaseLayout>

@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@syt/ui/theme.css";
+
+/* workspace 套件中的 class（buttonClass / badgeClass 等）也要被 Tailwind 掃描 */
+@source "../../../../packages/ui/src";

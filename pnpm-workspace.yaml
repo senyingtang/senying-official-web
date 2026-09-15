@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 12 預設不執行套件的 install script；只允許必要的建置腳本
+allowBuilds:
+  esbuild: true

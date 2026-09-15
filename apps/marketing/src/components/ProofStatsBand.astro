@@ -1,0 +1,36 @@
+---
+import type { StatItem } from '../content/types';
+import IconGlyph from './IconGlyph.astro';
+
+interface Props {
+  items: StatItem[];
+  /** 必填：數據狀態說明（例如「示意版面，正式案例數據待確認」） */
+  note: string;
+}
+
+/** 成果數據卡：版面沿用設計稿，數值一律使用確認過的狀態文字，不放未經確認的成效數字 */
+const { items, note } = Astro.props;
+---
+
+<div data-proof-stats>
+  <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    {
+      items.map((item) => (
+        <li class="flex min-w-0 items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">
+            <IconGlyph name={item.icon} class="h-6 w-6" />
+          </span>
+          <span class="min-w-0">
+            <span class="block text-xl font-bold text-teal">{item.value}</span>
+            <span class="mt-0.5 block text-sm font-semibold text-white">{item.label}</span>
+            {item.note && <span class="mt-0.5 block text-xs text-slate-400">{item.note}</span>}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+  <p role="note" class="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-medium text-amber-200">
+    <IconGlyph name="alert" class="h-4 w-4 shrink-0" />
+    <span class="min-w-0">{note}</span>
+  </p>
+</div>

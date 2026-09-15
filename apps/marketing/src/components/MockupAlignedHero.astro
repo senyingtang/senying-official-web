@@ -1,0 +1,128 @@
+---
+import type { BreadcrumbItem } from '@syt/seo';
+import type { IconFeature } from '../content/types';
+import Breadcrumbs from './Breadcrumbs.astro';
+import Container from './Container.astro';
+import IconGlyph from './IconGlyph.astro';
+import MountainBackdrop from './MountainBackdrop.astro';
+
+interface Props {
+  title: string;
+  /** H1 內以青綠色強調的字串（必須是 title 的一部分） */
+  highlight?: string;
+  subtitle?: string;
+  lead: string;
+  eyebrow?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  /** Hero 下方的短事實（不放未經確認的數字） */
+  facts?: { value: string; label: string }[];
+  /** Hero 底部的玻璃特色條（設計稿 Hero 下方 4 格） */
+  features?: IconFeature[];
+  /** 裝飾用手寫短句（aria-hidden，手機不顯示） */
+  script?: string;
+  /** 首頁：桌機 Hero 接近首屏高度 */
+  fullHeight?: boolean;
+  /** 重要提醒（例如電商第一版範圍），以文字顯示在說明下方 */
+  notice?: string;
+  id?: string;
+}
+
+/**
+ * 設計稿對齊的 Hero：深藍山景底、左文右圖、CTA 與主標一律為 HTML 文字。
+ * 預設 slot 放 CTA，`visual` slot 放產品畫面；手機版畫面排在文字下方，不壓縮文字。
+ */
+const { title, highlight, subtitle, lead, eyebrow, breadcrumbs, facts = [], features = [], script, fullHeight = false, notice, id = 'hero-heading' } = Astro.props;
+const hasVisual = Astro.slots.has('visual');
+const hasActions = Astro.slots.has('default');
+const highlightIndex = highlight ? title.indexOf(highlight) : -1;
+const titleParts: [string, string, string] =
+  highlight && highlightIndex >= 0
+    ? [title.slice(0, highlightIndex), highlight, title.slice(highlightIndex + highlight.length)]
+    : [title, '', ''];
+// 主標在逗號後換行（窄螢幕仍可在段內換行）
+const splitLines = (text: string) => text.split(/(?<=，)/).filter(Boolean);
+---
+
+<section data-section="hero" data-page-hero aria-labelledby={id} class="syt-mountain-bg relative overflow-hidden text-white">
+  <MountainBackdrop />
+  <div aria-hidden="true" class="syt-grid-lines pointer-events-none absolute inset-0 opacity-60"></div>
+  <Container class="relative">
+    <div
+      data-hero-inner={fullHeight ? '' : undefined}
+      class:list={[
+        'grid items-center gap-10 pb-10 pt-6 sm:pt-8 md:pb-14',
+        hasVisual && 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12',
+        fullHeight && 'lg:min-h-[min(78vh,760px)]',
+      ]}
+    >
+      <div class="min-w-0">
+        {breadcrumbs && breadcrumbs.length > 1 && <Breadcrumbs items={breadcrumbs} tone="dark" />}
+        {
+          eyebrow && (
+            <p class="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-teal/40 bg-teal/10 px-3 py-1 text-xs font-semibold tracking-wide text-teal sm:text-sm">
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-teal" aria-hidden="true" />
+              <span class="min-w-0">{eyebrow}</span>
+            </p>
+          )
+        }
+        <h1 id={id} class="mt-4 text-[2rem] font-bold leading-[1.22] tracking-tight xs:text-[2.25rem] md:text-5xl lg:text-[2.6rem] xl:text-[3rem]">
+          {splitLines(titleParts[0]).map((line) => <span class="inline-block max-w-full whitespace-pre-wrap">{line}</span>)}
+          {titleParts[1] && <span class="inline-block max-w-full whitespace-pre-wrap text-teal">{titleParts[1]}</span>}
+          {titleParts[2] && splitLines(titleParts[2]).map((line) => <span class="inline-block max-w-full whitespace-pre-wrap">{line}</span>)}
+        </h1>
+        {subtitle && <p class="mt-3 text-lg font-semibold leading-snug text-slate-100 sm:text-xl">{subtitle}</p>}
+        <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-300">{lead}</p>
+        {
+          notice && (
+            <p role="note" data-hero-notice class="mt-4 flex max-w-xl gap-2 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-sm leading-relaxed text-amber-100">
+              <span aria-hidden="true" class="font-bold text-warning">!</span>
+              <span class="min-w-0">{notice}</span>
+            </p>
+          )
+        }
+        {hasActions && <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><slot /></div>}
+        {
+          facts.length > 0 && (
+            <dl class="mt-8 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-white/10 pt-6 sm:grid-cols-4 sm:gap-x-0">
+              {facts.map((fact, index) => (
+                <div class:list={['flex min-w-0 flex-col sm:px-4', index > 0 && 'sm:border-l sm:border-white/15', index === 0 && 'sm:pl-0']}>
+                  <dt class="order-2 mt-1 text-xs text-slate-400 sm:text-sm">{fact.label}</dt>
+                  <dd class="order-1 text-base font-bold text-white sm:text-lg">{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )
+        }
+      </div>
+      {
+        hasVisual && (
+          <div class="relative min-w-0">
+            <slot name="visual" />
+            {script && (
+              <p aria-hidden="true" class="syt-script pointer-events-none absolute -bottom-6 right-2 hidden text-lg text-teal/80 xl:block">
+                {script}
+              </p>
+            )}
+          </div>
+        )
+      }
+    </div>
+    {
+      features.length > 0 && (
+        <ul class="relative mb-8 grid gap-3 rounded-card border border-white/10 bg-white/5 p-3 backdrop-blur sm:grid-cols-2 lg:mb-10 lg:grid-cols-4 lg:gap-0 lg:p-0">
+          {features.map((feature, index) => (
+            <li class:list={['flex min-w-0 items-center gap-3 rounded-2xl p-3 lg:rounded-none lg:px-5 lg:py-4', index > 0 && 'lg:border-l lg:border-white/10']}>
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">
+                <IconGlyph name={feature.icon} class="h-5 w-5" />
+              </span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-white">{feature.title}</span>
+                <span class="mt-0.5 block text-xs leading-relaxed text-slate-400">{feature.description}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </Container>
+</section>

@@ -1,0 +1,28 @@
+---
+import type { BlogPost } from '../content/blogPosts';
+import PosterTile from './PosterTile.astro';
+
+interface Props {
+  post: BlogPost;
+  categoryLabel: string;
+  headingLevel?: 'h2' | 'h3' | 'h4';
+}
+
+/** 文章卡（設計稿圖文卡）：文章尚未發布，顯示主題與重點，不連到不存在的文章頁 */
+const { post, categoryLabel, headingLevel: Heading = 'h3' } = Astro.props;
+---
+
+<article data-blog-card class="syt-hover-glow flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border-gray bg-surface shadow-card">
+  <div class="relative aspect-[16/9] overflow-hidden">
+    <PosterTile poster={post.poster} />
+    <span class="absolute bottom-2 left-2 rounded-full bg-teal px-2.5 py-0.5 text-[11px] font-semibold text-navy-black shadow">{categoryLabel}</span>
+  </div>
+  <div class="flex flex-1 flex-col p-4 sm:p-5">
+    <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-gray">
+      <span class="rounded-full border border-border-gray px-2 py-0.5 font-medium text-ink">即將發布</span>
+      <span>預計閱讀約 {post.readingMinutes} 分鐘</span>
+    </p>
+    <Heading class="mt-2 text-base font-bold leading-snug text-ink sm:text-lg">{post.title}</Heading>
+    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-gray">{post.excerpt}</p>
+  </div>
+</article>

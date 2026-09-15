@@ -1,0 +1,7 @@
+﻿
+Name         Path                    Exists Framework HasPackageJson HasGit HasEnv HasSupabase
+----         ----                    ------ --------- -------------- ------ ------ -----------
+Hungjui 形象官網 D:\project\hungjui-site   True Astro               True   True   True       False
+
+
+

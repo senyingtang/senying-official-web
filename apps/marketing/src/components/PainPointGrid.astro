@@ -1,0 +1,29 @@
+---
+import type { IconFeature } from '../content/types';
+import IconGlyph from './IconGlyph.astro';
+
+interface Props {
+  items: IconFeature[];
+  columns?: 3 | 4;
+}
+
+/** 痛點卡：情境 icon + 標題 + 說明，淺色底 */
+const { items, columns = items.length >= 4 ? 4 : 3 } = Astro.props;
+const columnClass = columns === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3';
+---
+
+<ul class:list={['grid gap-3 sm:gap-4', columnClass]}>
+  {
+    items.map((item) => (
+      <li class="syt-hover-glow flex min-w-0 gap-4 rounded-2xl border border-border-gray bg-surface p-5 shadow-card lg:flex-col lg:gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+          <IconGlyph name={item.icon} class="h-6 w-6" />
+        </span>
+        <div class="min-w-0">
+          <h3 class="text-base font-bold text-ink">{item.title}</h3>
+          <p class="mt-1 text-sm leading-relaxed text-slate-gray">{item.description}</p>
+        </div>
+      </li>
+    ))
+  }
+</ul>

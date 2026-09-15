@@ -1,0 +1,15 @@
+---
+interface Props {
+  variant?: 'hero' | 'section';
+  /** 疊一層細格線 */
+  grid?: boolean;
+  class?: string;
+}
+
+const { variant = 'section', grid = false, class: className = '' } = Astro.props;
+---
+
+<div aria-hidden="true" class:list={['pointer-events-none absolute inset-0 overflow-hidden', className]}>
+  <div class:list={['absolute inset-0', variant === 'hero' ? 'syt-glow-hero' : 'syt-glow-section']}></div>
+  {grid && <div class="syt-grid-lines absolute inset-0"></div>}
+</div>

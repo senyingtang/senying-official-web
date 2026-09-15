@@ -1,0 +1,49 @@
+---
+import { badgeClass } from '@syt/ui';
+import ButtonLink from './ButtonLink.astro';
+
+interface Props {
+  name: string;
+  description: string;
+  priceLabel: string;
+  priceNote?: string;
+  status: string;
+  features: string[];
+  ctaLabel: string;
+  ctaHref: string;
+  highlight?: boolean;
+  href?: string;
+}
+
+const { name, description, priceLabel, priceNote, status, features, ctaLabel, ctaHref, highlight = false, href } = Astro.props;
+---
+
+<article
+  class:list={[
+    'syt-hover-glow flex h-full min-w-0 flex-col rounded-card border bg-surface p-5 shadow-card sm:p-6',
+    highlight ? 'border-teal-strong ring-1 ring-teal-strong' : 'border-border-gray',
+  ]}
+>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h3 class="text-lg font-bold text-ink">
+      {href ? <a href={href} class="hover:text-teal-strong">{name}</a> : name}
+    </h3>
+    <span class={badgeClass(highlight ? 'teal' : 'neutral')}>{status}</span>
+  </div>
+  <p class="mt-2 text-sm leading-relaxed text-slate-gray">{description}</p>
+  <p class="mt-5 text-2xl font-bold text-deep-navy">{priceLabel}</p>
+  {priceNote && <p class="mt-1 text-xs text-slate-gray">{priceNote}</p>}
+  <ul class="mt-5 grid flex-1 content-start gap-2 text-sm text-ink">
+    {
+      features.map((feature) => (
+        <li class="flex gap-2">
+          <span class="mt-0.5 text-teal-strong" aria-hidden="true">
+            ✓
+          </span>
+          <span class="min-w-0">{feature}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <ButtonLink href={ctaHref} variant={highlight ? 'primary' : 'secondary'} class="mt-6 w-full" cta="plan">{ctaLabel}</ButtonLink>
+</article>

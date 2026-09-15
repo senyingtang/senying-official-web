@@ -1,0 +1,34 @@
+---
+import { webPageJsonLd } from '@syt/seo';
+import ButtonLink from '../../components/ButtonLink.astro';
+import CTASection from '../../components/CTASection.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import LegalDocument from '../../components/LegalDocument.astro';
+import PageHero from '../../components/PageHero.astro';
+import { privacyFaq } from '../../content/faqs';
+import { privacySections } from '../../content/legal';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteUrl } from '../../lib/site';
+import { getBrandRuntime } from '../../lib/brand-runtime';
+
+const brand = await getBrandRuntime();
+const description = '森映隱私權政策草稿，說明收集的資料、資料用途、客戶網站表單資料的查看範圍，以及資料保存、查詢與刪除的方式。';
+---
+
+<BaseLayout
+  seo={{ title: '隱私權政策｜森映自助建站平台', description, path: '/legal/privacy' }}
+  breadcrumbs={[
+    { label: '首頁', href: '/' },
+    { label: '隱私權政策', href: '/legal/privacy' },
+  ]}
+  faq={privacyFaq}
+  jsonLd={[webPageJsonLd(siteUrl, { name: '隱私權政策', description, path: '/legal/privacy' }, brand.seo)]}
+>
+  <PageHero eyebrow="法律資訊 · 草稿" title="隱私權政策" lead="說明森映收集哪些資料、用在哪裡，以及你可以如何查詢或刪除個人資料。本頁為草稿，正式上線前會再確認。">
+    <ButtonLink href="/contact" size="lg" cta="primary" fullWidthOnMobile>申請查詢或刪除</ButtonLink>
+    <ButtonLink href="/legal/terms" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/30 text-white hover:bg-white/10">服務條款</ButtonLink>
+  </PageHero>
+  <LegalDocument sections={privacySections} documentName="隱私權政策" updatedLabel="版本：草稿（正式公告時補上生效日期）" />
+  <FaqSection items={privacyFaq} tone="mist" />
+  <CTASection title="對個人資料使用有疑問？" description="可以透過聯絡頁面提出查詢、更正或刪除的申請。" primary={{ label: '聯絡我們', href: '/contact' }} secondary={{ label: '服務條款', href: '/legal/terms' }} />
+</BaseLayout>

@@ -1,0 +1,49 @@
+---
+import { ACCESS_CODE_EXAMPLE } from '@syt/shared';
+
+interface Props {
+  code?: string;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { code = ACCESS_CODE_EXAMPLE, tone = 'light', class: className = '' } = Astro.props;
+const dark = tone === 'dark';
+const steps = [
+  { label: '付款確認', done: true },
+  { label: '代碼產生', done: true },
+  { label: '兌換後建立工作區', done: false },
+];
+---
+
+<div
+  class:list={[
+    'min-w-0 rounded-2xl border p-4 shadow-xl',
+    dark ? 'border-white/10 bg-deep-navy/95 text-white shadow-black/30' : 'border-border-gray bg-surface text-ink shadow-slate-900/10',
+    className,
+  ]}
+>
+  <div class="flex items-center justify-between gap-2">
+    <p class:list={['text-xs font-semibold tracking-wide', dark ? 'text-teal' : 'text-teal-strong']}>權限代碼</p>
+    <span class:list={['shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium', dark ? 'bg-teal/15 text-teal' : 'bg-teal-soft text-teal-strong']}>可兌換</span>
+  </div>
+  <p class="mt-2 break-all font-mono text-base font-semibold tracking-wide">{code}</p>
+  <ol class="mt-3 grid gap-1.5 text-xs">
+    {
+      steps.map((step) => (
+        <li class:list={['flex items-center gap-2', dark ? 'text-slate-300' : 'text-slate-gray']}>
+          <span
+            class:list={[
+              'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px]',
+              step.done ? 'bg-teal text-navy-black' : dark ? 'border border-white/30' : 'border border-slate-300',
+            ]}
+            aria-hidden="true"
+          >
+            {step.done ? '✓' : ''}
+          </span>
+          <span class="min-w-0">{step.label}</span>
+        </li>
+      ))
+    }
+  </ol>
+</div>

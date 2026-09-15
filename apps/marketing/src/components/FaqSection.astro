@@ -1,0 +1,33 @@
+---
+import type { FaqItem } from '@syt/seo';
+import FAQList from './FAQList.astro';
+import Section from './Section.astro';
+import SectionHeading from './SectionHeading.astro';
+
+interface Props {
+  items: FaqItem[];
+  title?: string;
+  description?: string;
+  tone?: 'mist' | 'white';
+  /** grid：設計稿的雙欄緊湊 FAQ；stack：置中單欄 */
+  layout?: 'stack' | 'grid';
+}
+
+const { items, title = '常見問題', description, tone = 'white', layout = 'stack' } = Astro.props;
+---
+
+<Section tone={tone} id="faq" name="faq" labelledby="faq-heading" density={layout === 'grid' ? 'compact' : 'normal'}>
+  {
+    layout === 'grid' ? (
+      <>
+        <SectionHeading id="faq-heading" title={title} description={description} compact />
+        <FAQList items={items} columns={2} />
+      </>
+    ) : (
+      <div class="mx-auto max-w-3xl">
+        <SectionHeading id="faq-heading" eyebrow="FAQ" title={title} description={description} align="center" />
+        <FAQList items={items} />
+      </div>
+    )
+  }
+</Section>

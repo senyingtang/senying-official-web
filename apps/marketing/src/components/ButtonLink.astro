@@ -1,0 +1,29 @@
+---
+import { buttonClass, type ButtonSize, type ButtonVariant } from '@syt/ui';
+import { lineOaUrl, portalLoginUrl } from '../lib/site';
+
+interface Props {
+  /** 'line' → LINE@ 連結；'portal' → 客戶後台登入 */
+  href: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  class?: string;
+  fullWidthOnMobile?: boolean;
+  /** CTA 標記（輸出為 data-cta，供驗收與追蹤使用） */
+  cta?: string;
+}
+
+const { href, variant = 'primary', size = 'md', class: className = '', fullWidthOnMobile = false, cta } = Astro.props;
+const resolvedHref = href === 'line' ? lineOaUrl : href === 'portal' ? portalLoginUrl : href;
+const external = /^https?:\/\//.test(resolvedHref);
+---
+
+<a
+  href={resolvedHref}
+  data-cta={cta}
+  class={buttonClass(variant, size, `${fullWidthOnMobile ? 'w-full sm:w-auto' : ''} ${className}`)}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <slot />
+</a>

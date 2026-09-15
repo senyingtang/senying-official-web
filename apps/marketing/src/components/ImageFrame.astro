@@ -1,0 +1,65 @@
+---
+import type { MarketingImageAsset } from '../content/media';
+import { IMAGE_SIZES } from '../lib/image-variants';
+import ResponsiveImage from './ResponsiveImage.astro';
+
+interface Props {
+  image: MarketingImageAsset;
+  loading?: 'eager' | 'lazy';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  caption?: string;
+  /** dark：放在深色區塊（玻璃邊框）；light：放在淺色區塊 */
+  tone?: 'dark' | 'light';
+  glow?: boolean;
+  /** natural：依圖片原始比例；video：16:9；wide：21:9 橫幅裁切 */
+  aspect?: 'natural' | 'video' | 'wide';
+  /** 額外的圖片 class，例如 object-position */
+  imageClass?: string;
+  /** 顯示寬度（WebP / AVIF srcset 選擇尺寸）；預設桌機半欄、手機全寬 */
+  sizes?: string;
+  class?: string;
+}
+
+/**
+ * 圖片外框：玻璃邊框、陰影、微光。
+ * width / height 由 asset 提供，搭配 h-auto 與 aspect-ratio，不會造成 layout shift 或水平捲軸。
+ */
+const {
+  image,
+  loading = 'lazy',
+  fetchpriority = 'auto',
+  caption,
+  tone = 'dark',
+  glow = true,
+  aspect = 'natural',
+  imageClass = '',
+  sizes = IMAGE_SIZES.halfColumn,
+  class: className = '',
+} = Astro.props;
+const dark = tone === 'dark';
+const aspectClass = { natural: '', video: 'aspect-[16/9]', wide: 'aspect-[21/9]' }[aspect];
+---
+
+<figure class:list={['relative min-w-0', className]}>
+  {glow && <div aria-hidden="true" class:list={['pointer-events-none absolute -inset-2 rounded-[2rem] blur-2xl sm:-inset-4', dark ? 'bg-teal/15' : 'bg-teal/10']} />}
+  <div
+    class:list={[
+      'relative overflow-hidden rounded-2xl border p-1.5 shadow-2xl sm:rounded-3xl sm:p-2',
+      dark ? 'border-white/15 bg-white/5 shadow-black/50' : 'border-border-gray bg-surface shadow-slate-900/15',
+    ]}
+  >
+    <ResponsiveImage
+      src={image.src}
+      alt={image.alt}
+      width={image.width}
+      height={image.height}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      decoding="async"
+      sizes={sizes}
+      class={`h-auto w-full rounded-xl sm:rounded-2xl ${aspectClass} ${imageClass}`}
+    />
+    <div aria-hidden="true" class="pointer-events-none absolute inset-1.5 rounded-xl bg-gradient-to-t from-navy-black/25 via-transparent to-transparent sm:inset-2 sm:rounded-2xl" />
+  </div>
+  {caption && <figcaption class:list={['relative mt-3 text-xs', dark ? 'text-slate-400' : 'text-slate-gray']}>{caption}</figcaption>}
+</figure>

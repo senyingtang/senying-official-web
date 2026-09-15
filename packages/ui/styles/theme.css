@@ -1,0 +1,78 @@
+/*
+ * 森映 Tailwind v4 theme preset
+ * 使用方式（各 app 的全域 CSS）：
+ *   @import "tailwindcss";
+ *   @import "@syt/ui/theme.css";
+ *   @source "<相對路徑>/packages/ui/src";
+ * 與 src/tokens.ts 同步維護。
+ */
+@theme {
+  /* ---- Colors ---- */
+  --color-navy-black: #020617;
+  --color-deep-navy: #0f172a;
+  --color-deep-navy-soft: #1e293b;
+  --color-teal: #14b8a6;
+  --color-teal-hover: #0d9488;
+  --color-teal-strong: #0f766e;
+  --color-teal-soft: #f0fdfa;
+  --color-mist-white: #f8fafc;
+  --color-surface: #ffffff;
+  --color-ink: #111827;
+  --color-slate-gray: #64748b;
+  --color-border-gray: #e2e8f0;
+  --color-success: #10b981;
+  --color-success-strong: #047857;
+  --color-warning: #f59e0b;
+  --color-warning-strong: #b45309;
+  --color-danger: #ef4444;
+  --color-danger-strong: #b91c1c;
+
+  /* ---- Breakpoints（RWD 驗收寬度） ---- */
+  --breakpoint-*: initial;
+  --breakpoint-xs: 375px;
+  --breakpoint-sm: 430px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1440px;
+
+  /* ---- Typography ---- */
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+
+  /* ---- Radius / Shadow ---- */
+  --radius-button: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-input: 0.625rem;
+  --shadow-card: 0 12px 30px rgb(15 23 42 / 0.06);
+  --shadow-card-hover: 0 16px 36px rgb(15 23 42 / 0.1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-mist-white font-sans text-ink antialiased;
+    overflow-wrap: break-word;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :focus-visible {
+    outline-color: var(--color-teal-strong);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,17 @@
+﻿
+Name         FullName                            
+----         --------                            
+.astro       D:\project\hungjui-site\.astro      
+.git         D:\project\hungjui-site\.git        
+.wrangler    D:\project\hungjui-site\.wrangler   
+dist         D:\project\hungjui-site\dist        
+docs         D:\project\hungjui-site\docs        
+node_modules D:\project\hungjui-site\node_modules
+powershell   D:\project\hungjui-site\powershell  
+public       D:\project\hungjui-site\public      
+src          D:\project\hungjui-site\src         
+tools        D:\project\hungjui-site\tools       
+_incoming    D:\project\hungjui-site\_incoming   
+
+
+

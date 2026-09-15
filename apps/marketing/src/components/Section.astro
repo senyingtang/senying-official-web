@@ -1,0 +1,35 @@
+---
+import Container from './Container.astro';
+import MountainBackdrop from './MountainBackdrop.astro';
+
+interface Props {
+  id?: string;
+  /** deep：深藍底 + 青綠微光；mountain：深藍科技山景（設計稿深色區塊） */
+  tone?: 'mist' | 'white' | 'dark' | 'deep' | 'teal' | 'mountain';
+  /** compact：設計稿較緊湊的區塊間距 */
+  density?: 'normal' | 'compact';
+  class?: string;
+  labelledby?: string;
+  /** 區塊識別（輸出為 data-section，供驗收使用） */
+  name?: string;
+}
+
+const { id, tone = 'mist', density = 'normal', class: className = '', labelledby, name } = Astro.props;
+
+const toneClass = {
+  mist: 'bg-mist-white text-ink',
+  white: 'bg-surface text-ink',
+  dark: 'bg-deep-navy text-white',
+  deep: 'syt-dark-section relative overflow-hidden text-white',
+  teal: 'bg-teal-soft text-ink',
+  mountain: 'syt-mountain-bg relative overflow-hidden text-white',
+}[tone];
+const spacing = density === 'compact' ? 'py-10 md:py-14' : 'py-14 md:py-20';
+---
+
+<section id={id} data-section={name} aria-labelledby={labelledby} class:list={['scroll-mt-20', spacing, toneClass, className]}>
+  {tone === 'mountain' && <MountainBackdrop />}
+  <Container class="relative">
+    <slot />
+  </Container>
+</section>

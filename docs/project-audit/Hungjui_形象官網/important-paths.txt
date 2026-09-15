@@ -1,0 +1,26 @@
+﻿
+Path                Exists
+----                ------
+src                   True
+src\app              False
+src\pages             True
+src\components        True
+src\layouts           True
+src\data              True
+public                True
+supabase             False
+supabase\migrations  False
+astro.config.mjs      True
+next.config.js       False
+next.config.mjs      False
+vite.config.ts       False
+tailwind.config.ts   False
+tailwind.config.js   False
+tsconfig.json         True
+.env                 False
+.env.local           False
+dist                  True
+.next                False
+
+
+

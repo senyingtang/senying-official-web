@@ -1,0 +1,115 @@
+---
+import { organizationJsonLd, webSiteJsonLd } from '@syt/seo';
+import ButtonLink from '../components/ButtonLink.astro';
+import CategoryChips from '../components/CategoryChips.astro';
+import Container from '../components/Container.astro';
+import DenseFeatureGrid from '../components/DenseFeatureGrid.astro';
+import FaqSection from '../components/FaqSection.astro';
+import FinalCTA from '../components/FinalCTA.astro';
+import HeroVisualStack from '../components/HeroVisualStack.astro';
+import HorizontalShowcaseRail from '../components/HorizontalShowcaseRail.astro';
+import IconGlyph from '../components/IconGlyph.astro';
+import MockupAlignedHero from '../components/MockupAlignedHero.astro';
+import ProcessTimeline from '../components/ProcessTimeline.astro';
+import Section from '../components/Section.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { homeFaq } from '../content/faqs';
+import { brandTrust, buildSteps, featuredWorks, homeFinalCta, homeHero, popularTemplates, productEntries } from '../content/home';
+import { ogImages } from '../content/ogImages';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteUrl } from '../lib/site';
+import { getBrandRuntime } from '../lib/brand-runtime';
+
+const brand = await getBrandRuntime();
+---
+
+<BaseLayout
+  seo={{
+    title: '網站設計、電商建置與 SEO 數位工具',
+    titleTemplate: 'home',
+    description: '從 SEO 形象官網、一頁式網頁、電商網站到 SEO 文章生產器，森映把建站與內容需求整理成可購買、可開通、可持續管理的數位產品。',
+    path: '/',
+  }}
+  breadcrumbs={[{ label: '首頁', href: '/' }]}
+  hideBreadcrumbs
+  faq={homeFaq}
+  jsonLd={[organizationJsonLd(siteUrl, brand.seo), webSiteJsonLd(siteUrl, brand.seo)]}
+  ogImage={ogImages.home}
+>
+  <!-- 設計稿區塊 2：Hero（區塊 1 Header 由 BaseLayout 輸出） -->
+  <MockupAlignedHero eyebrow={homeHero.eyebrow} title={homeHero.title} highlight={homeHero.highlight} lead={homeHero.lead} facts={homeHero.trust} fullHeight>
+    <ButtonLink href={homeHero.primary.href} size="lg" cta="hero-primary" fullWidthOnMobile>
+      {homeHero.primary.label}
+      <span aria-hidden="true">→</span>
+    </ButtonLink>
+    <ButtonLink href={homeHero.secondary.href} variant="ghost" size="lg" cta="hero-secondary" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">
+      {homeHero.secondary.label}
+    </ButtonLink>
+    <ButtonLink href={homeHero.line.href} variant="ghost" size="lg" cta="hero-line" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">
+      <IconGlyph name="message" class="h-5 w-5 text-teal" />
+      {homeHero.line.label}
+    </ButtonLink>
+    <Fragment slot="visual">
+      <HeroVisualStack note={homeHero.visualNote} />
+    </Fragment>
+  </MockupAlignedHero>
+
+  <!-- 區塊 3：品牌信任（品牌類型 placeholder，不放未授權的客戶 logo） -->
+  <section data-section="brand-trust" aria-labelledby="brand-trust-heading" class="border-b border-border-gray bg-surface py-8 md:py-10">
+    <Container>
+      <div class="flex flex-col gap-1 md:flex-row md:items-end md:justify-between md:gap-6">
+        <h2 id="brand-trust-heading" class="text-xl font-bold text-ink sm:text-2xl">{brandTrust.title}</h2>
+        <p class="text-sm text-slate-gray md:max-w-md md:text-right">{brandTrust.description}</p>
+      </div>
+      <ul class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+        {
+          brandTrust.items.map((item) => (
+            <li class="flex min-w-0 items-center justify-center gap-2 rounded-xl border border-dashed border-border-gray px-2 py-3 text-slate-gray">
+              <IconGlyph name={item.icon} class="h-5 w-5 shrink-0" />
+              <span class="min-w-0 text-sm font-semibold">{item.label}</span>
+              <span class="sr-only">（品牌類型）</span>
+            </li>
+          ))
+        }
+      </ul>
+    </Container>
+  </section>
+
+  <!-- 區塊 4：精選作品（深色、橫向卡片） -->
+  <Section tone="mountain" density="compact" name="featured-works" labelledby="featured-works-heading">
+    <SectionHeading id="featured-works-heading" title={featuredWorks.title} description={featuredWorks.description} action={featuredWorks.action} tone="dark" compact />
+    <HorizontalShowcaseRail cards={featuredWorks.cards} tone="dark" label="精選作品" />
+  </Section>
+
+  <!-- 區塊 5：五大產品入口 -->
+  <Section density="compact" name="products" labelledby="products-heading">
+    <SectionHeading id="products-heading" title={productEntries.title} description={productEntries.description} action={productEntries.action} compact />
+    <DenseFeatureGrid items={productEntries.items} columns={5} />
+  </Section>
+
+  <!-- 區塊 6：五步驟建站流程（桌機橫向、手機直向） -->
+  <Section tone="white" density="compact" name="process" labelledby="process-heading">
+    <SectionHeading id="process-heading" title={buildSteps.title} description={buildSteps.description} compact />
+    <ProcessTimeline steps={buildSteps.steps} />
+  </Section>
+
+  <!-- 區塊 7：熱門版型（深色山景 + chips + 版型卡） -->
+  <Section tone="mountain" density="compact" id="templates" name="templates" labelledby="templates-heading">
+    <SectionHeading id="templates-heading" title={popularTemplates.title} description={popularTemplates.description} action={popularTemplates.action} tone="dark" compact />
+    <CategoryChips items={popularTemplates.chips} target="templates" label="版型分類" tone="dark" class="mb-5" />
+    <HorizontalShowcaseRail cards={popularTemplates.cards} tone="dark" filterList="templates" label="熱門版型" />
+  </Section>
+
+  <!-- 補充：FAQ（SEO 驗收要求，設計稿未列） -->
+  <FaqSection items={homeFaq} layout="grid" tone="mist" description="自助建站、權限代碼與價格的常見問題。" />
+
+  <!-- 區塊 8：Final CTA -->
+  <FinalCTA
+    title={homeFinalCta.title}
+    description={homeFinalCta.description}
+    primary={homeFinalCta.primary}
+    secondary={homeFinalCta.secondary}
+    tone="light"
+    script={homeFinalCta.script}
+  />
+</BaseLayout>

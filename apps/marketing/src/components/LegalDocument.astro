@@ -1,0 +1,60 @@
+---
+import type { LegalSection } from '../content/legal';
+import Section from './Section.astro';
+
+interface Props {
+  sections: LegalSection[];
+  documentName: string;
+  updatedLabel: string;
+}
+
+const { sections, documentName, updatedLabel } = Astro.props;
+const number = (index: number) => String(index + 1).padStart(2, '0');
+---
+
+<Section tone="white" name="legal-document">
+  <div class="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12">
+    <aside class="min-w-0 lg:sticky lg:top-24 lg:self-start">
+      <div class="rounded-card border border-warning/30 bg-warning/10 p-4 text-sm text-warning-strong">
+        <p class="font-semibold">草稿版本</p>
+        <p class="mt-1 leading-relaxed">正式上線前由森映確認內容，必要時請法律顧問審閱。</p>
+        <p class="mt-2 text-xs">{updatedLabel}</p>
+      </div>
+      <nav aria-label={`${documentName}目錄`} class="mt-4 rounded-card border border-border-gray bg-mist-white p-4">
+        <p class="text-sm font-semibold text-ink">目錄</p>
+        <ol class="mt-2 grid gap-1 text-sm">
+          {
+            sections.map((section, index) => (
+              <li>
+                <a href={`#section-${index + 1}`} class="flex min-w-0 gap-2 rounded-lg px-2 py-1.5 text-slate-gray hover:bg-surface hover:text-teal-strong">
+                  <span class="shrink-0 font-mono text-xs leading-5">{number(index)}</span>
+                  <span class="min-w-0">{section.title}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </aside>
+    <article class="min-w-0">
+      {
+        sections.map((section, index) => (
+          <section id={`section-${index + 1}`} class="scroll-mt-24 border-b border-border-gray py-6 first:pt-0 last:border-b-0">
+            <p class="font-mono text-xs font-semibold text-teal-strong">{number(index)}</p>
+            <h2 class="mt-1 text-xl font-bold text-ink sm:text-2xl">{section.title}</h2>
+            <div class="prose-copy mt-3 text-base leading-relaxed text-slate-gray">
+              {section.paragraphs.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+      <div class="mt-8 rounded-card border border-border-gray bg-mist-white p-5 sm:p-6">
+        <p class="font-semibold text-ink">對{documentName}有疑問？</p>
+        <p class="mt-1 text-sm leading-relaxed text-slate-gray">可以透過聯絡我們頁面與森映聯繫，我們會說明條文內容。</p>
+        <a href="/contact" class="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-teal-strong hover:underline">前往聯絡我們 →</a>
+      </div>
+    </article>
+  </div>
+</Section>

@@ -1,0 +1,70 @@
+---
+import { itemListJsonLd } from '@syt/seo';
+import ButtonLink from '../components/ButtonLink.astro';
+import ContactCTA from '../components/ContactCTA.astro';
+import FaqSection from '../components/FaqSection.astro';
+import IndustryUseCaseGrid from '../components/IndustryUseCaseGrid.astro';
+import PageHero from '../components/PageHero.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import Section from '../components/Section.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { solutionsFaq } from '../content/faqs';
+import { solutionScenarios, solutionSteps } from '../content/solutions';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { ogImages } from '../content/ogImages';
+import { siteUrl } from '../lib/site';
+---
+
+<BaseLayout
+  seo={{
+    title: '解決方案｜新品牌、舊站翻新、SEO 內容與活動轉換',
+    description: '依使用情境選擇做法：新品牌起步、舊網站翻新、SEO 內容累積、活動短期轉換、美業店家預約、B2B 形象詢價與電商商品展示。',
+    path: '/solutions',
+  }}
+  breadcrumbs={[
+    { label: '首頁', href: '/' },
+    { label: '解決方案', href: '/solutions' },
+  ]}
+  faq={solutionsFaq}
+  jsonLd={[itemListJsonLd(siteUrl, { name: '森映解決方案', items: solutionScenarios.map((scenario) => ({ name: scenario.title, path: `/solutions#${scenario.key}` })) })]}
+  ogImage={ogImages.solutions}
+>
+  <PageHero
+    eyebrow="解決方案"
+    title="先確認情境，再決定網站怎麼做"
+    lead="同樣是做網站，新品牌起步、舊站翻新或推一檔活動，需要的頁面和功能都不一樣。先找到最接近你的情境。"
+    pills={solutionScenarios.map((scenario) => scenario.title)}
+  >
+    <ButtonLink href="/contact" size="lg" cta="primary" fullWidthOnMobile>預約討論</ButtonLink>
+    <ButtonLink href="/products" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/30 text-white hover:bg-white/10">查看產品方案</ButtonLink>
+  </PageHero>
+
+  <Section tone="white" name="scenarios" labelledby="scenarios-heading">
+    <SectionHeading id="scenarios-heading" eyebrow="使用情境" title="七種常見情境" description="每個情境列出通常需要的內容、建議的產品，以及可以先做的第一步。" />
+    <nav aria-label="情境快速選單" class="mb-8">
+      <ul class="flex flex-wrap gap-2">
+        {
+          solutionScenarios.map((scenario) => (
+            <li>
+              <a
+                href={`#${scenario.key}`}
+                class="inline-flex min-h-10 items-center rounded-full border border-border-gray bg-surface px-4 text-sm font-medium text-ink transition-colors hover:border-teal-strong hover:text-teal-strong"
+              >
+                {scenario.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <IndustryUseCaseGrid items={solutionScenarios} />
+  </Section>
+
+  <Section name="how" labelledby="how-heading">
+    <SectionHeading id="how-heading" eyebrow="不確定屬於哪一種" title="把狀況告訴我們，一起整理下一步" description="不需要先想好規格，說明目前的狀況就可以開始。" />
+    <ProcessSteps steps={solutionSteps} />
+  </Section>
+
+  <FaqSection items={solutionsFaq} tone="white" />
+  <ContactCTA title="找不到完全符合的情境？" description="每個品牌的狀況都不太一樣，說明你的目標與限制，我們會一起整理適合的做法。" />
+</BaseLayout>

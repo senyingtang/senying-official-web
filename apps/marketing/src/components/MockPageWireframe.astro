@@ -1,0 +1,168 @@
+---
+import type { MockVisual } from '../content/types';
+
+interface Props {
+  variant: MockVisual;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+/**
+ * 頁面線框示意：只用 CSS 區塊繪製，不含圖片與文字內容，
+ * 讓產品卡、案例卡與 Hero 有「產品畫面」但不增加載入成本。
+ */
+const { variant, tone = 'light', class: className = '' } = Astro.props;
+const dark = tone === 'dark';
+const surface = dark ? 'bg-deep-navy' : 'bg-surface';
+const block = dark ? 'bg-white/10' : 'bg-slate-200';
+const soft = dark ? 'bg-white/5' : 'bg-slate-100';
+const line = dark ? 'bg-white/20' : 'bg-slate-300';
+const strong = dark ? 'bg-white/60' : 'bg-slate-700/70';
+const three = [0, 1, 2];
+const four = [0, 1, 2, 3];
+const articleWidths = ['w-3/5', 'w-1/2', 'w-2/5'];
+---
+
+<div aria-hidden="true" class:list={['flex min-w-0 flex-col gap-2.5 overflow-hidden p-3 sm:p-4', surface, className]}>
+  {
+    variant === 'website' && (
+      <>
+        <div class="flex items-center justify-between gap-2">
+          <span class="h-2.5 w-12 rounded-full bg-teal/80" />
+          <span class="flex gap-1.5">
+            {three.map(() => (
+              <span class:list={['h-1.5 w-6 rounded-full', line]} />
+            ))}
+          </span>
+          <span class="h-4 w-10 rounded-full bg-teal" />
+        </div>
+        <div class:list={['rounded-lg p-3', dark ? 'bg-white/5' : 'bg-gradient-to-br from-teal-soft to-slate-100']}>
+          <span class:list={['block h-2.5 w-4/5 rounded-full', strong]} />
+          <span class:list={['mt-1.5 block h-2.5 w-3/5 rounded-full', strong]} />
+          <span class:list={['mt-2.5 block h-1.5 w-full rounded-full', line]} />
+          <span class:list={['mt-1 block h-1.5 w-2/3 rounded-full', line]} />
+          <span class="mt-3 block h-4 w-16 rounded-full bg-teal" />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          {three.map(() => (
+            <div class:list={['rounded-md p-2', soft]}>
+              <span class:list={['block h-6 rounded', block]} />
+              <span class:list={['mt-1.5 block h-1.5 w-4/5 rounded-full', line]} />
+              <span class:list={['mt-1 block h-1.5 w-3/5 rounded-full', line]} />
+            </div>
+          ))}
+        </div>
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <span class:list={['h-1.5 w-20 rounded-full', line]} />
+          <span class:list={['h-1.5 w-10 rounded-full', line]} />
+        </div>
+      </>
+    )
+  }
+  {
+    variant === 'landing' && (
+      <>
+        <div class="flex items-center justify-between gap-2">
+          <span class="h-2 w-10 rounded-full bg-teal/80" />
+          <span class="rounded-full bg-warning/80 px-2 py-1">
+            <span class="block h-1.5 w-8 rounded-full bg-white/80" />
+          </span>
+        </div>
+        <div class="rounded-lg bg-gradient-to-br from-teal to-teal-strong p-3">
+          <span class="block h-2.5 w-4/5 rounded-full bg-white/90" />
+          <span class="mt-1.5 block h-2.5 w-1/2 rounded-full bg-white/70" />
+          <span class="mt-3 block h-14 rounded-md bg-white/20" />
+        </div>
+        <div class="grid gap-1.5">
+          {three.map(() => (
+            <div class="flex items-center gap-2">
+              <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-teal" />
+              <span class:list={['h-1.5 flex-1 rounded-full', line]} />
+            </div>
+          ))}
+        </div>
+        <div class:list={['grid gap-1.5 rounded-lg p-2.5', soft]}>
+          {three.map(() => (
+            <span class:list={['block h-5 rounded border', dark ? 'border-white/15 bg-white/5' : 'border-slate-200 bg-surface']} />
+          ))}
+          <span class="block h-6 rounded-md bg-deep-navy" />
+        </div>
+      </>
+    )
+  }
+  {
+    variant === 'ecommerce' && (
+      <>
+        <div class="flex items-center justify-between gap-2">
+          <span class="h-2.5 w-12 shrink-0 rounded-full bg-teal/80" />
+          <span class:list={['h-4 min-w-0 flex-1 rounded-full', soft]} />
+          <span class="h-4 w-4 shrink-0 rounded-full bg-teal" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          {four.map(() => (
+            <div class:list={['rounded-md p-1.5', soft]}>
+              <span class:list={['block aspect-[4/3] rounded', block]} />
+              <span class:list={['mt-1.5 block h-1.5 w-4/5 rounded-full', line]} />
+              <span class="mt-1 block h-1.5 w-1/3 rounded-full bg-teal/70" />
+            </div>
+          ))}
+        </div>
+        <div class="flex items-center justify-between gap-2 rounded-md bg-navy-black px-2.5 py-2">
+          <span class="h-1.5 w-16 rounded-full bg-white/50" />
+          <span class="h-4 w-12 rounded-full bg-teal" />
+        </div>
+      </>
+    )
+  }
+  {
+    variant === 'promo' && (
+      <div class="relative flex aspect-[4/5] flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-deep-navy via-deep-navy-soft to-teal-strong p-3 sm:p-4">
+        <span class="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-teal/30" />
+        <span class="relative self-start rounded-md bg-warning px-2 py-1">
+          <span class="block h-1.5 w-8 rounded-full bg-navy-black/70" />
+        </span>
+        <div class="relative">
+          <span class="block h-3 w-4/5 rounded-full bg-white/90" />
+          <span class="mt-1.5 block h-3 w-3/5 rounded-full bg-white/80" />
+          <span class="mt-2.5 block h-1.5 w-full rounded-full bg-white/30" />
+          <span class="mt-1 block h-1.5 w-2/3 rounded-full bg-white/30" />
+        </div>
+        <div class="relative flex items-end justify-between gap-2">
+          <span class="h-5 w-16 rounded-full bg-teal" />
+          <span class="h-8 w-8 rounded-md border-2 border-white/70 bg-white/10" />
+        </div>
+      </div>
+    )
+  }
+  {
+    variant === 'article' && (
+      <>
+        <span class:list={['block h-3 w-11/12 rounded-full', strong]} />
+        <span class:list={['block h-3 w-2/3 rounded-full', strong]} />
+        <div class="flex flex-wrap gap-1.5">
+          <span class="h-3 w-12 rounded-full bg-teal/30" />
+          <span class="h-3 w-16 rounded-full bg-teal/30" />
+          <span class:list={['h-3 w-10 rounded-full', soft]} />
+        </div>
+        {articleWidths.map((width, index) => (
+          <div class="grid gap-1.5">
+            <div class="flex items-center gap-2">
+              <span class="h-2.5 w-1 shrink-0 rounded-full bg-teal" />
+              <span class:list={['h-2 rounded-full', strong, width]} />
+            </div>
+            <span class:list={['ml-3 block h-1.5 rounded-full', line, index === 1 ? 'w-3/4' : 'w-5/6']} />
+            <span class:list={['ml-3 block h-1.5 w-2/3 rounded-full', line]} />
+          </div>
+        ))}
+        <div class:list={['grid gap-1.5 rounded-lg p-2', soft]}>
+          {three.map(() => (
+            <div class="flex items-center justify-between gap-2">
+              <span class:list={['h-1.5 w-3/4 rounded-full', line]} />
+              <span class="h-1.5 w-1.5 rounded-full bg-teal" />
+            </div>
+          ))}
+        </div>
+      </>
+    )
+  }
+</div>

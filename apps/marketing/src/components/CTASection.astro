@@ -1,0 +1,47 @@
+---
+import ButtonLink from './ButtonLink.astro';
+import Container from './Container.astro';
+import VisualGlow from './VisualGlow.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  primary: { label: string; href: string };
+  secondary?: { label: string; href: string };
+  eyebrow?: string;
+}
+
+const { title, description, primary, secondary, eyebrow = '下一步' } = Astro.props;
+---
+
+<section data-section="cta" class="bg-mist-white py-14 md:py-20" aria-labelledby="cta-heading">
+  <Container>
+    <div class="syt-hero-bg relative overflow-hidden rounded-card border border-white/10 px-5 py-10 text-white sm:px-10 md:py-14">
+      <VisualGlow variant="section" grid />
+      <div class="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+        <div class="min-w-0 max-w-2xl">
+          <p class="text-sm font-semibold tracking-wide text-teal">{eyebrow}</p>
+          <h2 id="cta-heading" class="mt-2 text-2xl font-bold leading-tight sm:text-3xl">{title}</h2>
+          <p class="mt-3 text-base leading-relaxed text-slate-300 sm:text-lg">{description}</p>
+        </div>
+        <div class="flex min-w-0 shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-64 lg:flex-col">
+          <ButtonLink href={primary.href} size="lg" cta="primary" fullWidthOnMobile class="lg:w-full">{primary.label}</ButtonLink>
+          {
+            secondary && (
+              <ButtonLink
+                href={secondary.href}
+                variant="ghost"
+                size="lg"
+                cta="secondary"
+                fullWidthOnMobile
+                class="border border-white/30 text-white hover:bg-white/10 lg:w-full"
+              >
+                {secondary.label}
+              </ButtonLink>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>

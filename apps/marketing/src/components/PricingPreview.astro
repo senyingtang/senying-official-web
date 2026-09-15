@@ -1,0 +1,42 @@
+---
+import { PRICING_NOTICE, type PlanPreview } from '../content/pricing';
+import FeaturePill from './FeaturePill.astro';
+import PricingCard from './PricingCard.astro';
+
+interface Props {
+  plans: PlanPreview[];
+  showNotice?: boolean;
+}
+
+const { plans, showNotice = false } = Astro.props;
+---
+
+{
+  showNotice && (
+    <ul class="mb-6 flex flex-wrap gap-2" aria-label="價格說明">
+      {PRICING_NOTICE.map((notice) => (
+        <li class="min-w-0">
+          <FeaturePill label={notice} tone="teal" />
+        </li>
+      ))}
+    </ul>
+  )
+}
+<div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+  {
+    plans.map((plan) => (
+      <PricingCard
+        name={plan.name}
+        href={plan.href}
+        description={plan.summary}
+        priceLabel={plan.priceLabel}
+        priceNote={plan.priceNote}
+        status={plan.status}
+        features={plan.features}
+        ctaLabel={plan.cta.label}
+        ctaHref={plan.cta.href}
+        highlight={plan.highlight}
+      />
+    ))
+  }
+</div>

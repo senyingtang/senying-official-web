@@ -1,0 +1,73 @@
+---
+import { getImageVariants, IMAGE_SIZES, toSrcset } from '../lib/image-variants';
+
+interface Props {
+  src: string;
+  /** 內容圖片必須有描述；純裝飾背景傳空字串（會自動加 aria-hidden） */
+  alt: string;
+  width: number;
+  height: number;
+  loading?: 'eager' | 'lazy';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  decoding?: 'async' | 'sync' | 'auto';
+  fit?: 'cover' | 'contain';
+  class?: string;
+  /** 圖片在版面上的顯示寬度（搭配 WebP / AVIF srcset 選擇尺寸） */
+  sizes?: string;
+  /** 選用：fallback <img> 自訂 srcset（一般不需要，AVIF / WebP 版本會自動輸出） */
+  srcset?: string;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  loading = 'lazy',
+  fetchpriority = 'auto',
+  decoding = 'async',
+  fit = 'cover',
+  class: className = '',
+  sizes = IMAGE_SIZES.halfColumn,
+  srcset,
+} = Astro.props;
+
+// 只允許 public/images 底下的小寫英數檔名：不可引用 docs/design、本機路徑、空格或中文檔名
+if (!/^\/images\/[a-z0-9/-]+\.(png|jpe?g|webp|avif)$/.test(src)) {
+  throw new Error(`ResponsiveImage: invalid src "${src}". Use a WebPath from docs/design/IMAGE_SELECTION_PLAN.csv.`);
+}
+if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+  throw new Error(`ResponsiveImage: width / height are required for "${src}".`);
+}
+
+// Phase 2.7：PNG / JPG 必須先執行 pnpm images:optimize 產生 WebP / AVIF，避免正式 build 讓瀏覽器下載 2 MB PNG
+const variants = /\.(png|jpe?g)$/.test(src) ? getImageVariants(src) : undefined;
+if (/\.(png|jpe?g)$/.test(src) && !variants) {
+  const message = `ResponsiveImage: "${src}" has no WebP / AVIF variants. Run pnpm images:optimize.`;
+  if (import.meta.env.PROD) throw new Error(message);
+  console.warn(message);
+}
+if (variants && (variants.width !== width || variants.height !== height)) {
+  throw new Error(`ResponsiveImage: "${src}" is ${variants.width}×${variants.height}, but width / height props are ${width}×${height}.`);
+}
+---
+
+{/* picture 使用 display: contents，版面與原本單一 img 相同；AVIF → WebP → PNG fallback（JSX 註解，不輸出到 HTML） */}
+<picture data-responsive-picture class="contents">
+  {variants && variants.avif.length > 0 && <source type="image/avif" srcset={toSrcset(variants.avif)} sizes={sizes} />}
+  {variants && <source type="image/webp" srcset={toSrcset(variants.webp)} sizes={sizes} />}
+  <img
+    src={src}
+    srcset={srcset}
+    sizes={srcset ? sizes : undefined}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={loading}
+    fetchpriority={fetchpriority}
+    decoding={decoding}
+    aria-hidden={alt === '' ? 'true' : undefined}
+    data-responsive-image
+    class:list={['block max-w-full', fit === 'cover' ? 'object-cover' : 'object-contain', className]}
+  />
+</picture>

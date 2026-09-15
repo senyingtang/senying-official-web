@@ -1,0 +1,98 @@
+---
+import type { RailCard } from '../content/types';
+import MockPageWireframe from './MockPageWireframe.astro';
+import PosterTile from './PosterTile.astro';
+import ResponsiveImage from './ResponsiveImage.astro';
+import { coverSizes, type SizeSlot } from '../lib/image-variants';
+
+interface Props {
+  cards: RailCard[];
+  tone?: 'light' | 'dark';
+  /** 桌機一排幾張（其餘可橫向滑動） */
+  perRow?: 4 | 5 | 6;
+  /** rail：橫向滑動；grid：換行網格（案例列表） */
+  layout?: 'rail' | 'grid';
+  /** 對應 CategoryChips 的 target */
+  filterList?: string;
+  label: string;
+  headingLevel?: 'h3' | 'h4';
+  /** 海報式卡片使用直式比例 */
+  portrait?: boolean;
+}
+
+/** 作品 / 版型 / 範例卡片：圖片（或示意畫面）+ 產業標籤 + 標題 + 說明；hover 只增加微光 */
+const { cards, tone = 'light', perRow = 5, layout = 'rail', filterList, label, headingLevel: Heading = 'h3', portrait = false } = Astro.props;
+const dark = tone === 'dark';
+const railWidth = { 4: 'lg:w-[calc((100%-3rem)/4)]', 5: 'lg:w-[calc((100%-4rem)/5)]', 6: 'lg:w-[calc((100%-5rem)/6)]' }[perRow];
+const gridColumns = {
+  4: 'xs:grid-cols-2 lg:grid-cols-4',
+  5: 'xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
+  6: 'xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6',
+}[perRow];
+const mediaAspect = portrait ? 'aspect-[4/5]' : 'aspect-[16/10]';
+// 圖片 sizes：對應卡片寬度（rail：78% / 46% / 31% / 桌機一排 perRow 張；grid：依欄數），再依 object-cover 裁切比例放大
+const box = portrait ? { width: 4, height: 5 } : { width: 16, height: 10 };
+const slots: readonly SizeSlot[] =
+  layout === 'rail'
+    ? [['(min-width: 1024px)', Math.ceil(100 / perRow)], ['(min-width: 768px)', 31], ['(min-width: 640px)', 46], [null, 78]]
+    : [['(min-width: 1024px)', Math.ceil(100 / perRow)], ['(min-width: 768px)', perRow === 4 ? 50 : 34], ['(min-width: 480px)', 50], [null, 100]];
+---
+
+<div class:list={[layout === 'rail' && 'syt-rail -mx-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0']}>
+  <ul
+    aria-label={label}
+    data-filter-list={filterList}
+    class:list={[layout === 'rail' ? 'flex gap-4' : `grid grid-cols-1 gap-4 ${gridColumns}`]}
+  >
+    {
+      cards.map((card) => (
+        <li
+          data-filter-item={filterList ? '' : undefined}
+          data-filter-tags={card.filterTags?.join(' ')}
+          data-sort-name={card.title}
+          class:list={[layout === 'rail' && `w-[78%] shrink-0 xs:w-[70%] sm:w-[46%] md:w-[31%] ${railWidth}`, 'min-w-0']}
+        >
+          <article
+            class:list={[
+              'syt-hover-glow flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border transition-colors',
+              dark ? 'border-white/15 bg-white text-ink hover:border-teal/60' : 'border-border-gray bg-surface text-ink shadow-card hover:border-teal/50',
+            ]}
+          >
+            <div class:list={['relative overflow-hidden bg-mist-white', mediaAspect]}>
+              {card.image ? (
+                <ResponsiveImage
+                  src={card.image.src}
+                  alt={card.image.alt}
+                  width={card.image.width}
+                  height={card.image.height}
+                  loading="lazy"
+                  sizes={coverSizes(slots, box, card.image)}
+                  class={`h-full w-full ${card.imageClass ?? ''}`}
+                />
+              ) : card.poster ? (
+                <PosterTile poster={card.poster} />
+              ) : card.visual ? (
+                <div class="h-full w-full bg-gradient-to-br from-deep-navy to-deep-navy-soft p-3">
+                  <MockPageWireframe variant={card.visual} class="h-full rounded-lg" />
+                </div>
+              ) : null}
+              <span class="absolute bottom-2 left-2 rounded-full bg-teal px-2.5 py-0.5 text-[11px] font-semibold text-navy-black shadow">{card.tag}</span>
+              {card.note && <span class="absolute right-2 top-2 rounded-full bg-navy-black/80 px-2 py-0.5 text-[10px] font-medium text-slate-100">{card.note}</span>}
+            </div>
+            <div class="flex flex-1 flex-col p-4">
+              <Heading class="text-base font-bold leading-snug text-ink">{card.title}</Heading>
+              <p class="mt-1 flex-1 text-sm leading-relaxed text-slate-gray">{card.description}</p>
+              {card.href && (
+                <a href={card.href} class="mt-3 inline-flex min-h-10 items-center gap-1 self-start text-sm font-semibold text-teal-strong hover:underline">
+                  {card.linkLabel ?? '了解更多'}
+                  <span aria-hidden="true">→</span>
+                </a>
+              )}
+            </div>
+          </article>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+{filterList && <p data-filter-empty={filterList} hidden class:list={['mt-4 text-sm', dark ? 'text-slate-300' : 'text-slate-gray']}>這個分類目前沒有內容，可以切換其他分類。</p>}

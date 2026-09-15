@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 56" width="220" height="56" role="img" aria-labelledby="title" data-temporary-brand-asset="true">
+  <!--
+    TEMPORARY BRAND ASSET
+    森映 SEN YING 暫用字標（typographic placeholder），用於淺色背景（深色字）。
+    不是正式商標設計；文字使用系統字型（Microsoft JhengHei / PingFang TC / Noto Sans TC），各裝置字形可能略有差異。
+    正式 Logo 交付後替換本檔，或在後台 /admin/cms/site-settings 填入 Logo URL。
+  -->
+  <title id="title">森映 SEN YING</title>
+  <rect x="0" y="6" width="44" height="44" rx="12" fill="#14B8A6"/>
+  <path d="M22 14.25 11 33.5h6.875l-4.125 8.25h16.5l-4.125-8.25H33L22 14.25Z" fill="#020617"/>
+  <text x="58" y="31" fill="#0F172A" font-family="'Microsoft JhengHei','PingFang TC','Noto Sans TC',sans-serif" font-size="24" font-weight="700" letter-spacing="1">森映</text>
+  <text x="59" y="47" fill="#475569" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="11" font-weight="600" letter-spacing="3.2">SEN YING</text>
+</svg>

@@ -1,0 +1,35 @@
+﻿Name: hero-booking
+ProjectRoot: C:\Users\eric0\OneDrive\桌面\森映堂\hero-booking
+Framework: unknown
+HasGit: True
+HasEnv: False
+HasSupabase: False
+---
+Name: charming-nightingale
+ProjectRoot: C:\Users\eric0\OneDrive\桌面\森映堂\hero-booking\.claude\worktrees\charming-nightingale
+Framework: unknown
+HasGit: True
+HasEnv: False
+HasSupabase: False
+---
+Name: web
+ProjectRoot: C:\Users\eric0\OneDrive\桌面\森映堂\hero-booking\.claude\worktrees\charming-nightingale\apps\web
+Framework: Next.js
+HasGit: False
+HasEnv: False
+HasSupabase: True
+---
+Name: web
+ProjectRoot: C:\Users\eric0\OneDrive\桌面\森映堂\hero-booking\apps\web
+Framework: Next.js
+HasGit: False
+HasEnv: True
+HasSupabase: True
+---
+Name: landlord-showcase
+ProjectRoot: C:\Users\eric0\OneDrive\桌面\森映堂\landlord-system\docs\landlord-showcase-desktop-v1\landlord-showcase
+Framework: Next.js
+HasGit: True
+HasEnv: True
+HasSupabase: True
+---

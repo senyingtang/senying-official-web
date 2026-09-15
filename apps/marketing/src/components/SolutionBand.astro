@@ -1,0 +1,53 @@
+---
+import type { IconFeature } from '../content/types';
+import DenseFeatureGrid from './DenseFeatureGrid.astro';
+import IconGlyph from './IconGlyph.astro';
+import Section from './Section.astro';
+import SectionHeading from './SectionHeading.astro';
+
+interface Props {
+  name: string;
+  id?: string;
+  title: string;
+  description?: string;
+  items?: IconFeature[];
+  columns?: 3 | 4 | 5 | 6;
+  action?: { label: string; href: string };
+  /** 裝飾用手寫短句 */
+  script?: string;
+  /** row：icon 在左的寬卡；grid：置中密集卡 */
+  cardLayout?: 'row' | 'grid';
+}
+
+/** 深藍山景解決方案帶：標題 + 說明 + 玻璃卡片，對應設計稿的深色 Solution / 痛點區塊 */
+const { name, id = `${name}-heading`, title, description, items = [], columns = 6, action, script, cardLayout = 'grid' } = Astro.props;
+const rowColumns = items.length >= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3';
+---
+
+<Section tone="mountain" density="compact" name={name} id={name} labelledby={id}>
+  <div class="relative">
+    <SectionHeading id={id} title={title} description={description} tone="dark" compact action={action} />
+    {script && <p aria-hidden="true" class="syt-script pointer-events-none absolute right-0 top-0 hidden text-xl text-teal/80 lg:block">{script}</p>}
+  </div>
+  {
+    items.length > 0 &&
+      (cardLayout === 'row' ? (
+        <ul class:list={['grid gap-3', rowColumns]}>
+          {items.map((item) => (
+            <li class="syt-hover-glow flex min-w-0 items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 sm:p-5">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">
+                <IconGlyph name={item.icon} class="h-6 w-6" />
+              </span>
+              <div class="min-w-0">
+                <h3 class="font-semibold text-white">{item.title}</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-300">{item.description}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <DenseFeatureGrid items={items} columns={columns} tone="dark" />
+      ))
+  }
+  <slot />
+</Section>

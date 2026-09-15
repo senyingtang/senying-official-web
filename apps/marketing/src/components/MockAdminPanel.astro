@@ -1,0 +1,40 @@
+---
+interface Props {
+  tone?: 'light' | 'dark';
+  compact?: boolean;
+  class?: string;
+}
+
+const { tone = 'light', compact = false, class: className = '' } = Astro.props;
+const dark = tone === 'dark';
+const rows = [
+  { label: '首頁 SEO 設定', value: '已完成', highlight: true },
+  { label: '常見問題 FAQ', value: '4 題', highlight: false },
+  { label: '表單紀錄', value: '新 2 筆', highlight: true },
+  { label: '發布狀態', value: '預覽中', highlight: false },
+];
+const visibleRows = compact ? rows.slice(0, 3) : rows;
+---
+
+<div
+  class:list={[
+    'min-w-0 rounded-2xl border p-4 shadow-xl',
+    dark ? 'border-white/10 bg-deep-navy/95 text-white shadow-black/30' : 'border-border-gray bg-surface text-ink shadow-slate-900/10',
+    className,
+  ]}
+>
+  <div class="flex items-center justify-between gap-2">
+    <p class:list={['text-xs font-semibold tracking-wide', dark ? 'text-teal' : 'text-teal-strong']}>客戶後台</p>
+    <span class:list={['shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium', dark ? 'bg-white/10 text-slate-200' : 'bg-mist-white text-slate-gray']}>我的網站</span>
+  </div>
+  <ul class="mt-3 grid gap-2">
+    {
+      visibleRows.map((row) => (
+        <li class:list={['flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs', dark ? 'bg-white/5' : 'bg-mist-white']}>
+          <span class="min-w-0 truncate">{row.label}</span>
+          <span class:list={['shrink-0 font-medium', row.highlight ? (dark ? 'text-teal' : 'text-teal-strong') : dark ? 'text-slate-300' : 'text-slate-gray']}>{row.value}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>

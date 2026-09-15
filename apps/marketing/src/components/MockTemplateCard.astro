@@ -1,0 +1,26 @@
+---
+import { badgeClass } from '@syt/ui';
+import type { TemplatePreview } from '../content/templates';
+import MockPageWireframe from './MockPageWireframe.astro';
+
+interface Props {
+  template: TemplatePreview;
+}
+
+const { template } = Astro.props;
+---
+
+<article class="syt-hover-glow flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border-gray bg-surface shadow-card">
+  <div class="bg-gradient-to-br from-deep-navy to-deep-navy-soft px-5 pt-5">
+    <MockPageWireframe variant={template.visual} class="mx-auto h-40 max-w-[220px] rounded-t-xl" />
+  </div>
+  <div class="flex flex-1 flex-col p-5">
+    <div class="flex flex-wrap gap-2">
+      <span class={badgeClass('teal')}>{template.tag}</span>
+      <span class={badgeClass('neutral')}>{template.siteType}</span>
+    </div>
+    <h3 class="mt-3 text-lg font-bold text-ink">{template.name}</h3>
+    <p class="mt-1 flex-1 text-sm leading-relaxed text-slate-gray">{template.description}</p>
+    <p class="mt-4 text-xs font-medium text-slate-gray">版型商店開放後可預覽</p>
+  </div>
+</article>

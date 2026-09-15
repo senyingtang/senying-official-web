@@ -1,0 +1,34 @@
+---
+import { webPageJsonLd } from '@syt/seo';
+import ButtonLink from '../../components/ButtonLink.astro';
+import CTASection from '../../components/CTASection.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import LegalDocument from '../../components/LegalDocument.astro';
+import PageHero from '../../components/PageHero.astro';
+import { termsFaq } from '../../content/faqs';
+import { termsSections } from '../../content/legal';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteUrl } from '../../lib/site';
+import { getBrandRuntime } from '../../lib/brand-runtime';
+
+const brand = await getBrandRuntime();
+const description = '森映自助建站平台服務條款草稿，說明服務範圍、權限代碼兌換與轉讓規則、付款與退款、使用者內容責任與服務變更。';
+---
+
+<BaseLayout
+  seo={{ title: '服務條款｜森映自助建站平台', description, path: '/legal/terms' }}
+  breadcrumbs={[
+    { label: '首頁', href: '/' },
+    { label: '服務條款', href: '/legal/terms' },
+  ]}
+  faq={termsFaq}
+  jsonLd={[webPageJsonLd(siteUrl, { name: '服務條款', description, path: '/legal/terms' }, brand.seo)]}
+>
+  <PageHero eyebrow="法律資訊 · 草稿" title="服務條款" lead="使用森映自助建站平台前，請先了解服務範圍、權限代碼規則與雙方責任。本頁為草稿，正式上線前會再確認。">
+    <ButtonLink href="/contact" size="lg" cta="primary" fullWidthOnMobile>對條款有疑問</ButtonLink>
+    <ButtonLink href="/legal/privacy" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/30 text-white hover:bg-white/10">隱私權政策</ButtonLink>
+  </PageHero>
+  <LegalDocument sections={termsSections} documentName="服務條款" updatedLabel="版本：草稿（正式公告時補上生效日期）" />
+  <FaqSection items={termsFaq} tone="mist" />
+  <CTASection title="對條款有疑問？" description="可以透過聯絡頁面與我們聯繫，我們會說明條文內容。" primary={{ label: '聯絡我們', href: '/contact' }} secondary={{ label: '隱私權政策', href: '/legal/privacy' }} />
+</BaseLayout>

@@ -1,0 +1,30 @@
+---
+interface StatItem {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+interface Props {
+  items: StatItem[];
+  tone?: 'light' | 'dark';
+}
+
+/** 產品事實條（不放未經確認的成效數字） */
+const { items, tone = 'light' } = Astro.props;
+const dark = tone === 'dark';
+---
+
+<dl class:list={['grid grid-cols-2 gap-px overflow-hidden rounded-card border lg:grid-cols-4', dark ? 'border-white/10 bg-white/10' : 'border-border-gray bg-border-gray']}>
+  {
+    items.map((item) => (
+      <div class:list={['flex min-w-0 flex-col-reverse gap-1 p-4 sm:p-6', dark ? 'bg-deep-navy' : 'bg-surface']}>
+        <dt class:list={['text-sm font-semibold', dark ? 'text-slate-200' : 'text-ink']}>
+          {item.label}
+          {item.description && <span class:list={['mt-1 block text-xs font-normal leading-relaxed', dark ? 'text-slate-400' : 'text-slate-gray']}>{item.description}</span>}
+        </dt>
+        <dd class:list={['text-3xl font-bold tracking-tight sm:text-4xl', dark ? 'text-teal' : 'text-teal-strong']}>{item.value}</dd>
+      </div>
+    ))
+  }
+</dl>

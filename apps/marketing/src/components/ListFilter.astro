@@ -1,0 +1,74 @@
+---
+/**
+ * 卡片篩選 / 搜尋 / 排序（漸進增強）：
+ * - chip：[data-filter-chip][data-filter-target="name"]
+ * - 搜尋：input[data-filter-search="name"]；排序：select[data-filter-sort="name"]
+ * - 卡片：[data-filter-list="name"] > [data-filter-item][data-filter-tags][data-sort-*]
+ * 沒有 JS 時所有卡片照常顯示；Astro 會把同一個 script 合併成一份。
+ */
+---
+
+<script>
+  const states = new Map();
+
+  function stateOf(name = '') {
+    const state = states.get(name) ?? { chip: 'all', query: '' };
+    states.set(name, state);
+    return state;
+  }
+
+  function apply(name = '') {
+    const state = stateOf(name);
+    const list = document.querySelector(`[data-filter-list="${name}"]`);
+    if (!list) return;
+    let visible = 0;
+    for (const item of list.querySelectorAll('[data-filter-item]')) {
+      if (!(item instanceof HTMLElement)) continue;
+      const tags = (item.dataset.filterTags ?? '').split(' ');
+      const text = (item.textContent ?? '').toLowerCase();
+      const show = (state.chip === 'all' || tags.includes(state.chip)) && (!state.query || text.includes(state.query));
+      item.hidden = !show;
+      if (show) visible += 1;
+    }
+    for (const empty of document.querySelectorAll(`[data-filter-empty="${name}"]`)) {
+      if (empty instanceof HTMLElement) empty.hidden = visible > 0;
+    }
+    for (const count of document.querySelectorAll(`[data-filter-count="${name}"]`)) count.textContent = String(visible);
+  }
+
+  for (const chip of document.querySelectorAll('[data-filter-chip][data-filter-target]')) {
+    if (!(chip instanceof HTMLElement) || chip.dataset.filterReady) continue;
+    chip.dataset.filterReady = 'true';
+    chip.addEventListener('click', () => {
+      const name = chip.dataset.filterTarget ?? '';
+      stateOf(name).chip = chip.dataset.filterChip ?? 'all';
+      for (const other of document.querySelectorAll(`[data-filter-chip][data-filter-target="${name}"]`)) {
+        other.setAttribute('aria-pressed', other === chip ? 'true' : 'false');
+      }
+      apply(name);
+    });
+  }
+
+  for (const input of document.querySelectorAll('input[data-filter-search]')) {
+    if (!(input instanceof HTMLInputElement) || input.dataset.filterReady) continue;
+    input.dataset.filterReady = 'true';
+    input.addEventListener('input', () => {
+      const name = input.dataset.filterSearch ?? '';
+      stateOf(name).query = input.value.trim().toLowerCase();
+      apply(name);
+    });
+  }
+
+  for (const select of document.querySelectorAll('select[data-filter-sort]')) {
+    if (!(select instanceof HTMLSelectElement) || select.dataset.filterReady) continue;
+    select.dataset.filterReady = 'true';
+    select.addEventListener('change', () => {
+      const list = document.querySelector(`[data-filter-list="${select.dataset.filterSort ?? ''}"]`);
+      if (!list) return;
+      const key = `sort${select.value}`;
+      const items = [...list.children].filter((item) => item instanceof HTMLElement && item.hasAttribute('data-filter-item'));
+      items.sort((a, b) => ((a instanceof HTMLElement && a.dataset[key]) || '').localeCompare((b instanceof HTMLElement && b.dataset[key]) || '', 'zh-Hant'));
+      for (const item of items) list.append(item);
+    });
+  }
+</script>

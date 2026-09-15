@@ -1,0 +1,46 @@
+---
+import type { IconFeature } from '../content/types';
+import IconGlyph from './IconGlyph.astro';
+
+interface Props {
+  items: IconFeature[];
+  /** card：上方色塊 + 標題 + 說明；tile：小型 icon 方塊（服務產業領域） */
+  variant?: 'card' | 'tile';
+  columns?: 4 | 5 | 6 | 10;
+  headingLevel?: 'h3' | 'h4';
+}
+
+const { items, variant = 'card', columns = 6, headingLevel: Heading = 'h3' } = Astro.props;
+const columnClass = {
+  4: 'grid-cols-2 lg:grid-cols-4',
+  5: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
+  6: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6',
+  10: 'grid-cols-3 xs:grid-cols-4 md:grid-cols-5 lg:grid-cols-10',
+}[columns];
+const tints = ['from-amber-100 to-orange-50', 'from-sky-100 to-cyan-50', 'from-slate-200 to-slate-50', 'from-emerald-100 to-teal-50', 'from-rose-100 to-pink-50', 'from-indigo-100 to-violet-50'];
+---
+
+<ul class:list={['grid gap-3 sm:gap-4', columnClass]}>
+  {
+    items.map((item, index) =>
+      variant === 'tile' ? (
+        <li class="flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-border-gray bg-surface px-2 py-3 text-center shadow-card">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-soft text-teal-strong">
+            <IconGlyph name={item.icon} class="h-5 w-5" />
+          </span>
+          <Heading class="text-xs font-semibold text-ink sm:text-sm">{item.title}</Heading>
+        </li>
+      ) : (
+        <li class="syt-hover-glow flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border-gray bg-surface shadow-card">
+          <div class:list={['flex aspect-[16/9] items-center justify-center bg-gradient-to-br text-deep-navy', tints[index % tints.length]]}>
+            <IconGlyph name={item.icon} class="h-9 w-9" strokeWidth={1.5} />
+          </div>
+          <div class="p-3 sm:p-4">
+            <Heading class="text-sm font-bold text-ink sm:text-base">{item.title}</Heading>
+            <p class="mt-1 text-xs leading-relaxed text-slate-gray sm:text-sm">{item.description}</p>
+          </div>
+        </li>
+      ),
+    )
+  }
+</ul>

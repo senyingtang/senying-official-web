@@ -1,0 +1,39 @@
+---
+import type { Feature } from '../content/types';
+
+interface Props {
+  steps: Feature[];
+  tone?: 'light' | 'dark';
+  columns?: 2 | 3 | 4;
+}
+
+const { steps, tone = 'light', columns = 3 } = Astro.props;
+const dark = tone === 'dark';
+const columnClass = {
+  2: 'sm:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+}[columns];
+---
+
+<ol class:list={['grid gap-4', columnClass]}>
+  {
+    steps.map((step, index) => (
+      <li
+        class:list={[
+          'syt-hover-glow min-w-0 rounded-card border p-5 sm:p-6',
+          dark ? 'border-white/10 bg-white/5 text-white' : 'border-border-gray bg-surface text-ink shadow-card',
+        ]}
+      >
+        <div class="flex items-center gap-3">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal font-mono text-sm font-bold text-navy-black">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <span class:list={['h-px flex-1', dark ? 'bg-white/15' : 'bg-border-gray']} aria-hidden="true" />
+        </div>
+        <h3 class="mt-4 text-lg font-bold">{step.title}</h3>
+        <p class:list={['mt-2 text-sm leading-relaxed', dark ? 'text-slate-300' : 'text-slate-gray']}>{step.description}</p>
+      </li>
+    ))
+  }
+</ol>

@@ -1,0 +1,214 @@
+---
+import type { MarketingSiteSettings, SocialPlatform } from '@syt/database/site-settings';
+import type { IconName } from '../lib/icons';
+import { floatingActionsView } from '../lib/site-settings';
+import IconGlyph from './IconGlyph.astro';
+
+interface Props {
+  settings: MarketingSiteSettings;
+}
+
+/**
+ * 全站浮動快捷列（Phase 2.6C）。
+ * - 桌機（≥ 1024px）：右側可收合 rail；收合後的 compact 按鈕仍顯示購物車 badge
+ * - 手機 / 平板（< 1024px）：右下單一按鈕 + bottom sheet，不顯示完整 rail
+ * - 社群連結、購物車捷徑全部來自全站設定（cms_site_settings），元件內沒有寫死網址
+ */
+const { settings } = Astro.props;
+const fa = settings.floatingActions;
+const view = floatingActionsView(settings);
+const brandEn = settings.brand.brandNameEn;
+const monogram =
+  brandEn
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2) || 'SY';
+const icons: Record<SocialPlatform, IconName> = {
+  line: 'message',
+  facebook: 'facebook',
+  instagram: 'instagram',
+  threads: 'threads',
+  youtube: 'youtube',
+  tiktok: 'tiktok',
+  email: 'mail',
+  phone: 'phone',
+};
+const linkTarget = (openInNewTab: boolean, url: string) => (openInNewTab && /^https?:\/\//.test(url) ? { target: '_blank', rel: 'noopener noreferrer' } : {});
+const badgeClass = 'absolute flex h-5 min-w-5 items-center justify-center rounded-full bg-teal px-1 text-[11px] font-bold leading-none text-navy-black ring-2 ring-[#0b1f3b]';
+---
+
+{
+  (view.desktop || view.mobile) && (
+    <div
+      data-floating-actions
+      data-state={fa.defaultCollapsed ? 'collapsed' : 'expanded'}
+      data-default-collapsed={String(fa.defaultCollapsed)}
+      data-cart-enabled={String(fa.cartEnabled)}
+      data-cart-badge-enabled={String(fa.cartBadgeEnabled)}
+      data-brand-en={brandEn}
+    >
+      {view.desktop && (
+        <div data-fa-desktop class="fixed right-[18px] top-1/2 z-30 hidden -translate-y-1/2 lg:block">
+          <div data-fa-expanded id="fa-rail" class="syt-fa-glass flex w-[72px] flex-col gap-1 rounded-2xl border border-white/15 p-1.5 text-white shadow-xl shadow-black/30">
+            <nav aria-label={`聯絡 ${brandEn}`}>
+              <ul class="grid max-h-[calc(100dvh-14rem)] gap-1 overflow-y-auto">
+                {view.desktopSocials.map((item) => (
+                  <li>
+                    <a
+                      href={item.url}
+                      data-social={item.platform}
+                      {...linkTarget(item.openInNewTab, item.url)}
+                      class="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-slate-200 transition-colors hover:bg-teal/15 hover:text-teal focus-visible:bg-teal/15 focus-visible:text-teal focus-visible:outline-2 focus-visible:outline-teal"
+                    >
+                      <IconGlyph name={icons[item.platform]} class="h-5 w-5" />
+                      <span class="max-w-full truncate text-[10px] leading-none">{item.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {fa.cartEnabled && (
+              <>
+                <span aria-hidden="true" class="mx-2 h-px bg-white/15" />
+                <a
+                  href={fa.cartHref}
+                  data-cart-link
+                  data-cart-label={fa.cartLabel}
+                  aria-label={`${fa.cartLabel}，尚無商品`}
+                  class="relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-slate-200 transition-colors hover:bg-teal/15 hover:text-teal focus-visible:bg-teal/15 focus-visible:text-teal focus-visible:outline-2 focus-visible:outline-teal"
+                >
+                  <IconGlyph name="cart" class="h-5 w-5" />
+                  <span class="text-[10px] leading-none">{fa.cartLabel}</span>
+                  <span data-cart-badge hidden class:list={[badgeClass, 'right-1 top-1']} />
+                </a>
+              </>
+            )}
+            <span aria-hidden="true" class="mx-2 h-px bg-white/15" />
+            <button
+              type="button"
+              data-fa-toggle
+              aria-controls="fa-rail"
+              aria-expanded="true"
+              aria-label="收合快捷列"
+              class="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-teal"
+            >
+              <IconGlyph name="chevron-right" class="h-4 w-4" />
+              <span class="text-[10px] leading-none">收合</span>
+            </button>
+          </div>
+          <button
+            type="button"
+            data-fa-compact
+            data-fa-toggle
+            aria-controls="fa-rail"
+            aria-expanded="false"
+            aria-label={`展開 ${brandEn} 快捷列`}
+            class="syt-fa-glass relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 text-sm font-bold tracking-wider text-white shadow-xl shadow-black/30 transition-colors hover:border-teal/60 hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+          >
+            <span aria-hidden="true">{monogram}</span>
+            {fa.cartEnabled && <span data-cart-badge hidden class:list={[badgeClass, '-right-1.5 -top-1.5']} />}
+          </button>
+        </div>
+      )}
+
+      {view.mobile && (
+        <>
+          <button
+            type="button"
+            data-fa-sheet-open
+            aria-haspopup="dialog"
+            aria-controls="fa-sheet"
+            aria-expanded="false"
+            aria-label={`聯絡 ${brandEn}`}
+            class="syt-fa-glass fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white shadow-xl shadow-black/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal lg:hidden"
+          >
+            <IconGlyph name="message" class="h-6 w-6" />
+            {fa.cartEnabled && <span data-cart-badge hidden class:list={[badgeClass, '-right-1 -top-1']} />}
+          </button>
+          <div data-fa-sheet id="fa-sheet" hidden class="fixed inset-0 z-50 lg:hidden">
+            <div data-fa-sheet-close aria-hidden="true" class="absolute inset-0 bg-navy-black/60" />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="fa-sheet-title"
+              class="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#0b1f3b] px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 text-white shadow-2xl"
+            >
+              <span aria-hidden="true" class="mx-auto block h-1.5 w-10 rounded-full bg-white/25" />
+              <p id="fa-sheet-title" class="mt-3 text-lg font-bold">
+                聯絡 {brandEn}
+              </p>
+              {view.mobileSocials.length > 0 && (
+                <ul class="mt-3 grid gap-2">
+                  {view.mobileSocials.map((item) => (
+                    <li>
+                      <a
+                        href={item.url}
+                        data-social={item.platform}
+                        {...linkTarget(item.openInNewTab, item.url)}
+                        class="flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 text-base text-slate-100 hover:border-teal/50 focus-visible:outline-2 focus-visible:outline-teal"
+                      >
+                        <IconGlyph name={icons[item.platform]} class="h-5 w-5 shrink-0 text-teal" />
+                        <span class="min-w-0 flex-1 truncate">{item.label}</span>
+                        <IconGlyph name="chevron-right" class="h-4 w-4 shrink-0 text-slate-400" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {fa.cartEnabled && (
+                <a
+                  href={fa.cartHref}
+                  data-cart-link
+                  data-cart-label={fa.cartLabel}
+                  aria-label={`${fa.cartLabel}，尚無商品`}
+                  class="mt-3 flex min-h-12 items-center gap-3 border-y border-white/10 px-3 py-2 text-base text-slate-100 focus-visible:outline-2 focus-visible:outline-teal"
+                >
+                  <span class="relative shrink-0">
+                    <IconGlyph name="cart" class="h-5 w-5 text-teal" />
+                    <span data-cart-badge hidden class:list={[badgeClass, '-right-3 -top-3']} />
+                  </span>
+                  <span class="min-w-0 flex-1">{fa.cartLabel}</span>
+                  <span data-cart-count-text class="shrink-0 text-sm text-slate-300">
+                    尚無商品
+                  </span>
+                </a>
+              )}
+              <button
+                type="button"
+                data-fa-sheet-close
+                class="mt-4 flex min-h-12 w-full items-center justify-center rounded-button border border-white/25 font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-teal"
+              >
+                關閉
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+{/* 在模組 script 載入前套用使用者的收合偏好，避免畫面先展開再收合 */}
+{
+  view.desktop && (
+    <script is:inline>
+      (function () {
+        try {
+          var root = document.querySelector('[data-floating-actions]');
+          var value = window.localStorage.getItem('syt-floating-actions-collapsed');
+          if (root && (value === 'true' || value === 'false')) root.setAttribute('data-state', value === 'true' ? 'collapsed' : 'expanded');
+        } catch {
+          // localStorage 不可用時使用設定的預設狀態
+        }
+      })();
+    </script>
+  )
+}
+
+<script>
+  import { initFloatingActions } from '../lib/floating-actions-client';
+
+  initFloatingActions();
+</script>

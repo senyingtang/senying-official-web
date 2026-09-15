@@ -1,0 +1,52 @@
+---
+interface Row {
+  topic: string;
+  pretty: string;
+  ours: string;
+}
+
+interface Props {
+  rows: Row[];
+  leftLabel?: string;
+  rightLabel?: string;
+}
+
+/** 比較表：手機為卡片（每列都有標籤），平板以上為三欄對照 */
+const { rows, leftLabel = '只做漂亮網站', rightLabel = '森映的做法' } = Astro.props;
+const columns = 'md:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)_minmax(0,1fr)]';
+---
+
+<div class="min-w-0">
+  <div aria-hidden="true" class:list={['hidden gap-4 px-6 pb-3 text-sm font-semibold md:grid', columns]}>
+    <span class="text-ink">比較項目</span>
+    <span class="text-slate-gray">{leftLabel}</span>
+    <span class="text-teal-strong">{rightLabel}</span>
+  </div>
+  <ul class="grid gap-3">
+    {
+      rows.map((row) => (
+        <li class:list={['grid min-w-0 gap-3 rounded-card border border-border-gray bg-surface p-5 md:items-center md:gap-4 md:px-6', columns]}>
+          <p class="font-bold text-ink">{row.topic}</p>
+          <p class="flex min-w-0 gap-2 text-sm leading-relaxed text-slate-gray">
+            <span class="shrink-0 text-slate-400" aria-hidden="true">
+              ✕
+            </span>
+            <span class="min-w-0">
+              <span class="font-semibold md:sr-only">{leftLabel}：</span>
+              {row.pretty}
+            </span>
+          </p>
+          <p class="flex min-w-0 gap-2 rounded-xl bg-teal-soft px-3 py-2 text-sm leading-relaxed text-ink">
+            <span class="shrink-0 text-teal-strong" aria-hidden="true">
+              ✓
+            </span>
+            <span class="min-w-0">
+              <span class="font-semibold text-teal-strong md:sr-only">{rightLabel}：</span>
+              {row.ours}
+            </span>
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+</div>

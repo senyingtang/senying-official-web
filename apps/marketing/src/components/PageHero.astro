@@ -1,0 +1,63 @@
+---
+import Container from './Container.astro';
+import FeaturePill from './FeaturePill.astro';
+import VisualGlow from './VisualGlow.astro';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead: string;
+  pills?: readonly string[];
+}
+
+/**
+ * 內頁主視覺：深色漸層 + 青綠微光（CSS），左文右圖。
+ * 預設 slot 放 CTA（永遠直接可見），`visual` slot 放產品示意畫面；手機版示意畫面排在文字下方。
+ */
+const { eyebrow, title, lead, pills = [] } = Astro.props;
+const hasVisual = Astro.slots.has('visual');
+const hasActions = Astro.slots.has('default');
+---
+
+<section data-page-hero class="syt-hero-bg relative overflow-hidden text-white">
+  <VisualGlow variant="hero" grid />
+  <Container class:list={['relative grid gap-10 py-12 md:py-16 lg:py-20', hasVisual && 'lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-12']}>
+    <div class="min-w-0 max-w-3xl">
+      {
+        eyebrow && (
+          <p class="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-3 py-1 text-xs font-semibold tracking-wide text-teal sm:text-sm">
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-teal" aria-hidden="true" />
+            <span class="min-w-0">{eyebrow}</span>
+          </p>
+        )
+      }
+      <h1 class="text-3xl font-bold leading-tight xs:text-4xl lg:text-5xl">{title}</h1>
+      <p class="mt-4 text-base leading-relaxed text-slate-300 sm:text-lg">{lead}</p>
+      {
+        pills.length > 0 && (
+          <ul class="mt-6 flex flex-wrap gap-2">
+            {pills.map((pill) => (
+              <li class="min-w-0">
+                <FeaturePill label={pill} tone="dark" />
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        hasActions && (
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <slot />
+          </div>
+        )
+      }
+    </div>
+    {
+      hasVisual && (
+        <div class="min-w-0">
+          <slot name="visual" />
+        </div>
+      )
+    }
+  </Container>
+</section>

@@ -1,0 +1,886 @@
+{
+  "generatedBy": "scripts/image-optimize.mjs（pnpm images:optimize）",
+  "settingsKey": "{\"widths\":[640,1080],\"ENCODERS\":{\"webp\":{\"quality\":80,\"effort\":6,\"smartSubsample\":true},\"avif\":{\"quality\":55,\"effort\":5,\"chromaSubsampling\":\"4:2:0\"}}}",
+  "images": {
+    "/images/backgrounds/mountain-bright-bg-final.png": {
+      "label": "background_bright",
+      "role": "background",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2105332,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/backgrounds/mountain-bright-bg-final-640w.webp",
+          "bytes": 32286
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/backgrounds/mountain-bright-bg-final-1080w.webp",
+          "bytes": 73704
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/backgrounds/mountain-bright-bg-final.webp",
+          "bytes": 134228
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/backgrounds/mountain-bright-bg-final-640w.avif",
+          "bytes": 20771
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/backgrounds/mountain-bright-bg-final-1080w.avif",
+          "bytes": 48580
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/backgrounds/mountain-bright-bg-final.avif",
+          "bytes": 92424
+        }
+      ],
+      "psnr": {
+        "webp": 37.88,
+        "avif": 37.41
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/backgrounds/mountain-dark-bg-final.png": {
+      "label": "background_dark",
+      "role": "background",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2057133,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/backgrounds/mountain-dark-bg-final-640w.webp",
+          "bytes": 21780
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/backgrounds/mountain-dark-bg-final-1080w.webp",
+          "bytes": 56696
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/backgrounds/mountain-dark-bg-final.webp",
+          "bytes": 109396
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/backgrounds/mountain-dark-bg-final-640w.avif",
+          "bytes": 14261
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/backgrounds/mountain-dark-bg-final-1080w.avif",
+          "bytes": 36546
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/backgrounds/mountain-dark-bg-final.avif",
+          "bytes": 75537
+        }
+      ],
+      "psnr": {
+        "webp": 38.08,
+        "avif": 38.15
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/blog/blog-visual-final.png": {
+      "label": "blog_visual",
+      "role": "card",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1780818,
+      "webp": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/blog/blog-visual-final-640w.webp",
+          "bytes": 37156
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/blog/blog-visual-final-1080w.webp",
+          "bytes": 75210
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/blog/blog-visual-final.webp",
+          "bytes": 106440
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/blog/blog-visual-final-640w.avif",
+          "bytes": 21038
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/blog/blog-visual-final-1080w.avif",
+          "bytes": 42589
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/blog/blog-visual-final.avif",
+          "bytes": 62733
+        }
+      ],
+      "psnr": {
+        "webp": 39.67,
+        "avif": 38.68
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/cases/case-visual-final.png": {
+      "label": "case_visual",
+      "role": "hero",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2349433,
+      "webp": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/cases/case-visual-final-640w.webp",
+          "bytes": 64234
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/cases/case-visual-final-1080w.webp",
+          "bytes": 137512
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/cases/case-visual-final.webp",
+          "bytes": 198612
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/cases/case-visual-final-640w.avif",
+          "bytes": 36358
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/cases/case-visual-final-1080w.avif",
+          "bytes": 79930
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/cases/case-visual-final.avif",
+          "bytes": 117608
+        }
+      ],
+      "psnr": {
+        "webp": 36.56,
+        "avif": 35.02
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/hero/home-hero-platform-ui-final.png": {
+      "label": "home_hero",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1935118,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/hero/home-hero-platform-ui-final-640w.webp",
+          "bytes": 28510
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/hero/home-hero-platform-ui-final-1080w.webp",
+          "bytes": 60750
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/hero/home-hero-platform-ui-final.webp",
+          "bytes": 110912
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/hero/home-hero-platform-ui-final-640w.avif",
+          "bytes": 17438
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/hero/home-hero-platform-ui-final-1080w.avif",
+          "bytes": 38402
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/hero/home-hero-platform-ui-final.avif",
+          "bytes": 73768
+        }
+      ],
+      "psnr": {
+        "webp": 38.58,
+        "avif": 37.92
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/ecommerce-website/ecommerce-backup-a-final.png": {
+      "label": "ecommerce_backup_a",
+      "role": "card",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1681957,
+      "webp": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-a-final-640w.webp",
+          "bytes": 35868
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-a-final-1080w.webp",
+          "bytes": 72300
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-a-final.webp",
+          "bytes": 102768
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-a-final-640w.avif",
+          "bytes": 20773
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-a-final-1080w.avif",
+          "bytes": 42658
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-a-final.avif",
+          "bytes": 61196
+        }
+      ],
+      "psnr": {
+        "webp": 39.05,
+        "avif": 37.51
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/ecommerce-website/ecommerce-backup-b-final.png": {
+      "label": "ecommerce_backup_b",
+      "role": "card",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1605618,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-b-final-640w.webp",
+          "bytes": 26328
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-b-final-1080w.webp",
+          "bytes": 51936
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-b-final.webp",
+          "bytes": 89640
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-b-final-640w.avif",
+          "bytes": 15446
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-b-final-1080w.avif",
+          "bytes": 31028
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/ecommerce-website/ecommerce-backup-b-final.avif",
+          "bytes": 54315
+        }
+      ],
+      "psnr": {
+        "webp": 39.5,
+        "avif": 38.07
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/ecommerce-website/ecommerce-website-hero-final.png": {
+      "label": "ecommerce_hero",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1605618,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/ecommerce-website/ecommerce-website-hero-final-640w.webp",
+          "bytes": 26328
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/ecommerce-website/ecommerce-website-hero-final-1080w.webp",
+          "bytes": 51936
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/ecommerce-website/ecommerce-website-hero-final.webp",
+          "bytes": 89640
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/ecommerce-website/ecommerce-website-hero-final-640w.avif",
+          "bytes": 15446
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/ecommerce-website/ecommerce-website-hero-final-1080w.avif",
+          "bytes": 31028
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/ecommerce-website/ecommerce-website-hero-final.avif",
+          "bytes": 54315
+        }
+      ],
+      "psnr": {
+        "webp": 39.5,
+        "avif": 38.07
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/landing-page/landing-page-hero-final.png": {
+      "label": "landing_page_hero",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2168118,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/landing-page/landing-page-hero-final-640w.webp",
+          "bytes": 34786
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/landing-page/landing-page-hero-final-1080w.webp",
+          "bytes": 81152
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/landing-page/landing-page-hero-final.webp",
+          "bytes": 154682
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/landing-page/landing-page-hero-final-640w.avif",
+          "bytes": 20463
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/landing-page/landing-page-hero-final-1080w.avif",
+          "bytes": 50319
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/landing-page/landing-page-hero-final.avif",
+          "bytes": 98896
+        }
+      ],
+      "psnr": {
+        "webp": 37.45,
+        "avif": 36.5
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/promo-page-design/promo-page-design-hero-final.png": {
+      "label": "promo_page_hero",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1852439,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/promo-page-design/promo-page-design-hero-final-640w.webp",
+          "bytes": 30334
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/promo-page-design/promo-page-design-hero-final-1080w.webp",
+          "bytes": 65848
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/promo-page-design/promo-page-design-hero-final.webp",
+          "bytes": 119264
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/promo-page-design/promo-page-design-hero-final-640w.avif",
+          "bytes": 17753
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/promo-page-design/promo-page-design-hero-final-1080w.avif",
+          "bytes": 38373
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/promo-page-design/promo-page-design-hero-final.avif",
+          "bytes": 69467
+        }
+      ],
+      "psnr": {
+        "webp": 37.67,
+        "avif": 35.82
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/promo-page-design/promo-page-examples-a-final.png": {
+      "label": "promo_page_examples_a",
+      "role": "card",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2201276,
+      "webp": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/products/promo-page-design/promo-page-examples-a-final-640w.webp",
+          "bytes": 57488
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/products/promo-page-design/promo-page-examples-a-final-1080w.webp",
+          "bytes": 124886
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/products/promo-page-design/promo-page-examples-a-final.webp",
+          "bytes": 184908
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 480,
+          "src": "/images/products/promo-page-design/promo-page-examples-a-final-640w.avif",
+          "bytes": 53746
+        },
+        {
+          "width": 1080,
+          "height": 810,
+          "src": "/images/products/promo-page-design/promo-page-examples-a-final-1080w.avif",
+          "bytes": 115415
+        },
+        {
+          "width": 1448,
+          "height": 1086,
+          "src": "/images/products/promo-page-design/promo-page-examples-a-final.avif",
+          "bytes": 169549
+        }
+      ],
+      "quality": {
+        "webp": 80,
+        "avif": 71
+      },
+      "psnr": {
+        "webp": 35.71,
+        "avif": 34.57
+      }
+    },
+    "/images/products/promo-page-design/promo-page-examples-b-final.png": {
+      "label": "promo_page_examples_b",
+      "role": "card",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1852439,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/promo-page-design/promo-page-examples-b-final-640w.webp",
+          "bytes": 30334
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/promo-page-design/promo-page-examples-b-final-1080w.webp",
+          "bytes": 65848
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/promo-page-design/promo-page-examples-b-final.webp",
+          "bytes": 119264
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/promo-page-design/promo-page-examples-b-final-640w.avif",
+          "bytes": 17753
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/promo-page-design/promo-page-examples-b-final-1080w.avif",
+          "bytes": 38373
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/promo-page-design/promo-page-examples-b-final.avif",
+          "bytes": 69467
+        }
+      ],
+      "psnr": {
+        "webp": 37.67,
+        "avif": 35.82
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/seo-article-generator/seo-article-generator-hero-final.png": {
+      "label": "seo_article_generator_hero",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1575063,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/seo-article-generator/seo-article-generator-hero-final-640w.webp",
+          "bytes": 26256
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/seo-article-generator/seo-article-generator-hero-final-1080w.webp",
+          "bytes": 56018
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/seo-article-generator/seo-article-generator-hero-final.webp",
+          "bytes": 99478
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/seo-article-generator/seo-article-generator-hero-final-640w.avif",
+          "bytes": 14717
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/seo-article-generator/seo-article-generator-hero-final-1080w.avif",
+          "bytes": 31386
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/seo-article-generator/seo-article-generator-hero-final.avif",
+          "bytes": 54687
+        }
+      ],
+      "psnr": {
+        "webp": 38.87,
+        "avif": 37.58
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/products/seo-website/seo-website-hero-final.png": {
+      "label": "seo_website_hero",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1949109,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/seo-website/seo-website-hero-final-640w.webp",
+          "bytes": 26338
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/seo-website/seo-website-hero-final-1080w.webp",
+          "bytes": 57378
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/seo-website/seo-website-hero-final.webp",
+          "bytes": 107716
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/products/seo-website/seo-website-hero-final-640w.avif",
+          "bytes": 15536
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/products/seo-website/seo-website-hero-final-1080w.avif",
+          "bytes": 35577
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/products/seo-website/seo-website-hero-final.avif",
+          "bytes": 69007
+        }
+      ],
+      "psnr": {
+        "webp": 38.62,
+        "avif": 38.09
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/templates/template-showcase-devices-final.png": {
+      "label": "template_showcase",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1722623,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/templates/template-showcase-devices-final-640w.webp",
+          "bytes": 20066
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/templates/template-showcase-devices-final-1080w.webp",
+          "bytes": 43178
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/templates/template-showcase-devices-final.webp",
+          "bytes": 77692
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/templates/template-showcase-devices-final-640w.avif",
+          "bytes": 12600
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/templates/template-showcase-devices-final-1080w.avif",
+          "bytes": 27213
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/templates/template-showcase-devices-final.avif",
+          "bytes": 51179
+        }
+      ],
+      "psnr": {
+        "webp": 39.81,
+        "avif": 38.99
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    },
+    "/images/ui-mockups/admin-dashboard-seo-score-final.png": {
+      "label": "admin_dashboard_seo_score",
+      "role": "hero",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1660178,
+      "webp": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/ui-mockups/admin-dashboard-seo-score-final-640w.webp",
+          "bytes": 21886
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/ui-mockups/admin-dashboard-seo-score-final-1080w.webp",
+          "bytes": 44810
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/ui-mockups/admin-dashboard-seo-score-final.webp",
+          "bytes": 79680
+        }
+      ],
+      "avif": [
+        {
+          "width": 640,
+          "height": 360,
+          "src": "/images/ui-mockups/admin-dashboard-seo-score-final-640w.avif",
+          "bytes": 12733
+        },
+        {
+          "width": 1080,
+          "height": 608,
+          "src": "/images/ui-mockups/admin-dashboard-seo-score-final-1080w.avif",
+          "bytes": 27394
+        },
+        {
+          "width": 1672,
+          "height": 941,
+          "src": "/images/ui-mockups/admin-dashboard-seo-score-final.avif",
+          "bytes": 49498
+        }
+      ],
+      "psnr": {
+        "webp": 39.97,
+        "avif": 39.27
+      },
+      "quality": {
+        "webp": 80,
+        "avif": 55
+      }
+    }
+  }
+}

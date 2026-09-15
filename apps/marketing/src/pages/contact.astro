@@ -1,0 +1,188 @@
+---
+import { webPageJsonLd } from '@syt/seo';
+import { badgeClass, buttonClass, cardClass, inputClass } from '@syt/ui';
+import ButtonLink from '../components/ButtonLink.astro';
+import CTASection from '../components/CTASection.astro';
+import FaqSection from '../components/FaqSection.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import VisualGlow from '../components/VisualGlow.astro';
+import { contactBudgets, contactMethods, contactNeeds, contactPreferences, contactServiceTypes, contactSteps, contactTimelines } from '../content/contact';
+import { contactFaq } from '../content/faqs';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { ogImages } from '../content/ogImages';
+import { lineIsExternal, siteUrl } from '../lib/site';
+import { getBrandRuntime } from '../lib/brand-runtime';
+
+const brand = await getBrandRuntime();
+const description = '想討論 SEO 形象官網、一頁式網頁、電商網站或活動宣傳頁，可以透過 LINE@ 或需求表單說明服務類型、預算區間與時程，我們會先整理做法與報價方向。';
+const labelClass = 'grid min-w-0 gap-1.5 text-sm font-medium text-ink';
+const chipClass =
+  'inline-flex max-w-full cursor-pointer items-center gap-2 rounded-full border border-border-gray px-3 py-2 text-sm text-ink transition-colors hover:border-teal-strong has-[:checked]:border-teal-strong has-[:checked]:bg-teal-soft';
+---
+
+<BaseLayout
+  seo={{ title: '聯絡我們｜網站建置、電商與客製報價詢問', description, path: '/contact' }}
+  breadcrumbs={[
+    { label: '首頁', href: '/' },
+    { label: '聯絡我們', href: '/contact' },
+  ]}
+  faq={contactFaq}
+  jsonLd={[webPageJsonLd(siteUrl, { type: 'ContactPage', name: '聯絡森映', description, path: '/contact' }, brand.seo)]}
+  ogImage={ogImages.contact}
+>
+  <PageHero eyebrow="聯絡我們" title="和森映聊聊你的網站需求" lead="LINE@ 是目前最快的聯絡方式；也可以先整理需求，讓我們了解網站目的、時程與預算範圍。">
+    <ButtonLink href="line" size="lg" cta="primary" fullWidthOnMobile>LINE@ 聯絡</ButtonLink>
+    <ButtonLink href="#contact-form" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/30 text-white hover:bg-white/10">整理需求表單</ButtonLink>
+  </PageHero>
+
+  <Section tone="white" id="contact-form" name="contact-form" labelledby="contact-form-heading">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <form data-mock-form class={`${cardClass} min-w-0`} aria-labelledby="contact-form-heading" aria-describedby="contact-form-note" onsubmit="return false;" novalidate>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="contact-form-heading" class="text-xl font-bold text-ink sm:text-2xl">需求表單</h2>
+          <span class={badgeClass('warning')}>展示版本，不會送出</span>
+        </div>
+        <p id="contact-form-note" class="mt-2 text-sm leading-relaxed text-slate-gray">這個表單目前只展示欄位規劃，不會傳送或儲存任何資料。想馬上聯絡，請使用 LINE@。</p>
+
+        <fieldset class="mt-6 min-w-0">
+          <legend class="text-sm font-semibold text-ink">服務類型</legend>
+          <div class="mt-3 grid gap-2 sm:grid-cols-2">
+            {
+              contactServiceTypes.map((item, index) => (
+                <label class="flex min-w-0 cursor-pointer items-start gap-3 rounded-xl border border-border-gray p-3 transition-colors hover:border-teal-strong has-[:checked]:border-teal-strong has-[:checked]:bg-teal-soft">
+                  <input type="radio" name="service" value={item.value} checked={index === 0} class="mt-1 h-4 w-4 shrink-0 accent-teal-strong" />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-semibold text-ink">{item.label}</span>
+                    <span class="mt-0.5 block text-xs text-slate-gray">{item.hint}</span>
+                  </span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="mt-6 min-w-0">
+          <legend class="text-sm font-semibold text-ink">常見需求（可複選）</legend>
+          <div class="mt-3 flex flex-wrap gap-2">
+            {
+              contactNeeds.map((need) => (
+                <label class={chipClass}>
+                  <input type="checkbox" name="needs" value={need} class="h-4 w-4 shrink-0 accent-teal-strong" />
+                  <span class="min-w-0">{need}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <label class={labelClass}>
+            預算區間
+            <select class={inputClass} name="budget">
+              {contactBudgets.map((budget) => <option>{budget}</option>)}
+            </select>
+          </label>
+          <label class={labelClass}>
+            希望上線時間
+            <select class={inputClass} name="timeline">
+              {contactTimelines.map((timeline) => <option>{timeline}</option>)}
+            </select>
+          </label>
+          <label class={labelClass}>
+            姓名
+            <input class={inputClass} name="name" autocomplete="name" required />
+          </label>
+          <label class={labelClass}>
+            公司 / 品牌
+            <input class={inputClass} name="company" autocomplete="organization" />
+          </label>
+          <label class={labelClass}>
+            Email
+            <input class={inputClass} type="email" name="email" autocomplete="email" required />
+          </label>
+          <label class={labelClass}>
+            電話或 LINE ID
+            <input class={inputClass} name="phone" autocomplete="tel" />
+          </label>
+          <fieldset class="min-w-0 md:col-span-2">
+            <legend class="text-sm font-medium text-ink">方便的聯絡方式</legend>
+            <div class="mt-2 flex flex-wrap gap-2">
+              {
+                contactPreferences.map((preference, index) => (
+                  <label class={chipClass}>
+                    <input type="radio" name="preference" value={preference} checked={index === 0} class="h-4 w-4 shrink-0 accent-teal-strong" />
+                    <span class="min-w-0">{preference}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+          <label class={`${labelClass} md:col-span-2`}>
+            需求描述
+            <textarea class={`${inputClass} min-h-32`} name="message" required placeholder="例如：網站目的、參考網站、現有素材"></textarea>
+          </label>
+          <label class="flex items-start gap-2 text-sm text-slate-gray md:col-span-2">
+            <input type="checkbox" name="consent" class="mt-1 h-4 w-4 shrink-0 accent-teal-strong" required />
+            <span>我已閱讀並同意 <a href="/legal/privacy" class="text-teal-strong underline">隱私權政策</a></span>
+          </label>
+        </div>
+        <button type="submit" disabled class={buttonClass('primary', 'lg', 'mt-6 w-full sm:w-auto')}>送出需求（展示版本）</button>
+      </form>
+
+      <aside class="grid min-w-0 content-start gap-4">
+        <div id="line" class="syt-hero-bg relative scroll-mt-24 overflow-hidden rounded-card border border-white/10 p-5 text-white sm:p-6">
+          <VisualGlow variant="section" />
+          <div class="relative">
+            <h2 class="text-xl font-bold">LINE@ 聯絡</h2>
+            <p class="mt-2 text-sm leading-relaxed text-slate-300">方案、報價或開通問題，LINE@ 回覆最快。電商、活動 DM 與特殊功能也建議直接用 LINE@ 說明。</p>
+            <ButtonLink href="line" class="mt-4 w-full">開啟 LINE@</ButtonLink>
+            {!lineIsExternal && <p class="mt-3 text-xs text-slate-400">LINE@ 連結整理中，正式上線前補上。</p>}
+          </div>
+        </div>
+        <div class={cardClass}>
+          <h2 class="text-lg font-bold text-ink">聯絡方式</h2>
+          <dl class="mt-3 grid gap-3 text-sm">
+            {
+              contactMethods.map((method) => (
+                <div class="flex min-w-0 flex-col gap-0.5">
+                  <dt class="font-semibold text-ink">{method.label}</dt>
+                  <dd class="break-words text-slate-gray">{method.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+        <div class={cardClass}>
+          <h2 class="text-lg font-bold text-ink">聯絡之後會怎麼進行</h2>
+          <ol class="mt-3 grid gap-3">
+            {
+              contactSteps.map((step, index) => (
+                <li class="flex min-w-0 gap-3">
+                  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-soft font-mono text-xs font-bold text-teal-strong">{index + 1}</span>
+                  <span class="min-w-0">
+                    <span class="block text-sm font-semibold text-ink">{step.title}</span>
+                    <span class="mt-0.5 block text-sm text-slate-gray">{step.description}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <div class={cardClass}>
+          <h2 class="text-lg font-bold text-ink">已經有權限代碼？</h2>
+          <p class="mt-2 text-sm leading-relaxed text-slate-gray">收到權限代碼後，登入客戶後台兌換即可開始建立網站。</p>
+          <ButtonLink href="portal" variant="secondary" class="mt-4 w-full">進入客戶後台</ButtonLink>
+        </div>
+      </aside>
+    </div>
+  </Section>
+
+  <FaqSection items={contactFaq} tone="mist" />
+  <CTASection
+    title="想先看看產品內容？"
+    description="SEO 形象官網與一頁式網頁可以自助建立，先看看產品內容與開通流程。"
+    primary={{ label: '查看產品方案', href: '/products' }}
+    secondary={{ label: '了解開通流程', href: '/checkout' }}
+  />
+</BaseLayout>

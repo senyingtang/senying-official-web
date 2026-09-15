@@ -1,0 +1,23 @@
+---
+import { mediaAssets } from '../content/media';
+import ImageFrame from './ImageFrame.astro';
+import MockAccessCodeCard from './MockAccessCodeCard.astro';
+
+interface Props {
+  note: string;
+}
+
+/**
+ * 首頁 Hero 右側主視覺（Phase 2.6：正式圖片）。
+ * - 首屏唯一的 eager 圖片（fetchpriority high）
+ * - 手機排在文字與 CTA 下方；桌機在右側，權限代碼卡片（CSS）疊在左下角
+ * - 圖片不壓住標題與 CTA，也不承載重要文字資訊
+ */
+const { note } = Astro.props;
+---
+
+<div data-hero-visual class="relative min-w-0">
+  <ImageFrame image={mediaAssets.homeHero} loading="eager" fetchpriority="high" aspect="video" />
+  <MockAccessCodeCard tone="dark" class="relative mt-4 hidden sm:block lg:absolute lg:-bottom-10 lg:-left-6 lg:mt-0 lg:w-60 xl:w-64" />
+  <p class="relative mt-4 text-xs text-slate-400 lg:mt-16 lg:pl-60 xl:pl-64">{note}</p>
+</div>

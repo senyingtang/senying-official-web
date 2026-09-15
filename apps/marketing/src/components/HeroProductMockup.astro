@@ -1,0 +1,20 @@
+---
+import MockBrowserFrame from './MockBrowserFrame.astro';
+import MockPageWireframe from './MockPageWireframe.astro';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<MockBrowserFrame url="your-brand.example" class={className}>
+  <div class="relative">
+    <MockPageWireframe variant="website" class="sm:p-5" />
+    <div class="absolute bottom-3 right-3 hidden rounded-xl border border-border-gray bg-surface/95 px-3 py-2 shadow-lg xs:block lg:hidden">
+      <p class="text-[11px] font-semibold text-ink">每頁 SEO 設定</p>
+      <p class="mt-0.5 text-[11px] text-success-strong">標題 · 描述 · FAQ ✓</p>
+    </div>
+  </div>
+</MockBrowserFrame>

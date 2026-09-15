@@ -1,0 +1,45 @@
+---
+import type { ChipItem } from '../content/types';
+import ListFilter from './ListFilter.astro';
+
+interface Props {
+  items: ChipItem[];
+  /** 對應 data-filter-list 的名稱；有值時 chip 可篩選卡片（無 JS 時顯示全部） */
+  target?: string;
+  label: string;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { items, target, label, tone = 'light', class: className = '' } = Astro.props;
+const dark = tone === 'dark';
+---
+
+<div class:list={['flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between', className]}>
+  <div class="syt-chip-row -mx-4 min-w-0 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="group" aria-label={label}>
+    <ul class="flex w-max gap-2 py-1 sm:w-auto sm:flex-wrap">
+      {
+        items.map((item, index) => (
+          <li class="shrink-0">
+            <button
+              type="button"
+              data-filter-chip={item.key}
+              data-filter-target={target}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+              class:list={[
+                'inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium transition-colors',
+                dark
+                  ? 'border-white/20 bg-white/5 text-slate-200 hover:border-teal/60 aria-pressed:border-teal aria-pressed:bg-teal aria-pressed:text-navy-black'
+                  : 'border-border-gray bg-surface text-ink hover:border-teal-strong hover:text-teal-strong aria-pressed:border-teal aria-pressed:bg-teal aria-pressed:text-navy-black',
+              ]}
+            >
+              {item.label}
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  {Astro.slots.has('default') && <div class="min-w-0 shrink-0"><slot /></div>}
+</div>
+{target && <ListFilter />}

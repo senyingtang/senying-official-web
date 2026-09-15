@@ -1,0 +1,233 @@
+---
+import { serviceJsonLd, softwareApplicationJsonLd } from '@syt/seo';
+import ButtonLink from '../../components/ButtonLink.astro';
+import CategoryChips from '../../components/CategoryChips.astro';
+import DenseFeatureGrid from '../../components/DenseFeatureGrid.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import FinalCTA from '../../components/FinalCTA.astro';
+import HorizontalShowcaseRail from '../../components/HorizontalShowcaseRail.astro';
+import IconGlyph from '../../components/IconGlyph.astro';
+import ImageFrame from '../../components/ImageFrame.astro';
+import IndustryCardGrid from '../../components/IndustryCardGrid.astro';
+import MockupAlignedHero from '../../components/MockupAlignedHero.astro';
+import PainPointGrid from '../../components/PainPointGrid.astro';
+import ProcessTimeline from '../../components/ProcessTimeline.astro';
+import ProductHeroVisual from '../../components/ProductHeroVisual.astro';
+import Section from '../../components/Section.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import SeoToolMock from '../../components/SeoToolMock.astro';
+import SolutionBand from '../../components/SolutionBand.astro';
+import { mediaAssets, productHeroImages } from '../../content/media';
+import { ogImages, productOgImages } from '../../content/ogImages';
+import { PRICING_NOTICE } from '../../content/pricing';
+import { getProductLayout } from '../../content/productLayouts';
+import { products, type ProductPage } from '../../content/products';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteUrl } from '../../lib/site';
+import { getBrandRuntime } from '../../lib/brand-runtime';
+
+export function getStaticPaths() {
+  return products.map((product) => ({ params: { slug: product.slug }, props: { product } }));
+}
+
+interface Props {
+  product: ProductPage;
+}
+
+const brand = await getBrandRuntime();
+const { product } = Astro.props as Props;
+const layout = getProductLayout(product.slug);
+const hero = layout.hero;
+const structured =
+  product.schemaType === 'SoftwareApplication'
+    ? softwareApplicationJsonLd(siteUrl, { name: product.name, description: product.seoDescription, path: product.path }, brand.seo)
+    : serviceJsonLd(siteUrl, { name: product.name, description: product.seoDescription, path: product.path }, brand.seo);
+const heroImage = productHeroImages[product.slug] ?? mediaAssets.homeHero;
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '產品服務', href: '/products' },
+  { label: product.name, href: product.path },
+];
+const pricingNote = PRICING_NOTICE.join('・');
+const lightTone = (tone: string | undefined) => (tone === 'mist' ? 'mist' : 'white');
+---
+
+<BaseLayout
+  seo={{ title: product.seoTitle, description: product.seoDescription, path: product.path }}
+  breadcrumbs={breadcrumbs}
+  breadcrumbsInHero
+  faq={product.faq}
+  jsonLd={[structured]}
+  ogImage={productOgImages[product.slug] ?? ogImages.products}
+>
+  <MockupAlignedHero
+    eyebrow={hero.eyebrow}
+    title={hero.title}
+    highlight={hero.highlight}
+    subtitle={hero.subtitle}
+    lead={hero.lead}
+    breadcrumbs={breadcrumbs}
+    features={hero.features}
+    script={hero.script}
+    notice={hero.notice}
+  >
+    <ButtonLink href={hero.primary.href} size="lg" cta="primary" fullWidthOnMobile>
+      {hero.primary.label}
+      <span aria-hidden="true">→</span>
+    </ButtonLink>
+    <ButtonLink href={hero.secondary.href} variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">
+      {hero.secondary.label}
+    </ButtonLink>
+    {
+      hero.tertiary && (
+        <ButtonLink href={hero.tertiary.href} variant="ghost" size="lg" cta="tertiary" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">
+          {hero.tertiary.href === 'line' && <IconGlyph name="message" class="h-5 w-5 text-teal" />}
+          {hero.tertiary.label}
+        </ButtonLink>
+      )
+    }
+    <Fragment slot="visual">
+      <ProductHeroVisual image={heroImage} badges={hero.badges} />
+    </Fragment>
+  </MockupAlignedHero>
+
+  {
+    layout.sections.map((section) => {
+      const headingId = `${section.key}-heading`;
+      if (section.kind === 'pain')
+        return (
+          <Section tone="white" density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <SectionHeading id={headingId} title={section.title} description={section.description} action={section.action} compact />
+            <PainPointGrid items={section.items ?? []} />
+          </Section>
+        );
+      if (section.kind === 'band')
+        return (
+          <SolutionBand
+            name={section.key}
+            title={section.title}
+            description={section.description}
+            items={section.items}
+            columns={section.columns}
+            action={section.action}
+            script={section.script}
+            cardLayout={section.cardLayout}
+          />
+        );
+      if (section.kind === 'icons')
+        return (
+          <Section tone={lightTone(section.tone)} density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <div class="relative">
+              <SectionHeading id={headingId} title={section.title} description={section.description} action={section.action} compact />
+              {section.script && (
+                <p aria-hidden="true" class="syt-script pointer-events-none absolute right-0 top-0 hidden text-xl text-teal-strong/70 lg:block">
+                  {section.script}
+                </p>
+              )}
+            </div>
+            {section.note && (
+              <p role="note" class="mb-5 flex gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm leading-relaxed text-warning-strong">
+                <IconGlyph name="alert" class="mt-0.5 h-4 w-4 shrink-0" />
+                <span class="min-w-0">{section.note}</span>
+              </p>
+            )}
+            <DenseFeatureGrid items={section.items ?? []} columns={section.columns} align={section.align} />
+          </Section>
+        );
+      if (section.kind === 'timeline')
+        return (
+          <Section tone="mist" density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <SectionHeading id={headingId} title={section.title} description={section.description} action={section.action} compact />
+            <ProcessTimeline steps={section.steps ?? []} />
+          </Section>
+        );
+      if (section.kind === 'industries')
+        return (
+          <Section tone="white" density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <SectionHeading id={headingId} title={section.title} description={section.description} action={section.action} compact />
+            <IndustryCardGrid items={section.items ?? []} />
+          </Section>
+        );
+      if (section.kind === 'cards') {
+        const dark = section.tone === 'mountain';
+        const listName = section.chips ? `${product.slug}-${section.key}` : undefined;
+        return (
+          <Section tone={dark ? 'mountain' : lightTone(section.tone)} density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <SectionHeading id={headingId} title={section.title} description={section.description} action={section.action} tone={dark ? 'dark' : 'light'} compact />
+            {section.chips && <CategoryChips items={section.chips} target={listName} label={`${section.title}分類`} tone={dark ? 'dark' : 'light'} class="mb-5" />}
+            <HorizontalShowcaseRail
+              cards={section.cards ?? []}
+              tone={dark ? 'dark' : 'light'}
+              layout={section.layout}
+              perRow={section.perRow}
+              portrait={section.portrait}
+              filterList={listName}
+              label={section.title}
+            />
+          </Section>
+        );
+      }
+      if (section.kind === 'tool-ui')
+        return (
+          <Section tone="mist" density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <SectionHeading id={headingId} title={section.title} description={section.description} compact />
+            <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+              <SeoToolMock />
+              <ImageFrame image={mediaAssets.adminDashboardSeoScore} tone="light" glow={false} caption="後台與 SEO 工具畫面示意，實際功能依版本開放。" />
+            </div>
+          </Section>
+        );
+      if (section.kind === 'plans')
+        return (
+          <Section tone="white" density="compact" id={section.key} name={section.key} labelledby={headingId}>
+            <SectionHeading id={headingId} title={section.title} description={section.description} compact />
+            <ul class="grid gap-4 md:grid-cols-3">
+              {(section.plans ?? []).map((plan) => (
+                <li
+                  class:list={[
+                    'relative flex min-w-0 flex-col rounded-2xl border bg-surface p-5 shadow-card',
+                    plan.highlight ? 'border-teal ring-1 ring-teal' : 'border-border-gray',
+                  ]}
+                >
+                  {plan.highlight && <span class="absolute -top-3 left-5 rounded-full bg-teal px-2.5 py-0.5 text-xs font-semibold text-navy-black">規劃中的主要方案</span>}
+                  <h3 class="text-lg font-bold text-ink">{plan.name}</h3>
+                  <p class="text-sm text-slate-gray">{plan.audience}</p>
+                  <p class="mt-3 text-2xl font-bold text-deep-navy">{plan.priceDisplay}</p>
+                  <p class="text-xs text-slate-gray">{plan.quota}</p>
+                  <ul class="mt-4 grid flex-1 content-start gap-2 text-sm text-ink">
+                    {plan.features.map((feature) => (
+                      <li class="flex min-w-0 gap-2">
+                        <IconGlyph name="check" class="mt-0.5 h-4 w-4 shrink-0 text-teal-strong" strokeWidth={2.4} />
+                        <span class="min-w-0">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <ButtonLink href={plan.cta.href} variant={plan.highlight ? 'primary' : 'secondary'} class="mt-5 w-full" cta="plan">
+                    {plan.cta.label}
+                  </ButtonLink>
+                </li>
+              ))}
+            </ul>
+            <ul class="mt-4 flex flex-wrap gap-2" aria-label="價格說明">
+              {PRICING_NOTICE.map((notice) => (
+                <li class="rounded-full bg-teal-soft px-3 py-1 text-xs font-medium text-teal-strong">{notice}</li>
+              ))}
+            </ul>
+          </Section>
+        );
+      if (section.kind === 'faq') return <FaqSection items={product.faq} title={section.title} description={section.description} layout="grid" tone="white" />;
+      if (section.kind === 'cta' && section.primary)
+        return (
+          <FinalCTA
+            title={section.title}
+            description={section.description ?? ''}
+            primary={section.primary}
+            secondary={section.secondary}
+            script={section.script}
+            note={section.note ? `${section.note} ${pricingNote}` : pricingNote}
+          />
+        );
+      return null;
+    })
+  }
+</BaseLayout>

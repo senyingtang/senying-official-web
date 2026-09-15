@@ -1,0 +1,13 @@
+﻿type,folder,purpose,website_path_example
+design_mockup,docs/design/uiux-mockups,完整 UI/UX 頁面設計圖,不直接上網站
+design_note,docs/design/uiux-notes,設計修改紀錄,不直接上網站
+designer_handoff,docs/design/designer-handoff,設計師交付與需求書,不直接上網站
+source_image,docs/design/source-images,原始素材與未壓縮圖片,不直接上網站
+hero_image,apps/marketing/public/images/hero,首頁 Hero 與主視覺,/images/hero/example.webp
+product_image,apps/marketing/public/images/products,產品頁圖片,/images/products/example.webp
+case_image,apps/marketing/public/images/cases,案例圖片,/images/cases/example.webp
+blog_image,apps/marketing/public/images/blog,文章封面圖片,/images/blog/example.webp
+og_image,apps/marketing/public/images/og,SEO OG 圖片,/images/og/example.png
+template_image,apps/marketing/public/images/templates,版型預覽圖片,/images/templates/example.webp
+background_image,apps/marketing/public/images/backgrounds,背景圖片,/images/backgrounds/example.webp
+ui_mockup_image,apps/marketing/public/images/ui-mockups,網站中使用的 UI mockup 圖,/images/ui-mockups/example.webp

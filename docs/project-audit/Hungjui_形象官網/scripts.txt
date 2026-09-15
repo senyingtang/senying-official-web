@@ -1,0 +1,11 @@
+﻿
+
+dev          : astro dev
+build        : astro build && node tools/build-guard.mjs
+preview      : astro preview
+check        : astro check
+fetch:pexels : node tools/fetch-pexels.mjs
+
+
+
+

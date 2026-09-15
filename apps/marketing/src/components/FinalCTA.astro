@@ -1,0 +1,75 @@
+---
+import type { LinkItem } from '../content/types';
+import { mediaAssets } from '../content/media';
+import ButtonLink from './ButtonLink.astro';
+import Container from './Container.astro';
+import IconGlyph from './IconGlyph.astro';
+import ResponsiveImage from './ResponsiveImage.astro';
+import { IMAGE_SIZES } from '../lib/image-variants';
+
+interface Props {
+  title: string;
+  description: string;
+  primary: LinkItem;
+  secondary?: LinkItem;
+  /** dark：深色山景；light：清晨山景（首頁設計稿） */
+  tone?: 'dark' | 'light';
+  /** 裝飾用手寫短句（aria-hidden） */
+  script?: string;
+  /** 補充說明（例如價格狀態） */
+  note?: string;
+  name?: string;
+  id?: string;
+}
+
+/**
+ * 設計稿的 Final CTA：背景圖（lazy、裝飾）+ overlay，主標與按鈕為 HTML 文字。
+ * href 為 'line' 時按鈕顯示 LINE 對話 icon。
+ */
+const { title, description, primary, secondary, tone = 'dark', script, note, name = 'cta', id = 'final-cta-heading' } = Astro.props;
+const dark = tone === 'dark';
+const background = dark ? mediaAssets.backgroundDark : mediaAssets.backgroundBright;
+---
+
+<section data-section={name} data-final-cta aria-labelledby={id} class:list={['relative overflow-hidden', dark ? 'bg-navy-black text-white' : 'syt-mist-bg text-ink']}>
+  <ResponsiveImage src={background.src} alt="" width={background.width} height={background.height} loading="lazy" sizes={IMAGE_SIZES.background} class:list={['absolute inset-0 h-full w-full', dark ? 'opacity-50' : 'opacity-70']} />
+  <div
+    aria-hidden="true"
+    class:list={[
+      'absolute inset-0',
+      dark
+        ? 'bg-gradient-to-b from-navy-black/85 via-navy-black/70 to-navy-black/90 md:bg-gradient-to-r md:from-navy-black/95 md:via-navy-black/70 md:to-navy-black/30'
+        : 'bg-gradient-to-b from-white/85 via-white/70 to-white/60 md:bg-gradient-to-r md:from-white/95 md:via-white/75 md:to-white/10',
+    ]}
+  >
+  </div>
+  <Container class="relative grid items-center gap-6 py-12 md:py-14 lg:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,0.5fr)] lg:gap-10">
+    <div class="min-w-0">
+      <h2 id={id} class="text-2xl font-bold leading-tight sm:text-3xl">{title}</h2>
+      <p class:list={['mt-2 text-base leading-relaxed', dark ? 'text-slate-300' : 'text-slate-gray']}>{description}</p>
+      {note && <p class:list={['mt-2 text-xs', dark ? 'text-slate-400' : 'text-slate-gray']}>{note}</p>}
+    </div>
+    <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <ButtonLink href={primary.href} size="lg" cta="primary" fullWidthOnMobile>
+        {primary.label}
+        <span aria-hidden="true">→</span>
+      </ButtonLink>
+      {
+        secondary && (
+          <ButtonLink
+            href={secondary.href}
+            size="lg"
+            variant={dark ? 'ghost' : 'dark'}
+            cta="secondary"
+            fullWidthOnMobile
+            class={dark ? 'border border-white/40 text-white hover:bg-white/10' : ''}
+          >
+            {secondary.href === 'line' && <IconGlyph name="message" class="h-5 w-5 text-teal" />}
+            {secondary.label}
+          </ButtonLink>
+        )
+      }
+    </div>
+    {script && <p aria-hidden="true" class:list={['syt-script hidden text-right text-xl lg:block', dark ? 'text-teal/80' : 'text-deep-navy/70']}>{script}</p>}
+  </Container>
+</section>

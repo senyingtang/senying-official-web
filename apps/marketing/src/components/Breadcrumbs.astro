@@ -1,0 +1,40 @@
+---
+import type { BreadcrumbItem } from '@syt/seo';
+
+interface Props {
+  items: BreadcrumbItem[];
+  /** 首頁只保留給輔助科技讀取，不顯示在畫面上 */
+  visuallyHidden?: boolean;
+  /** dark：放在深色 Hero 內（設計稿位置） */
+  tone?: 'bar' | 'dark';
+}
+
+const { items, visuallyHidden = false, tone = 'bar' } = Astro.props;
+const dark = tone === 'dark';
+---
+
+<nav aria-label="麵包屑" class:list={[visuallyHidden ? 'sr-only' : dark ? '' : 'border-b border-border-gray bg-surface']}>
+  <div class:list={[!dark && 'syt-rail-safe mx-auto w-full max-w-[1280px] px-4 md:px-6']}>
+    <ol class:list={['flex flex-wrap items-center gap-x-2 gap-y-1 text-sm', dark ? 'text-slate-300' : 'py-3 text-slate-gray']}>
+      {
+        items.map((item, index) => {
+          const isLast = index === items.length - 1;
+          return (
+            <li class="flex min-w-0 items-center gap-2">
+              {isLast ? (
+                <span aria-current="page" class:list={['break-words font-medium', dark ? 'text-teal' : 'text-ink']}>
+                  {item.label}
+                </span>
+              ) : (
+                <a href={item.href} class:list={[dark ? 'hover:text-white' : 'hover:text-teal-strong']}>
+                  {item.label}
+                </a>
+              )}
+              {!isLast && <span aria-hidden="true">{dark ? '›' : '/'}</span>}
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</nav>

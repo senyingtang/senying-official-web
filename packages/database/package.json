@@ -1,0 +1,28 @@
+{
+  "name": "@syt/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./data-source": "./src/data-source.ts",
+    "./public-site-settings": "./src/public-site-settings.ts",
+    "./server": "./src/server.ts",
+    "./site-settings": "./src/site-settings.ts",
+    "./types": "./src/types/database.types.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.116.0",
+    "@syt/auth": "workspace:*",
+    "@syt/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

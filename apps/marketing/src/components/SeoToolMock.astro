@@ -1,0 +1,88 @@
+---
+import IconGlyph from './IconGlyph.astro';
+
+/** SEO 文章生產器介面示意（純 HTML，欄位不可操作，不送出任何資料） */
+const menu = [
+  { icon: 'file', label: '文章生成', active: true },
+  { icon: 'search', label: '關鍵字研究' },
+  { icon: 'book', label: '我的文章' },
+  { icon: 'gauge', label: '額度管理' },
+  { icon: 'users', label: '團隊管理' },
+] as const;
+const steps = ['輸入主題', '生成內容', '優化與匯出'];
+const outputs = ['SEO 標題', '文章大綱', '段落內容', 'FAQ 問答', 'Meta 描述', 'HTML 輸出'];
+---
+
+<div
+  role="img"
+  aria-label="SEO 文章生產器介面示意：左側選單、輸入主題與條件、生成按鈕，右側為文章預覽與包含元素清單"
+  class="overflow-hidden rounded-card border border-border-gray bg-surface shadow-card"
+>
+  <div class="grid md:grid-cols-[9.5rem_minmax(0,1fr)]">
+    <div class="hidden bg-[#0b1f3b] p-3 text-slate-300 md:block">
+      <p class="mb-3 flex items-center gap-2 text-sm font-bold text-white">
+        <span class="h-5 w-5 rounded-md bg-teal"></span>森映
+      </p>
+      <ul class="grid gap-1 text-xs">
+        {
+          menu.map((item) => (
+            <li class:list={['flex items-center gap-2 rounded-lg px-2 py-2', 'active' in item && item.active ? 'bg-teal/15 text-teal' : '']}>
+              <IconGlyph name={item.icon} class="h-4 w-4" />
+              {item.label}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <div class="min-w-0">
+        <ol class="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-gray">
+          {
+            steps.map((step, index) => (
+              <li class:list={['flex items-center gap-1.5', index === 0 && 'text-teal-strong']}>
+                <span class:list={['flex h-5 w-5 items-center justify-center rounded-full text-[11px]', index === 0 ? 'bg-teal text-navy-black' : 'bg-mist-white']}>{index + 1}</span>
+                {step}
+              </li>
+            ))
+          }
+        </ol>
+        <p class="mt-4 text-xs font-semibold text-ink">文章主題 / 關鍵字</p>
+        <p class="mt-1 rounded-input border border-teal/60 bg-teal-soft/40 px-3 py-2 text-sm text-ink">台灣親子露營推薦</p>
+        <div class="mt-3 grid grid-cols-3 gap-2 text-xs">
+          <p class="min-w-0"><span class="block text-slate-gray">目標地區</span><span class="mt-1 block truncate rounded-input border border-border-gray px-2 py-1.5 text-ink">台灣</span></p>
+          <p class="min-w-0"><span class="block text-slate-gray">文章語氣</span><span class="mt-1 block truncate rounded-input border border-border-gray px-2 py-1.5 text-ink">專業友善</span></p>
+          <p class="min-w-0"><span class="block text-slate-gray">文章長度</span><span class="mt-1 block truncate rounded-input border border-border-gray px-2 py-1.5 text-ink">中長篇</span></p>
+        </div>
+        <p class="mt-4 flex items-center justify-center gap-2 rounded-button bg-[#0b1f3b] px-3 py-2.5 text-sm font-semibold text-white">
+          生成 SEO 文章
+          <IconGlyph name="sparkles" class="h-4 w-4 text-teal" />
+        </p>
+      </div>
+      <div class="grid min-w-0 gap-3 rounded-2xl border border-border-gray bg-mist-white p-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-slate-gray">文章預覽</p>
+          <p class="mt-2 text-sm font-bold leading-snug text-ink">台灣親子露營推薦｜挑選營地前要先確認的事</p>
+          <div class="mt-3 grid gap-1.5" aria-hidden="true">
+            <span class="h-2 w-full rounded bg-slate-200"></span>
+            <span class="h-2 w-11/12 rounded bg-slate-200"></span>
+            <span class="h-2 w-4/5 rounded bg-slate-200"></span>
+            <span class="mt-2 h-16 w-full rounded-lg bg-gradient-to-br from-teal/30 via-sky-200 to-emerald-100"></span>
+          </div>
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-slate-gray">包含元素</p>
+          <ul class="mt-2 grid gap-1 text-xs text-ink">
+            {
+              outputs.map((output) => (
+                <li class="flex items-center gap-1.5">
+                  <IconGlyph name="check-circle" class="h-3.5 w-3.5 shrink-0 text-teal-strong" />
+                  {output}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

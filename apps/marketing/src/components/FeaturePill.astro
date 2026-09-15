@@ -1,0 +1,20 @@
+---
+interface Props {
+  label: string;
+  tone?: 'light' | 'dark' | 'teal';
+  class?: string;
+}
+
+const { label, tone = 'light', class: className = '' } = Astro.props;
+
+const toneClass = {
+  light: 'border-border-gray bg-surface text-ink',
+  dark: 'border-white/15 bg-white/5 text-slate-200',
+  teal: 'border-teal/30 bg-teal-soft text-teal-strong',
+}[tone];
+---
+
+<span class:list={['inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium sm:text-sm', toneClass, className]}>
+  <span class:list={['h-1.5 w-1.5 shrink-0 rounded-full', tone === 'dark' ? 'bg-teal' : 'bg-teal-strong']} aria-hidden="true"></span>
+  <span class="min-w-0 break-words">{label}</span>
+</span>

@@ -1,0 +1,27 @@
+---
+import type { MarketingImageAsset } from '../content/media';
+import ImageFrame from './ImageFrame.astro';
+
+interface Props {
+  image: MarketingImageAsset;
+  /** 桌機顯示的玻璃標籤（純文字，手機隱藏以免遮住畫面） */
+  badges?: string[];
+  caption?: string;
+}
+
+/** 產品頁 Hero 右側畫面：首屏唯一的 eager 圖片 */
+const { image, badges = [], caption = '畫面為產品情境示意，不是真實客戶網站。' } = Astro.props;
+---
+
+<div data-hero-visual class="relative min-w-0">
+  <ImageFrame image={image} loading="eager" fetchpriority="high" aspect="video" caption={caption} />
+  {
+    badges.length > 0 && (
+      <ul class="pointer-events-none absolute right-3 top-3 hidden max-w-[45%] flex-col items-end gap-2 lg:flex" aria-hidden="true">
+        {badges.map((badge) => (
+          <li class="rounded-xl border border-white/20 bg-navy-black/70 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur">{badge}</li>
+        ))}
+      </ul>
+    )
+  }
+</div>

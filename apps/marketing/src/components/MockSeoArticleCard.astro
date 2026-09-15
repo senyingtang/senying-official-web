@@ -1,0 +1,54 @@
+---
+interface Props {
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { tone = 'light', class: className = '' } = Astro.props;
+const dark = tone === 'dark';
+const muted = dark ? 'text-slate-400' : 'text-slate-gray';
+const outline = [
+  { level: 'H2', text: '新網站先確認哪些頁面' },
+  { level: 'H3', text: '服務頁與地區頁的差別' },
+  { level: 'H2', text: '前 3 個月的文章主題' },
+  { level: 'H2', text: '常見問題' },
+];
+const exportsList = ['FAQ Schema', 'HTML', 'WordPress'];
+---
+
+<div
+  class:list={[
+    'min-w-0 rounded-2xl border p-4 shadow-xl sm:p-5',
+    dark ? 'border-white/10 bg-deep-navy/95 text-white shadow-black/30' : 'border-border-gray bg-surface text-ink shadow-slate-900/10',
+    className,
+  ]}
+>
+  <div class="flex items-center justify-between gap-2">
+    <p class:list={['text-xs font-semibold tracking-wide', dark ? 'text-teal' : 'text-teal-strong']}>SEO 文章草稿</p>
+    <span class:list={['shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium', dark ? 'bg-warning/15 text-amber-300' : 'bg-warning/10 text-warning-strong']}>待人工審稿</span>
+  </div>
+  <p class="mt-2 text-sm font-bold leading-snug">新網站怎麼開始做 SEO？前 3 個月的內容安排</p>
+  <dl class="mt-3 grid gap-1.5 text-[11px]">
+    <div class="flex items-center justify-between gap-2">
+      <dt class={muted}>SEO title</dt>
+      <dd class:list={['font-medium', dark ? 'text-teal' : 'text-success-strong']}>建議字數內 ✓</dd>
+    </div>
+    <div class="flex items-center justify-between gap-2">
+      <dt class={muted}>meta description</dt>
+      <dd class:list={['font-medium', dark ? 'text-teal' : 'text-success-strong']}>建議字數內 ✓</dd>
+    </div>
+  </dl>
+  <ol class:list={['mt-3 grid gap-1.5 border-t pt-3 text-xs', dark ? 'border-white/10' : 'border-border-gray']}>
+    {
+      outline.map((item) => (
+        <li class:list={['flex min-w-0 items-center gap-2', item.level === 'H3' && 'pl-4']}>
+          <span class:list={['shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold', dark ? 'bg-white/10 text-teal' : 'bg-teal-soft text-teal-strong']}>{item.level}</span>
+          <span class="min-w-0 truncate">{item.text}</span>
+        </li>
+      ))
+    }
+  </ol>
+  <ul class="mt-3 flex flex-wrap gap-1.5">
+    {exportsList.map((label) => <li class:list={['rounded-full border px-2 py-0.5 text-[11px]', dark ? 'border-white/15 text-slate-300' : 'border-border-gray text-slate-gray']}>{label}</li>)}
+  </ul>
+</div>

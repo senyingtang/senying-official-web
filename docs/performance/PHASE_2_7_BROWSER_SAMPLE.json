@@ -1,0 +1,150 @@
+{
+  "measuredAt": "2026-09-15T15:33:06.603Z",
+  "chrome": "152.0.7977.83",
+  "measurements": [
+    {
+      "scenario": "手機 390×844 @3x",
+      "route": "/",
+      "initialBytes": 229065,
+      "initialCount": 5,
+      "totalBytes": 348702,
+      "totalCount": 7,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "手機 390×844 @3x",
+      "route": "/products/seo-website",
+      "initialBytes": 69007,
+      "initialCount": 1,
+      "totalBytes": 180121,
+      "totalCount": 3,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "手機 390×844 @3x",
+      "route": "/products/landing-page",
+      "initialBytes": 98896,
+      "initialCount": 1,
+      "totalBytes": 174433,
+      "totalCount": 2,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "手機 390×844 @3x",
+      "route": "/products/ecommerce-website",
+      "initialBytes": 54315,
+      "initialCount": 1,
+      "totalBytes": 203538,
+      "totalCount": 4,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "手機 390×844 @3x",
+      "route": "/products/promo-page-design",
+      "initialBytes": 239016,
+      "initialCount": 2,
+      "totalBytes": 384020,
+      "totalCount": 4,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "手機 390×844 @3x",
+      "route": "/products/seo-article-generator",
+      "initialBytes": 54687,
+      "initialCount": 1,
+      "totalBytes": 179722,
+      "totalCount": 3,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "桌機 1440×900 @1x",
+      "route": "/",
+      "initialBytes": 122317,
+      "initialCount": 6,
+      "totalBytes": 227341,
+      "totalCount": 8,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "桌機 1440×900 @1x",
+      "route": "/products/seo-website",
+      "initialBytes": 35577,
+      "initialCount": 1,
+      "totalBytes": 126650,
+      "totalCount": 3,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "桌機 1440×900 @1x",
+      "route": "/products/landing-page",
+      "initialBytes": 50319,
+      "initialCount": 1,
+      "totalBytes": 146319,
+      "totalCount": 3,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "桌機 1440×900 @1x",
+      "route": "/products/ecommerce-website",
+      "initialBytes": 31028,
+      "initialCount": 1,
+      "totalBytes": 142784,
+      "totalCount": 4,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "桌機 1440×900 @1x",
+      "route": "/products/promo-page-design",
+      "initialBytes": 92119,
+      "initialCount": 2,
+      "totalBytes": 185409,
+      "totalCount": 4,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    },
+    {
+      "scenario": "桌機 1440×900 @1x",
+      "route": "/products/seo-article-generator",
+      "initialBytes": 58780,
+      "initialCount": 2,
+      "totalBytes": 134317,
+      "totalCount": 3,
+      "formats": [
+        "image/avif"
+      ],
+      "png": []
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+---
+interface Props {
+  class?: string;
+  as?: 'div' | 'section' | 'nav';
+}
+const { class: className = '', as: Tag = 'div' }: Props = Astro.props;
+---
+
+<!-- syt-rail-safe：桌機浮動快捷列顯示時，1024–1439px 右側預留空間（見 global.css） -->
+<Tag class:list={['syt-rail-safe mx-auto w-full max-w-[1280px] px-4 md:px-6', className]}>
+  <slot />
+</Tag>

@@ -1,0 +1,47 @@
+---
+import ButtonLink from '../components/ButtonLink.astro';
+import CTASection from '../components/CTASection.astro';
+import FaqSection from '../components/FaqSection.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { notFoundFaq } from '../content/faqs';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const suggestions = [
+  { title: '產品方案', description: '官網、一頁式網頁、電商與文章工具。', href: '/products' },
+  { title: '解決方案', description: '依使用情境找適合的做法。', href: '/solutions' },
+  { title: '聯絡我們', description: '直接說明你在找的內容。', href: '/contact' },
+];
+---
+
+<BaseLayout
+  seo={{ title: '找不到頁面', description: '這個網址目前沒有內容，可以回到首頁或查看產品方案，也可以預約討論直接詢問。', path: '/404', noindex: true }}
+  breadcrumbs={[
+    { label: '首頁', href: '/' },
+    { label: '找不到頁面', href: '/404' },
+  ]}
+  faq={notFoundFaq}
+>
+  <PageHero title="找不到這個頁面" lead="網址可能已經變更，或頁面還在準備中。">
+    <ButtonLink href="/" size="lg" cta="primary" fullWidthOnMobile>回首頁</ButtonLink>
+    <ButtonLink href="/products" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/30 text-white hover:bg-white/10">查看產品方案</ButtonLink>
+  </PageHero>
+  <Section tone="white" name="suggestions" labelledby="suggestions-heading">
+    <SectionHeading id="suggestions-heading" title="你可能在找" />
+    <ul class="grid gap-4 md:grid-cols-3">
+      {
+        suggestions.map((item) => (
+          <li class="min-w-0">
+            <a href={item.href} class="syt-hover-glow flex h-full min-w-0 flex-col rounded-card border border-border-gray bg-surface p-5 shadow-card">
+              <span class="text-lg font-bold text-ink">{item.title} →</span>
+              <span class="mt-2 text-sm text-slate-gray">{item.description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+  <FaqSection items={notFoundFaq} tone="mist" />
+  <CTASection title="想找什麼內容？" description="告訴我們你在找的資訊。" primary={{ label: '預約討論', href: '/contact' }} secondary={{ label: 'LINE@ 詢問', href: 'line' }} />
+</BaseLayout>

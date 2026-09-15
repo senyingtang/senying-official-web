@@ -1,0 +1,48 @@
+---
+import { getBrandRuntime } from '../lib/brand-runtime';
+
+interface Props {
+  variant: 'header' | 'footer';
+}
+
+/**
+ * Header / Footer 共用品牌標誌（Phase 2.7）：來源只有 getBrandRuntime()。
+ * - 全站設定有 Logo URL：輸出該圖片，品牌文字保留給螢幕閱讀器
+ * - 未設定：<use> 引用 /brand/sen-ying-mark.svg（TEMPORARY BRAND ASSET）+ HTML 品牌文字
+ */
+const { variant } = Astro.props;
+const brand = await getBrandRuntime();
+const header = variant === 'header';
+---
+
+<a
+  href="/"
+  class:list={[header ? 'flex min-w-0 items-center gap-2.5' : 'inline-flex items-center gap-2.5']}
+  aria-label={`${brand.displayName} 首頁`}
+  data-brand-lockup={variant}
+  data-brand-logo-source={brand.hasCustomLogo ? 'site-settings' : 'fallback'}
+>
+  {
+    brand.hasCustomLogo ? (
+      <img
+        src={brand.logoUrl}
+        alt=""
+        aria-hidden="true"
+        width="160"
+        height="40"
+        loading={header ? 'eager' : 'lazy'}
+        decoding="async"
+        data-brand-logo
+        class:list={['w-auto object-contain', header ? 'h-9 max-w-[9rem]' : 'h-10 max-w-[10rem]']}
+      />
+    ) : (
+      <svg class:list={['shrink-0', header ? 'h-9 w-9' : 'h-10 w-10']} viewBox="0 0 32 32" aria-hidden="true" data-brand-logo data-temporary-brand-asset>
+        <use href={`${brand.markUrl}#${brand.markSymbolId}`} />
+      </svg>
+    )
+  }
+  <span class:list={['flex flex-col leading-none', header && 'min-w-0', brand.hasCustomLogo && 'sr-only']}>
+    <span data-brand-zh class:list={[header ? 'truncate text-lg font-bold tracking-wide' : 'text-xl font-bold text-white']}>{brand.nameZh}</span>
+    <span data-brand-en class:list={['text-[10px] font-semibold tracking-[0.2em]', header ? 'mt-0.5 text-slate-300' : 'mt-1 text-slate-400']}>{brand.nameEn}</span>
+  </span>
+</a>

@@ -1,0 +1,315 @@
+---
+import { webPageJsonLd } from '@syt/seo';
+import { buttonClass } from '@syt/ui';
+import ButtonLink from '../components/ButtonLink.astro';
+import Container from '../components/Container.astro';
+import FAQList from '../components/FAQList.astro';
+import IconGlyph from '../components/IconGlyph.astro';
+import MockupAlignedHero from '../components/MockupAlignedHero.astro';
+import ProductHeroVisual from '../components/ProductHeroVisual.astro';
+import Section from '../components/Section.astro';
+import { checkoutFaq } from '../content/faqs';
+import { mediaAssets } from '../content/media';
+import {
+  BILLING_NOTE,
+  PRICING_NOTICE,
+  accessCodeSteps,
+  billingOptions,
+  checkoutFinalCta,
+  checkoutHero,
+  checkoutNotice,
+  checkoutTrust,
+  paymentMethodIcons,
+  paymentMethodPreviews,
+  planDisplay,
+  planPreviews,
+} from '../content/pricing';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import { siteUrl } from '../lib/site';
+import { getBrandRuntime } from '../lib/brand-runtime';
+
+const brand = await getBrandRuntime();
+const description = '選擇 SEO 形象官網、一頁式網頁等產品，了解方案整理進度、權限代碼開通流程，以及銀行轉帳、綠界與 LINE Pay 的付款方式規劃。';
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '價格方案', href: '/checkout' },
+];
+const cardClass = 'min-w-0 rounded-card border border-border-gray bg-surface p-5 shadow-card sm:p-6';
+const stepBadge = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal text-sm font-bold text-navy-black';
+---
+
+<BaseLayout
+  seo={{ title: '價格方案｜方案、權限代碼與付款方式說明', description, path: '/checkout', noindex: true }}
+  breadcrumbs={breadcrumbs}
+  breadcrumbsInHero
+  faq={checkoutFaq}
+  jsonLd={[webPageJsonLd(siteUrl, { type: 'CheckoutPage', name: '森映價格方案', description, path: '/checkout' }, brand.seo)]}
+>
+  <MockupAlignedHero
+    eyebrow={checkoutHero.eyebrow}
+    title={checkoutHero.title}
+    highlight={checkoutHero.highlight}
+    lead={checkoutHero.lead}
+    breadcrumbs={breadcrumbs}
+    facts={PRICING_NOTICE.map((notice, index) => ({ value: notice, label: ['價格狀態', '開始方式', '報價說明'][index] ?? '' }))}
+  >
+    <ButtonLink href={checkoutFinalCta.primary.href} size="lg" cta="primary" fullWidthOnMobile>
+      {checkoutFinalCta.primary.label}
+      <span aria-hidden="true">→</span>
+    </ButtonLink>
+    <ButtonLink href={checkoutFinalCta.secondary.href} variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">
+      <IconGlyph name="message" class="h-5 w-5 text-teal" />
+      {checkoutFinalCta.secondary.label}
+    </ButtonLink>
+    <Fragment slot="visual">
+      <ProductHeroVisual image={mediaAssets.adminDashboardSeoScore} badges={['開通後在後台建站']} caption="客戶後台畫面示意，實際功能依版本開放。" />
+    </Fragment>
+  </MockupAlignedHero>
+
+  <!-- 方案卡 -->
+  <Section tone="mountain" density="compact" name="plans" id="plans" labelledby="plans-heading">
+    <div data-checkout-notice role="status" class="mb-6 flex min-w-0 flex-col gap-3 rounded-card border border-warning/50 bg-warning/15 p-4 sm:flex-row sm:items-start sm:p-5">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-warning text-lg font-bold text-navy-black" aria-hidden="true">!</span>
+      <div class="min-w-0">
+        <p class="font-bold text-amber-200">{checkoutNotice.title}</p>
+        <p class="mt-1 text-sm leading-relaxed text-slate-100">{checkoutNotice.description}</p>
+        <p class="mt-1 text-sm leading-relaxed text-slate-300">付款流程為示意；可先預約討論或由專人人工開單。銀行轉帳、綠界與 LINE Pay 為預留付款方式。</p>
+      </div>
+    </div>
+    <h2 id="plans-heading" class="text-2xl font-bold sm:text-[1.75rem]">選擇產品方案</h2>
+    <p class="mt-2 text-sm text-slate-300">選項只用來說明方案內容，正式付款開放前不會建立訂單。</p>
+    <fieldset class="mt-6 min-w-0">
+      <legend class="sr-only">選擇產品方案</legend>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {
+          planPreviews.map((plan, index) => {
+            const display = planDisplay[plan.key];
+            return (
+              <label
+                class:list={[
+                  'relative flex min-w-0 cursor-pointer flex-col rounded-2xl border bg-white/5 p-4 text-white transition-colors has-[:checked]:border-teal has-[:checked]:bg-teal/10 has-[:checked]:ring-1 has-[:checked]:ring-teal sm:p-5',
+                  plan.highlight ? 'border-teal/60' : 'border-white/15',
+                ]}
+              >
+                {plan.highlight && <span class="absolute -top-3 left-4 rounded-full bg-teal px-2.5 py-0.5 text-xs font-semibold text-navy-black">第一版可自助</span>}
+                <span class="flex items-start justify-between gap-3">
+                  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">
+                    <IconGlyph name={display?.icon ?? 'layout'} class="h-5 w-5" />
+                  </span>
+                  <input type="radio" name="plan" value={plan.key} data-plan-name={plan.name} checked={index === 0} class="mt-1 h-5 w-5 shrink-0 accent-teal" />
+                </span>
+                <span class="mt-3 block text-lg font-bold">{plan.name}</span>
+                <span class="mt-0.5 block text-xs text-slate-300">{display?.audience ?? plan.summary}</span>
+                <span data-price-display class="mt-4 block text-2xl font-bold text-teal">{plan.priceLabel}</span>
+                {plan.priceNote && <span class="mt-0.5 block text-xs text-slate-400">{plan.priceNote}</span>}
+                <span class="mt-4 grid flex-1 content-start gap-1.5 border-t border-white/10 pt-4 text-sm text-slate-200">
+                  {plan.features.map((feature) => (
+                    <span class="flex min-w-0 gap-2">
+                      <IconGlyph name="check" class="mt-0.5 h-4 w-4 shrink-0 text-teal" strokeWidth={2.4} />
+                      <span class="min-w-0">{feature}</span>
+                    </span>
+                  ))}
+                </span>
+                <span class="mt-4 block rounded-full border border-white/15 px-3 py-1 text-center text-xs text-slate-300">{plan.status}</span>
+              </label>
+            );
+          })
+        }
+      </div>
+    </fieldset>
+  </Section>
+
+  <!-- 月繳 / 年繳切換外觀 -->
+  <section data-section="billing" aria-labelledby="billing-heading" class="border-b border-border-gray bg-surface py-6">
+    <Container class="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
+      <div class="min-w-0">
+        <h2 id="billing-heading" class="text-lg font-bold text-ink">計費週期</h2>
+        <p class="mt-1 text-sm text-slate-gray">{BILLING_NOTE}</p>
+      </div>
+      <fieldset class="min-w-0">
+        <legend class="sr-only">計費週期（外觀示意）</legend>
+        <div class="inline-flex max-w-full flex-wrap gap-1 rounded-full border border-border-gray bg-mist-white p-1">
+          {
+            billingOptions.map((option, index) => (
+              <label class="relative cursor-pointer rounded-full px-4 py-2 text-sm font-semibold text-slate-gray has-[:checked]:bg-teal has-[:checked]:text-navy-black">
+                <input type="radio" name="billing" value={option.key} data-billing-name={option.label} checked={index === 0} class="sr-only" />
+                {option.label}
+                <span class="ml-1 hidden text-xs font-normal sm:inline">（{option.hint}）</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+    </Container>
+  </section>
+
+  <!-- 付款方式 / 權限代碼 / 訂單摘要 / 安心購買：桌機三欄，DOM 順序依設計稿區塊編號 -->
+  <div class="bg-mist-white py-10 md:py-14">
+    <Container class="grid items-start gap-5 lg:grid-cols-3">
+      <section data-section="payment-methods" aria-labelledby="payment-heading" class:list={[cardClass, 'lg:col-start-1 lg:row-span-2 lg:row-start-1']}>
+        <h2 id="payment-heading" class="flex items-center gap-2 text-lg font-bold text-ink">
+          <span class={stepBadge}>2</span>
+          付款方式預留
+        </h2>
+        <p class="mt-2 flex items-center gap-1.5 text-xs text-slate-gray">
+          <IconGlyph name="lock" class="h-4 w-4" />
+          正式付款開放前，以下方式都無法選取，也不會收取費用。
+        </p>
+        <ul class="mt-4 grid gap-3">
+          {
+            paymentMethodPreviews.map((method) => (
+              <li class="flex min-w-0 items-start gap-3 rounded-xl border border-border-gray p-3">
+                <input type="radio" name="payment" disabled aria-label={`${method.name}（尚未開放）`} class="mt-1 h-4 w-4 shrink-0" />
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist-white text-deep-navy">
+                  <IconGlyph name={paymentMethodIcons[method.key] ?? 'wallet'} class="h-5 w-5" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold text-ink">{method.name}</span>
+                    <span class="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning-strong">{method.status}</span>
+                  </span>
+                  <span class="mt-1 block text-sm leading-relaxed text-slate-gray">{method.description}</span>
+                  <span class="mt-1 block text-xs text-slate-gray">{method.methods.join('・')}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-4 rounded-xl bg-mist-white p-3 text-xs leading-relaxed text-slate-gray">卡號等付款資料將在金流商頁面填寫，本站不收集、不保存卡號。</p>
+      </section>
+
+      <section data-section="access-code" id="redeem" aria-labelledby="redeem-heading" class:list={[cardClass, 'scroll-mt-20 lg:col-start-2 lg:row-start-1']}>
+        <h2 id="redeem-heading" class="flex items-center gap-2 text-lg font-bold text-ink">
+          <span class={stepBadge}>3</span>
+          權限代碼流程
+        </h2>
+        <ol class="mt-4 grid gap-4">
+          {
+            accessCodeSteps.map((step, index) => (
+              <li class="relative flex min-w-0 gap-3">
+                {index < accessCodeSteps.length - 1 && <span aria-hidden="true" class="absolute bottom-[-1rem] left-5 top-11 w-px bg-teal/30" />}
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-soft font-bold text-teal-strong">{index + 1}</span>
+                <span class="min-w-0">
+                  <span class="block font-semibold text-ink">{step.title}</span>
+                  <span class="mt-0.5 block break-words text-sm leading-relaxed text-slate-gray">{step.description}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="mt-4 flex gap-2 rounded-xl bg-teal-soft p-3 text-xs leading-relaxed text-teal-strong">
+          <IconGlyph name="mail" class="h-4 w-4 shrink-0" />
+          <span class="min-w-0">找不到 Email？請先檢查垃圾郵件，或透過 LINE@ 聯繫我們協助。</span>
+        </p>
+        <ButtonLink href="portal" variant="secondary" class="mt-4 w-full" cta="portal">已有代碼？進入客戶後台兌換</ButtonLink>
+      </section>
+
+      <section data-section="order-summary" aria-labelledby="summary-heading" class:list={[cardClass, 'lg:col-start-3 lg:row-span-2 lg:row-start-1']}>
+        <h2 id="summary-heading" class="flex items-center gap-2 text-lg font-bold text-ink">
+          <span class={stepBadge}>4</span>
+          訂單摘要
+        </h2>
+        <dl class="mt-4 grid gap-3 text-sm">
+          <div class="flex items-start justify-between gap-3 rounded-xl bg-mist-white p-3">
+            <dt class="text-slate-gray">方案</dt>
+            <dd data-summary-plan class="text-right font-semibold text-ink">{planPreviews[0]?.name}</dd>
+          </div>
+          <div class="flex items-start justify-between gap-3 border-b border-border-gray pb-3">
+            <dt class="text-slate-gray">計費週期</dt>
+            <dd data-summary-billing class="text-right font-semibold text-ink">{billingOptions[0]?.label}</dd>
+          </div>
+          <div class="grid gap-2 border-b border-border-gray pb-3">
+            <dt class="text-slate-gray">優惠碼（選填）</dt>
+            <dd class="flex gap-2">
+              <label class="min-w-0 flex-1">
+                <span class="sr-only">優惠碼</span>
+                <input type="text" disabled placeholder="尚未開放" class="block min-h-10 w-full min-w-0 rounded-input border border-border-gray bg-mist-white px-3 text-sm" />
+              </label>
+              <button type="button" disabled class={buttonClass('dark', 'sm', 'min-h-10')}>套用</button>
+            </dd>
+          </div>
+          <div class="flex items-start justify-between gap-3">
+            <dt class="text-slate-gray">小計</dt>
+            <dd class="text-right font-semibold text-ink">方案整理中</dd>
+          </div>
+          <div class="flex items-start justify-between gap-3 border-t border-border-gray pt-3">
+            <dt class="font-bold text-ink">總計</dt>
+            <dd class="text-right text-base font-bold text-deep-navy">正式價格以確認報價為準</dd>
+          </div>
+        </dl>
+        <button type="button" disabled class={buttonClass('primary', 'lg', 'mt-5 w-full')}>正式付款尚未開放</button>
+        <ButtonLink href="/contact" variant="secondary" class="mt-3 w-full" cta="summary-contact">改為預約討論</ButtonLink>
+        <p class="mt-3 text-xs leading-relaxed text-slate-gray">
+          開放付款後，送出前需同意<a href="/legal/terms" class="text-teal-strong underline">服務條款</a>與<a href="/legal/privacy" class="text-teal-strong underline">隱私權政策</a>。
+        </p>
+      </section>
+
+      <section data-section="trust" aria-labelledby="trust-heading" class:list={[cardClass, 'lg:col-start-2 lg:row-start-2']}>
+        <h2 id="trust-heading" class="flex items-center gap-2 text-lg font-bold text-ink">
+          <span class={stepBadge}>5</span>
+          安心購買資訊
+        </h2>
+        <ul class="mt-4 grid gap-4">
+          {
+            checkoutTrust.map((item) => (
+              <li class="flex min-w-0 gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-soft text-teal-strong">
+                  <IconGlyph name={item.icon} class="h-5 w-5" />
+                </span>
+                <span class="min-w-0">
+                  <span class="block font-semibold text-ink">{item.title}</span>
+                  <span class="mt-0.5 block text-sm leading-relaxed text-slate-gray">{item.description}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </Container>
+  </div>
+
+  <!-- FAQ / 備註 + CTA 卡 -->
+  <Section tone="white" density="compact" id="faq" name="faq" labelledby="faq-heading">
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div class="min-w-0">
+        <h2 id="faq-heading" class="mb-5 flex items-center gap-2 text-2xl font-bold text-ink">
+          <span class={stepBadge}>6</span>
+          常見問題
+        </h2>
+        <FAQList items={checkoutFaq} />
+      </div>
+      <aside data-final-cta aria-labelledby="checkout-cta-heading" class="syt-mountain-bg relative overflow-hidden rounded-card p-6 text-white sm:p-8 lg:sticky lg:top-24">
+        <h3 id="checkout-cta-heading" class="text-xl font-bold leading-snug sm:text-2xl">{checkoutFinalCta.title}</h3>
+        <p class="mt-2 text-sm leading-relaxed text-slate-300">{checkoutFinalCta.description}</p>
+        <div class="mt-5 grid gap-3">
+          <ButtonLink href={checkoutFinalCta.primary.href} size="lg" cta="final-primary" class="w-full">
+            {checkoutFinalCta.primary.label}
+            <span aria-hidden="true">→</span>
+          </ButtonLink>
+          <ButtonLink href={checkoutFinalCta.secondary.href} variant="ghost" size="lg" cta="final-secondary" class="w-full border border-white/40 text-white hover:bg-white/10">
+            {checkoutFinalCta.secondary.label}
+          </ButtonLink>
+        </div>
+        <p class="mt-5 flex items-center gap-2 text-sm text-slate-300">
+          <IconGlyph name="shield" class="h-5 w-5 text-teal" />
+          先確認內容，再開單付款
+        </p>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>
+
+<script>
+  // 訂單摘要跟著選擇的方案 / 計費週期更新（純顯示，不建立訂單）
+  const planTarget = document.querySelector('[data-summary-plan]');
+  const billingTarget = document.querySelector('[data-summary-billing]');
+  for (const input of document.querySelectorAll('input[name="plan"], input[name="billing"]')) {
+    if (!(input instanceof HTMLInputElement)) continue;
+    input.addEventListener('change', () => {
+      if (!input.checked) return;
+      if (input.name === 'plan' && planTarget) planTarget.textContent = input.dataset.planName ?? '';
+      if (input.name === 'billing' && billingTarget) billingTarget.textContent = input.dataset.billingName ?? '';
+    });
+  }
+</script>

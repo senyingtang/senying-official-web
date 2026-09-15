@@ -1,0 +1,30 @@
+---
+import type { FaqItem } from '@syt/seo';
+
+interface Props {
+  items: FaqItem[];
+  /** 2：設計稿的雙欄 FAQ（md 以上） */
+  columns?: 1 | 2;
+}
+
+const { items, columns = 1 } = Astro.props;
+---
+
+<div class:list={['grid gap-3', columns === 2 && 'items-start md:grid-cols-2']}>
+  {
+    items.map((item) => (
+      <details class="group rounded-card border border-border-gray bg-surface px-4 py-1 sm:px-5">
+        <summary class="flex cursor-pointer list-none items-start justify-between gap-4 py-3.5 [&::-webkit-details-marker]:hidden">
+          <h3 class="min-w-0 text-base font-semibold text-ink">
+            <span class="mr-1.5 font-bold text-teal-strong" aria-hidden="true">Q</span>
+            {item.question}
+          </h3>
+          <span class="mt-0.5 shrink-0 text-teal-strong transition-transform group-open:rotate-45" aria-hidden="true">
+            ＋
+          </span>
+        </summary>
+        <p class="pb-4 text-sm leading-relaxed text-slate-gray sm:text-base">{item.answer}</p>
+      </details>
+    ))
+  }
+</div>

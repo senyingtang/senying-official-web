@@ -1,0 +1,113 @@
+---
+import '../styles/global.css';
+import {
+  breadcrumbJsonLd,
+  faqPageJsonLd,
+  formatPageTitle,
+  resolvePageSeo,
+  serializeJsonLd,
+  type BreadcrumbItem,
+  type FaqItem,
+  type JsonLd,
+  type PageSeoInput,
+} from '@syt/seo';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FloatingActions from '../components/FloatingActions.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { ogImages, type OgImageAsset } from '../content/ogImages';
+import { BRAND_ASSET_FALLBACKS, getBrandRuntime } from '../lib/brand-runtime';
+import { allowIndexing, siteUrl, siteUrlIsFallback } from '../lib/site';
+import { floatingActionsView, getMarketingSiteSettings } from '../lib/site-settings';
+
+interface Props {
+  seo: PageSeoInput;
+  breadcrumbs: BreadcrumbItem[];
+  faq?: FaqItem[];
+  /** 頁面專屬 JSON-LD（Organization / Service / ItemList…）；Breadcrumb 與 FAQPage 會自動加入 */
+  jsonLd?: JsonLd[];
+  hideBreadcrumbs?: boolean;
+  /** 設計稿版型：麵包屑由頁面 Hero 內顯示（MockupAlignedHero），版面上方不再輸出白色麵包屑列 */
+  breadcrumbsInHero?: boolean;
+  /** 社群分享圖（1200×630 PNG，content/ogImages.ts）；未傳入時使用 default */
+  ogImage?: OgImageAsset;
+}
+
+const { seo, breadcrumbs, faq = [], jsonLd = [], hideBreadcrumbs = false, breadcrumbsInHero = false, ogImage = ogImages.default } = Astro.props;
+
+// 品牌：全站設定優先，BRAND 常數 / public/brand 內建素材為 fallback（lib/brand-runtime.ts）
+const brand = await getBrandRuntime();
+const resolved = resolvePageSeo({ ...seo, ogImage: ogImage.src }, siteUrl, { brandName: brand.displayName });
+const ogImageAlt = formatPageTitle(ogImage.label, { brandName: brand.displayName, template: ogImage.key === 'home' || ogImage.key === 'default' ? 'home' : 'page' });
+// 未明確允許索引（SITE_ALLOW_INDEXING=true）時，所有頁面輸出 noindex；個別頁面仍可設定 noindex
+const robots = allowIndexing ? resolved.robots : 'noindex,nofollow';
+
+const siteSettings = await getMarketingSiteSettings();
+const floating = floatingActionsView(siteSettings);
+
+const faqJsonLd = faqPageJsonLd(faq);
+const structuredData: JsonLd[] = [breadcrumbJsonLd(siteUrl, breadcrumbs), ...(faqJsonLd ? [faqJsonLd] : []), ...jsonLd];
+
+if (import.meta.env.DEV && resolved.warnings.length > 0) {
+  console.warn(`[seo] ${seo.path}: ${resolved.warnings.join('; ')}`);
+}
+---
+
+<!doctype html>
+<html lang="zh-Hant-TW" data-fa-rail={floating.desktop ? '' : undefined} data-fa-mobile={floating.mobile ? '' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{resolved.title}</title>
+    <meta name="description" content={resolved.description} />
+    <link rel="canonical" href={resolved.canonical} />
+    <meta name="robots" content={robots} />
+    {/* 未設定 SITE_PUBLIC_URL：本機 / 預覽 build，canonical 為本機 fallback（全站 noindex；正式 build 缺網址會直接失敗） */}
+    {siteUrlIsFallback && <meta name="syt-site-url" content="local-fallback" />}
+    <meta name="theme-color" content="#020617" />
+    {
+      !brand.hasCustomFavicon && (
+        <>
+          <link rel="icon" href={BRAND_ASSET_FALLBACKS.favicon32} type="image/png" sizes="32x32" />
+          <link rel="icon" href={BRAND_ASSET_FALLBACKS.favicon192} type="image/png" sizes="192x192" />
+          <link rel="apple-touch-icon" href={BRAND_ASSET_FALLBACKS.appleTouchIcon} sizes="180x180" />
+        </>
+      )
+    }
+    <link rel="icon" href={brand.faviconUrl} type={brand.faviconType} data-brand-favicon />
+
+    <meta property="og:type" content={resolved.og.type} />
+    <meta property="og:site_name" content={resolved.og.siteName} />
+    <meta property="og:locale" content={resolved.og.locale} />
+    <meta property="og:title" content={resolved.og.title} />
+    <meta property="og:description" content={resolved.og.description} />
+    <meta property="og:url" content={resolved.og.url} />
+    <meta property="og:image" content={resolved.og.image} />
+    <meta property="og:image:type" content={ogImage.type} />
+    <meta property="og:image:width" content={String(ogImage.width)} />
+    <meta property="og:image:height" content={String(ogImage.height)} />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={resolved.og.title} />
+    <meta name="twitter:description" content={resolved.og.description} />
+    <meta name="twitter:image" content={resolved.og.image} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    {structuredData.map((item) => <script is:inline type="application/ld+json" set:html={serializeJsonLd(item)} />)}
+  </head>
+  <body class="flex min-h-dvh flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:text-ink"
+    >
+      跳到主要內容
+    </a>
+    <Header />
+    {!breadcrumbsInHero && <Breadcrumbs items={breadcrumbs} visuallyHidden={hideBreadcrumbs} />}
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <FloatingActions settings={siteSettings} />
+  </body>
+</html>
