@@ -196,8 +196,8 @@ export const MOCKUP_LAYOUTS: MockupPageLayout[] = [
     sections: [
       { key: 'hero', title: 'Hero 區塊', spec: '內容創造價值，讓好品牌被更多人看見；山景背景 + 4 個重點 icon' },
       { key: 'categories', title: '分類導覽', spec: '全部文章 / SEO 優化 / 網站設計 / 內容行銷 / 數位工具 / 品牌經營 / 案例分享 / 產業觀點' },
-      { key: 'featured', title: '精選文章', spec: '大圖 + 重點文章；文章未發布，標示即將發布、不連到不存在的頁面' },
-      { key: 'posts', title: '文章列表', spec: '圖文卡片 + 分類標籤；即將發布，無文章連結' },
+      { key: 'featured', title: '精選文章', spec: '大圖 + 重點文章；內容來自 CMS，連到 /blog/<slug>' },
+      { key: 'posts', title: '文章列表', spec: '圖文卡片 + 分類標籤；已發布文章連到文章內容頁' },
       { key: 'topics', title: '熱門主題', spec: 'icon + 分類名稱 + 整理中篇數' },
       { key: 'subscribe', title: '訂閱 CTA', spec: '電子報表單為展示版本（停用送出），改由 LINE@ 接收通知' },
       footer,

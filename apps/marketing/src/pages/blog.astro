@@ -1,9 +1,10 @@
 ---
-import { webPageJsonLd } from '@syt/seo';
+import { itemListJsonLd, webPageJsonLd } from '@syt/seo';
 import BlogCard from '../components/BlogCard.astro';
 import ButtonLink from '../components/ButtonLink.astro';
 import CategoryChips from '../components/CategoryChips.astro';
 import Container from '../components/Container.astro';
+import ContentImage from '../components/ContentImage.astro';
 import FaqSection from '../components/FaqSection.astro';
 import IconGlyph from '../components/IconGlyph.astro';
 import MockupAlignedHero from '../components/MockupAlignedHero.astro';
@@ -11,25 +12,33 @@ import MountainBackdrop from '../components/MountainBackdrop.astro';
 import ResponsiveImage from '../components/ResponsiveImage.astro';
 import Section from '../components/Section.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import { blogCategories, blogHeroHighlights, blogPosts } from '../content/blogPosts';
+import { blogCategoryPresentation, blogHeroHighlights } from '../content/blogPosts';
 import { blogFaq } from '../content/faqs';
 import { mediaAssets } from '../content/media';
 import { ogImages } from '../content/ogImages';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatPublishedDate, getMarketingCmsContent, isoDate } from '../lib/cms';
 import { siteUrl } from '../lib/site';
 import { getBrandRuntime } from '../lib/brand-runtime';
 
 const brand = await getBrandRuntime();
-const description = '森映部落格：SEO 優化、網站設計、內容行銷、數位工具、品牌經營、案例分享與產業觀點。文章陸續發布，整理做網站與經營內容的實作經驗。';
+const { posts, postDetails, categories } = await getMarketingCmsContent();
+const description = '森映部落格：SEO 優化、網站設計、內容行銷、數位工具、品牌經營、案例分享與產業觀點。整理做網站與經營內容的實作經驗。';
 const breadcrumbs = [
   { label: '首頁', href: '/' },
   { label: '部落格', href: '/blog' },
 ];
-const labelOf = (slug: string) => blogCategories.find((category) => category.slug === slug)?.label ?? '';
-const featured = blogPosts.find((post) => post.featured) ?? blogPosts[0]!;
-const listPosts = blogPosts.filter((post) => post.slug !== featured.slug);
-const chips = [{ key: 'all', label: '全部文章' }, ...blogCategories.map((category) => ({ key: category.slug, label: category.label }))];
-const topics = blogCategories.map((category) => ({ ...category, count: blogPosts.filter((post) => post.category === category.slug).length }));
+
+const labelOf = (slug: string) => categories.find((category) => category.slug === slug)?.name ?? '';
+const readingMinutesOf = (slug: string) => postDetails.find((post) => post.slug === slug)?.readingMinutes;
+const featured = posts.find((post) => post.isFeatured) ?? posts[0] ?? null;
+const listPosts = featured ? posts.filter((post) => post.slug !== featured.slug) : [];
+const chips = [{ key: 'all', label: '全部文章' }, ...categories.map((category) => ({ key: category.slug, label: category.name }))];
+const topics = categories.map((category) => ({
+  ...category,
+  ...blogCategoryPresentation(category.slug),
+  count: posts.filter((post) => post.categorySlug === category.slug).length,
+}));
 ---
 
 <BaseLayout
@@ -37,7 +46,10 @@ const topics = blogCategories.map((category) => ({ ...category, count: blogPosts
   breadcrumbs={breadcrumbs}
   breadcrumbsInHero
   faq={blogFaq}
-  jsonLd={[webPageJsonLd(siteUrl, { type: 'CollectionPage', name: '森映部落格', description, path: '/blog' }, brand.seo)]}
+  jsonLd={[
+    webPageJsonLd(siteUrl, { type: 'CollectionPage', name: '森映部落格', description, path: '/blog' }, brand.seo),
+    ...(posts.length > 0 ? [itemListJsonLd(siteUrl, { name: '森映部落格文章', items: posts.map((post) => ({ name: post.title, path: `/blog/${post.slug}` })) })] : []),
+  ]}
   ogImage={ogImages.blog}
 >
   <MockupAlignedHero
@@ -54,71 +66,93 @@ const topics = blogCategories.map((category) => ({ ...category, count: blogPosts
     <ButtonLink href="#subscribe" variant="ghost" size="lg" cta="secondary" fullWidthOnMobile class="border border-white/40 text-white hover:bg-white/10">訂閱更新通知</ButtonLink>
   </MockupAlignedHero>
 
-  <!-- 分類導覽（含文章搜尋，Header 搜尋 icon 導向此處） -->
+  <!-- 分類導覽（含文章搜尋；全站搜尋另有 /search） -->
   <section data-section="categories" id="search" aria-label="文章分類與搜尋" class="scroll-mt-20 border-b border-border-gray bg-surface py-4">
     <Container>
       <CategoryChips items={chips} target="posts" label="文章分類">
-        <label class="relative block w-full min-w-0 lg:w-64">
-          <span class="sr-only">搜尋文章</span>
-          <input
-            type="search"
-            data-filter-search="posts"
-            placeholder="搜尋文章主題..."
-            class="block min-h-11 w-full min-w-0 rounded-input border border-border-gray bg-surface py-2 pl-3 pr-9 text-sm text-ink placeholder:text-slate-gray focus:border-teal-strong focus:outline-2 focus:outline-teal/40"
-          />
-          <IconGlyph name="search" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-gray" />
-        </label>
+        <form action="/search" method="get" class="relative block w-full min-w-0 lg:w-64">
+          <label>
+            <span class="sr-only">搜尋文章</span>
+            <input
+              type="search"
+              name="q"
+              data-filter-search="posts"
+              placeholder="搜尋文章主題..."
+              class="block min-h-11 w-full min-w-0 rounded-input border border-border-gray bg-surface py-2 pl-3 pr-9 text-sm text-ink placeholder:text-slate-gray focus:border-teal-strong focus:outline-2 focus:outline-teal/40"
+            />
+          </label>
+          <button type="submit" class="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-slate-gray hover:text-teal-strong" aria-label="在全站搜尋">
+            <IconGlyph name="search" class="h-4 w-4" />
+          </button>
+        </form>
       </CategoryChips>
     </Container>
   </section>
 
-  <!-- 精選文章（尚未發布：不連到不存在的文章頁） -->
+  <!-- 精選文章 -->
   <Section tone="white" density="compact" name="featured" labelledby="featured-heading">
     <h2 id="featured-heading" class="sr-only">精選文章</h2>
-    <article data-blog-card class="grid overflow-hidden rounded-card border border-border-gray bg-surface shadow-card lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <div class="relative aspect-[16/10] min-w-0 overflow-hidden lg:aspect-auto">
-        <ResponsiveImage src={mediaAssets.blogVisual.src} alt={mediaAssets.blogVisual.alt} width={mediaAssets.blogVisual.width} height={mediaAssets.blogVisual.height} loading="lazy" class="h-full w-full" />
-      </div>
-      <div class="flex min-w-0 flex-col justify-center p-5 sm:p-8">
-        <p class="flex flex-wrap items-center gap-2 text-xs">
-          <span class="rounded-full bg-teal px-2.5 py-0.5 font-semibold text-navy-black">精選文章</span>
-          <span class="rounded-full border border-border-gray px-2.5 py-0.5 font-medium text-ink">即將發布</span>
-        </p>
-        <h3 class="mt-3 text-2xl font-bold leading-snug text-ink sm:text-3xl">{featured.title}</h3>
-        <p class="mt-3 leading-relaxed text-slate-gray">{featured.excerpt}</p>
-        <ul class="mt-4 grid gap-1.5 text-sm text-ink">
-          {
-            featured.points.map((point) => (
-              <li class="flex min-w-0 gap-2">
-                <IconGlyph name="check" class="mt-0.5 h-4 w-4 shrink-0 text-teal-strong" strokeWidth={2.4} />
-                <span class="min-w-0">{point}</span>
-              </li>
-            ))
-          }
-        </ul>
-        <p class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-gray">
-          <span class="inline-flex items-center gap-1.5">
-            <IconGlyph name="clock" class="h-4 w-4" />
-            預計閱讀約 {featured.readingMinutes} 分鐘
-          </span>
-          <span class="rounded-full bg-teal-soft px-2.5 py-0.5 text-xs font-medium text-teal-strong">{labelOf(featured.category)}</span>
-        </p>
-      </div>
-    </article>
+    {
+      featured ? (
+        <article data-blog-card class="relative grid overflow-hidden rounded-card border border-border-gray bg-surface shadow-card lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div class="relative aspect-[16/10] min-w-0 overflow-hidden lg:aspect-auto">
+            {featured.coverImageUrl ? (
+              <ContentImage src={featured.coverImageUrl} alt={featured.title} />
+            ) : (
+              <ResponsiveImage
+                src={mediaAssets.blogVisual.src}
+                alt={mediaAssets.blogVisual.alt}
+                width={mediaAssets.blogVisual.width}
+                height={mediaAssets.blogVisual.height}
+                loading="lazy"
+                class="h-full w-full"
+              />
+            )}
+          </div>
+          <div class="flex min-w-0 flex-col justify-center p-5 sm:p-8">
+            <p class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="rounded-full bg-teal px-2.5 py-0.5 font-semibold text-navy-black">精選文章</span>
+              {labelOf(featured.categorySlug) && <span class="rounded-full border border-border-gray px-2.5 py-0.5 font-medium text-ink">{labelOf(featured.categorySlug)}</span>}
+            </p>
+            <h3 class="mt-3 text-2xl font-bold leading-snug text-ink sm:text-3xl">
+              <a href={`/blog/${featured.slug}`} class="after:absolute after:inset-0 hover:text-teal-strong">
+                {featured.title}
+              </a>
+            </h3>
+            <p class="mt-3 leading-relaxed text-slate-gray">{featured.excerpt}</p>
+            <p class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-gray">
+              {featured.publishedAt && <time datetime={isoDate(featured.publishedAt)}>{formatPublishedDate(featured.publishedAt)}</time>}
+              <span class="inline-flex items-center gap-1.5">
+                <IconGlyph name="clock" class="h-4 w-4" />
+                閱讀約 {readingMinutesOf(featured.slug) ?? 3} 分鐘
+              </span>
+            </p>
+          </div>
+        </article>
+      ) : (
+        <p class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-10 text-center text-slate-gray">目前還沒有發布文章，新文章會在這裡出現。</p>
+      )
+    }
   </Section>
 
   <!-- 文章列表 -->
   <Section density="compact" name="posts" id="posts" labelledby="posts-heading">
-    <SectionHeading id="posts-heading" title="最新文章" description="文章陸續發布中，以下為第一批主題與重點。" compact />
-    <ul data-filter-list="posts" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        listPosts.map((post) => (
-          <li data-filter-item data-filter-tags={post.category} class="min-w-0">
-            <BlogCard post={post} categoryLabel={labelOf(post.category)} />
-          </li>
-        ))
-      }
-    </ul>
+    <SectionHeading id="posts-heading" title="最新文章" description="內容由後台 CMS 管理，發布後重新建置官網即會出現在這裡。" compact />
+    {
+      listPosts.length > 0 ? (
+        <ul data-filter-list="posts" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {listPosts.map((post) => (
+            <li data-filter-item data-filter-tags={post.categorySlug} class="min-w-0">
+              <BlogCard post={post} categoryLabel={labelOf(post.categorySlug)} readingMinutes={readingMinutesOf(post.slug)} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-10 text-center text-slate-gray">
+          {posts.length === 0 ? '文章整理中，之後會陸續發布。' : '目前只有一篇文章，已顯示在上方精選位置。'}
+        </p>
+      )
+    }
     <p data-filter-empty="posts" hidden class="mt-4 text-sm text-slate-gray">這個主題的文章還在整理，可以先看看其他分類。</p>
   </Section>
 
@@ -132,8 +166,8 @@ const topics = blogCategories.map((category) => ({ ...category, count: blogPosts
             <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-soft text-teal-strong">
               <IconGlyph name={topic.icon} class="h-5 w-5" />
             </span>
-            <h3 class="text-sm font-bold text-ink">{topic.label}</h3>
-            <p class="text-xs text-slate-gray">{topic.count} 篇整理中</p>
+            <h3 class="text-sm font-bold text-ink">{topic.name}</h3>
+            <p class="text-xs text-slate-gray">{topic.count > 0 ? `${topic.count} 篇已發布` : '整理中'}</p>
           </li>
         ))
       }

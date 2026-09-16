@@ -1,0 +1,130 @@
+---
+import { articleJsonLd } from '@syt/seo';
+import type { GetStaticPaths } from 'astro';
+import BlogCard from '../../components/BlogCard.astro';
+import Container from '../../components/Container.astro';
+import ContentImage from '../../components/ContentImage.astro';
+import FinalCTA from '../../components/FinalCTA.astro';
+import IconGlyph from '../../components/IconGlyph.astro';
+import MarkdownContent from '../../components/MarkdownContent.astro';
+import MockupAlignedHero from '../../components/MockupAlignedHero.astro';
+import PosterTile from '../../components/PosterTile.astro';
+import Section from '../../components/Section.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { blogCategoryPresentation } from '../../content/blogPosts';
+import { ogImages } from '../../content/ogImages';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatPublishedDate, getMarketingCmsContent, isoDate, relatedPosts } from '../../lib/cms';
+import { getBrandRuntime } from '../../lib/brand-runtime';
+import { siteUrl } from '../../lib/site';
+
+/**
+ * 文章內容頁。
+ * getStaticPaths 只取得「已發布且發布時間已到」的文章（repository 已套用相同規則），
+ * 因此草稿、未到期的排程與已下架文章不會產生任何 HTML。
+ */
+export const getStaticPaths = (async () => {
+  const { postDetails } = await getMarketingCmsContent();
+  return postDetails.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const brand = await getBrandRuntime();
+const { posts, categories } = await getMarketingCmsContent();
+const categoryName = categories.find((item) => item.slug === post.categorySlug)?.name ?? '';
+const presentation = blogCategoryPresentation(post.categorySlug);
+const path = `/blog/${post.slug}`;
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '部落格', href: '/blog' },
+  { label: post.title, href: path },
+];
+const description = post.seo.seoDescription || post.excerpt || `${post.title}｜森映部落格`;
+const related = relatedPosts(posts, post);
+const published = formatPublishedDate(post.publishedAt);
+---
+
+<BaseLayout
+  seo={{ title: post.seo.seoTitle || post.title, description, path }}
+  ogImageOverride={post.seo.ogImageUrl}
+  canonicalOverride={post.seo.canonicalOverride}
+  breadcrumbs={breadcrumbs}
+  breadcrumbsInHero
+  jsonLd={[
+    articleJsonLd(
+      siteUrl,
+      { title: post.title, description, path, publishedAt: post.publishedAt ?? undefined, image: post.coverImageUrl || undefined },
+      brand.seo,
+    ),
+  ]}
+  ogImage={ogImages.blog}
+>
+  <MockupAlignedHero
+    eyebrow={categoryName || '森映文章'}
+    title={post.title}
+    lead={post.excerpt}
+    breadcrumbs={breadcrumbs}
+    facts={[
+      ...(published ? [{ value: published, label: '發布日期' }] : []),
+      { value: `${post.readingMinutes} 分鐘`, label: '預計閱讀' },
+      ...(post.authorName ? [{ value: post.authorName, label: '作者' }] : []),
+    ]}
+  />
+
+  <!-- 文章內容 -->
+  <Section tone="white" density="compact" name="article" labelledby="article-heading">
+    <h2 id="article-heading" class="sr-only">文章內容</h2>
+    <article class="mx-auto min-w-0 max-w-3xl">
+      <div class="relative aspect-[16/9] overflow-hidden rounded-card border border-border-gray">
+        {
+          post.coverImageUrl ? (
+            <ContentImage src={post.coverImageUrl} alt={post.title} loading="eager" />
+          ) : (
+            <PosterTile poster={{ headline: post.title.slice(0, 12), sub: categoryName || '森映文章', theme: presentation.theme }} />
+          )
+        }
+      </div>
+      <p class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-gray">
+        {published && <time datetime={isoDate(post.publishedAt)}>{published}</time>}
+        {categoryName && <span class="rounded-full bg-teal-soft px-2.5 py-0.5 text-xs font-medium text-teal-strong">{categoryName}</span>}
+        <span class="inline-flex items-center gap-1.5">
+          <IconGlyph name="clock" class="h-4 w-4" />
+          閱讀約 {post.readingMinutes} 分鐘
+        </span>
+      </p>
+      <MarkdownContent content={post.content} class="mt-6" />
+    </article>
+  </Section>
+
+  <!-- 相關文章 -->
+  <Section density="compact" name="related" labelledby="related-heading">
+    <SectionHeading id="related-heading" title="相關文章" description="同主題或最近整理的內容。" compact action={{ label: '回文章列表', href: '/blog' }} />
+    {
+      related.length > 0 ? (
+        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((item) => (
+            <li class="min-w-0">
+              <BlogCard post={item} categoryLabel={categories.find((category) => category.slug === item.categorySlug)?.name ?? ''} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-8 text-center text-slate-gray">其他文章整理中，之後會陸續發布。</p>
+      )
+    }
+    <Container class="mt-6 px-0">
+      <a href="/search" class="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-teal-strong hover:underline">
+        <IconGlyph name="search" class="h-4 w-4" />
+        搜尋站內其他內容
+      </a>
+    </Container>
+  </Section>
+
+  <FinalCTA
+    title="想把內容變成可以長期經營的網站？"
+    description="從頁面架構、SEO 設定到後台更新流程，我們可以一起把做法整理清楚。"
+    primary={{ label: '立即諮詢', href: '/contact' }}
+    secondary={{ label: '看產品服務', href: '/products' }}
+    script="好內容，值得被看見"
+  />
+</BaseLayout>

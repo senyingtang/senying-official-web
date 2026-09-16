@@ -20,6 +20,7 @@ import type { AccessCodeListItem, CustomerSiteSummary, PortalEntitlementItem, Si
 import type { Repositories, RepositoryContext } from '../repositories';
 import { SITE_SETTING_KEYS, siteSettingsFromRows, siteSettingsToRows } from '../site-settings';
 import { TABLES } from '../tables';
+import { createSupabaseCmsRepositories } from './cms-repositories';
 import { NotImplementedInPhaseError, SupabasePermissionError, unwrap } from './errors';
 import { rpcCreateWorkspaceFromAccessCode } from './rpc';
 
@@ -86,6 +87,7 @@ export function createSupabaseRepositories(client: SupabaseClient, context: Repo
     return String(result.count ?? 0);
   };
   const head = { count: 'exact', head: true } as const;
+  const cms = createSupabaseCmsRepositories(client, context);
 
   return {
     identity: {
@@ -314,6 +316,11 @@ export function createSupabaseRepositories(client: SupabaseClient, context: Repo
         return { persisted: true, changedKeys, auditLogged };
       },
     },
+
+    cmsBlog: cms.cmsBlog,
+    cmsCases: cms.cmsCases,
+    cmsStructure: cms.cmsStructure,
+    marketingRebuild: cms.marketingRebuild,
 
     portal: {
       async listEntitlements() {

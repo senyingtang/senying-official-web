@@ -7,7 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
+    "./cms-content": "./src/cms-content.ts",
     "./data-source": "./src/data-source.ts",
+    "./public-cms": "./src/public-cms.ts",
     "./public-site-settings": "./src/public-site-settings.ts",
     "./server": "./src/server.ts",
     "./site-settings": "./src/site-settings.ts",

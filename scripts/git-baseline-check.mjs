@@ -46,7 +46,7 @@ record(8, 'supabase/.temp 被 ignore', ignored('supabase/.temp') && ignored('sup
 // 9. tracked files
 {
   const tracked = git('ls-files', '-z').out.split('\0').filter(Boolean);
-  const FORBIDDEN = /(^|\/)(\.env($|\.)|node_modules\/|\.next\/|dist\/|\.turbo\/|\.astro\/|\.rwd-report\/|\.global-ui-report\/|\.phase2[78]-report\/|supabase\/\.temp\/|supabase\/\.branches\/|coverage\/|playwright-report\/|test-results\/)|\.tsbuildinfo$|(^|\/)desktop\.ini$/;
+  const FORBIDDEN = /(^|\/)(\.env($|\.)|node_modules\/|\.next\/|dist\/|\.turbo\/|\.astro\/|\.rwd-report\/|\.global-ui-report\/|\.phase2[789]-report\/|supabase\/\.temp\/|supabase\/\.branches\/|coverage\/|playwright-report\/|test-results\/)|\.tsbuildinfo$|(^|\/)desktop\.ini$/;
   const forbidden = tracked.filter((file) => file !== '.env.example' && FORBIDDEN.test(file));
   // 同一行的「變數 = 值」才算（空白值、下一行內容不算）
   const PATTERNS = [

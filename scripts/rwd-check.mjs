@@ -54,6 +54,8 @@ const marketingPaths = [
   '/products/landing-page/event-registration', '/products/landing-page/course-enrollment', '/products/landing-page/booking-form',
   '/products/ecommerce-website', '/products/promo-page-design', '/products/seo-article-generator', '/solutions', '/cases', '/blog',
   '/about', '/contact', '/checkout', '/legal/terms', '/legal/privacy',
+  // Phase 2.9：CMS 內容頁與全站搜尋（slug 為 0017 / mock seed 的示範內容）
+  '/blog/new-site-seo-first-3-months', '/cases/hungjui-brand-site', '/search',
 ];
 
 /** 登入帳號：area 決定從哪個登入頁登入，home 為登入後應該到達的頁面 */
@@ -65,7 +67,9 @@ const ACCOUNTS = {
 };
 
 const adminConsolePaths = [
-  '/admin/dashboard', '/admin/cms', '/admin/cms/pages', '/admin/cms/navigation', '/admin/cms/assets', '/admin/cms/seo', '/admin/cms/site-settings', '/admin/commerce',
+  '/admin/dashboard', '/admin/cms', '/admin/cms/pages', '/admin/cms/blog', '/admin/cms/blog/new', '/admin/cms/blog/demo-blog-seo-first-3-months',
+  '/admin/cms/cases', '/admin/cms/cases/new', '/admin/cms/cases/demo-case-hungjui-brand-site',
+  '/admin/cms/navigation', '/admin/cms/assets', '/admin/cms/seo', '/admin/cms/site-settings', '/admin/commerce',
   '/admin/commerce/products', '/admin/commerce/prices', '/admin/commerce/orders', '/admin/commerce/payment-providers', '/admin/commerce/subscriptions',
   '/admin/access-codes', '/admin/access-codes/generated', '/admin/access-codes/redeemed', '/admin/templates', '/admin/templates/list',
   '/admin/templates/licenses', '/admin/customer-sites', '/admin/customer-sites/projects', '/admin/customer-sites/domains',

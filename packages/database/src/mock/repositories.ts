@@ -19,6 +19,7 @@ import {
   mockTemplates,
 } from './data';
 import { getMockMarketingSiteSettings } from '../site-settings';
+import { createMockCmsRepositories } from './cms-repositories';
 import { findMockAccountById } from './identities';
 
 const clone = <T>(value: T): T => structuredClone(value);
@@ -29,6 +30,7 @@ const clone = <T>(value: T): T => structuredClone(value);
  */
 export function createMockRepositories(context: RepositoryContext = {}): Repositories {
   const viewer = context.viewer;
+  const cms = createMockCmsRepositories(context);
 
   function visibleSites(): CustomerSiteSummary[] {
     if (!viewer) return [];
@@ -117,5 +119,9 @@ export function createMockRepositories(context: RepositoryContext = {}): Reposit
       // Mock 模式：驗證通過也不寫入，避免讓人誤以為已儲存到資料庫
       updateMarketingSiteSettings: async () => ({ persisted: false, changedKeys: [], auditLogged: false }),
     },
+    cmsBlog: cms.cmsBlog,
+    cmsCases: cms.cmsCases,
+    cmsStructure: cms.cmsStructure,
+    marketingRebuild: cms.marketingRebuild,
   };
 }

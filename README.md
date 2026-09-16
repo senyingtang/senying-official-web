@@ -86,15 +86,19 @@ pnpm dev:admin       # http://localhost:3000（/admin/login、/portal/login）
 | `pnpm phase27:static` | targeted：asset:verify → seo:verify → perf:verify（不啟動服務、無 RWD） |
 | `pnpm phase27:verify` | final full：asset → seo → perf → global-ui → mockup → ui（後三者 `--skip-build --skip-rwd`）→ phase2:verify；整輪完整 RWD 只跑一次，可用 `--from <step>` 從某一步重跑（見 `docs/PHASE_2_7_BRAND_SEO_ASSET_NOTES.md`） |
 | `pnpm supabase:start` / `supabase:stop` / `supabase:status` | 本機 Supabase（`supabase/config.toml`，544xx port）；status 只顯示 URL，key 遮罩 |
-| `pnpm db:reset:local` | `supabase db reset --local`，依序套用 0001 ~ 0016 |
+| `pnpm db:reset:local` | `supabase db reset --local`，依序套用 0001 ~ 0017 |
 | `pnpm db:types` | 從本機 Supabase 產生 `packages/database/src/generated/supabase.ts` |
-| `pnpm db:smoke` | Phase 2.8 本機 DB smoke：migrations、cms_site_settings seed、6 支 SQL smoke test、PostgREST + GoTrue 角色寫入權限 |
+| `pnpm db:smoke` | 本機 DB smoke：migrations、cms_site_settings seed、7 支 SQL smoke test（含 `cms_content_rls.sql`）、PostgREST + GoTrue 角色寫入權限 |
 | `pnpm site-settings:verify` | Phase 2.8 真實整合：Admin（DATA_SOURCE=supabase）表單寫入 → DB → repository round trip → Marketing build（輸出 `.phase28-report/supabase-dist`）→ dist → rollback |
 | `pnpm local-env:verify` | .gitignore 涵蓋 .env.local、service role 不進 build、repo 無正式 key、報告不含完整 key |
 | `pnpm dev:admin:supabase` / `build:marketing:supabase` | 以本機 Supabase 連線資訊（即時讀取、不寫檔）啟動後台 / build 官網 |
 | `pnpm phase28:verify` | db:verify-sync → db:smoke → site-settings:verify → local-env:verify → phase27:verify（含 phase2:verify，完整 RWD 一次），見 `docs/PHASE_2_8_SUPABASE_SITE_SETTINGS_NOTES.md` |
+| `pnpm cms:verify` | Phase 2.9 CMS 內容驗收（30 項）：Blog / Case repository、anon 讀寫邊界、5 種角色權限、slug 唯一、sanitize、audit、build 輸出、未發布內容不進 build、metadata / Breadcrumb / JSON-LD、搜尋索引、Admin（supabase 模式）Dashboard 與 CMS 頁面 |
+| `pnpm cms-integration:verify` | Phase 2.9 真實整合：建立草稿 → public 讀不到 → 發布 → Marketing build → 內容頁 + 搜尋索引 → 下架 → 重新 build → 消失 → 清除（含 rebuild 狀態流程） |
+| `pnpm search:verify` | Phase 2.9 全站搜尋驗收（12 項）：`/search`、`/search-index.json`、索引與 build 輸出一致、不含 draft / admin / portal / checkout、Header 入口、執行時行為與類型篩選 |
+| `pnpm phase29:verify` | db:verify-sync → db:smoke → build → cms:verify → cms-integration:verify → search:verify → site-settings:verify → local-env:verify → asset / seo / perf / global-ui / mockup / ui → phase2:verify（完整 RWD 一次）→ git:verify，見 `docs/PHASE_2_9_CMS_CONTENT_NOTES.md` |
 | `pnpm git:verify` | Phase 2.8.1 Git baseline：main 分支、origin 為官方 repo、working tree clean、.env / .next / dist / supabase/.temp 被 ignore、tracked 檔案無 secret、HEAD 與 GitHub origin/main 一致 |
-| `pnpm rwd:report:verify` | 確認最近一次完整 RWD 報告為 528 checks / 0 failures（`phase28:verify --skip-rwd` 使用，避免同一輪重跑 RWD） |
+| `pnpm rwd:report:verify` | 確認最近一次完整 RWD 報告為 582 checks / 0 failures（`phase28:verify` / `phase29:verify` 的 `--skip-rwd` 使用，避免同一輪重跑 RWD） |
 
 RWD 檢查說明：
 
@@ -138,6 +142,7 @@ Mock 示範帳號（僅 mock 模式，email 為 example.com 保留網域）：
 - `pnpm lint`、`pnpm typecheck`、`pnpm build`
 - `pnpm phase2:auth`（權限與兌換流程 runtime 測試）
 - `pnpm rwd:check`（版面自動檢查）
+- `pnpm cms:verify` / `pnpm cms-integration:verify` / `pnpm search:verify`（Phase 2.9 CMS 內容與搜尋，需本機 `supabase start`）
 - 資料庫：`supabase/tests/*.sql`（DB SQL v2.0 smoke tests，需本機 `supabase start`）
 
 ## 環境變數與安全
@@ -169,6 +174,7 @@ Mock 示範帳號（僅 mock 模式，email 為 example.com 保留網域）：
 - `docs/PHASE_2_6C_GLOBAL_UI_NOTES.md`
 - `docs/PHASE_2_7_BRAND_SEO_ASSET_NOTES.md`
 - `docs/PHASE_2_8_SUPABASE_SITE_SETTINGS_NOTES.md`
+- `docs/PHASE_2_9_CMS_CONTENT_NOTES.md`
 - `docs/performance/PHASE_2_7_IMAGE_BUDGET.md`
 - `docs/森映品牌官網_CMS與SEO規劃_v1.0.md`
 - `docs/森映品牌官網_整體架構設計_v1.0.md`

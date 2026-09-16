@@ -1,0 +1,210 @@
+---
+import type { JsonLd } from '@syt/seo';
+import { absoluteUrl } from '@syt/seo';
+import type { GetStaticPaths } from 'astro';
+import ButtonLink from '../../components/ButtonLink.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import ContentImage from '../../components/ContentImage.astro';
+import FinalCTA from '../../components/FinalCTA.astro';
+import MarkdownContent from '../../components/MarkdownContent.astro';
+import MockPageWireframe from '../../components/MockPageWireframe.astro';
+import MockupAlignedHero from '../../components/MockupAlignedHero.astro';
+import Section from '../../components/Section.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { CASE_METRIC_NOTE } from '../../content/cases';
+import { ogImages } from '../../content/ogImages';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getMarketingCmsContent, relatedCases, SERVICE_TYPE_LINKS, SERVICE_TYPE_VISUALS } from '../../lib/cms';
+import { getBrandRuntime } from '../../lib/brand-runtime';
+import { siteUrl } from '../../lib/site';
+
+/**
+ * 案例內容頁。
+ * getStaticPaths 只取得已發布的案例；草稿與已下架案例不會產生任何 HTML。
+ * 結構化資料使用 CreativeWork（作品介紹），不宣稱 Review / Rating。
+ */
+export const getStaticPaths = (async () => {
+  const { caseDetails } = await getMarketingCmsContent();
+  return caseDetails.map((item) => ({ params: { slug: item.slug }, props: { item } }));
+}) satisfies GetStaticPaths;
+
+const { item } = Astro.props;
+const brand = await getBrandRuntime();
+const { cases } = await getMarketingCmsContent();
+const path = `/cases/${item.slug}`;
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '案例作品', href: '/cases' },
+  { label: item.title, href: path },
+];
+const description = item.seo.seoDescription || item.excerpt || `${item.title}｜森映案例作品`;
+const related = relatedCases(cases, item);
+const productHref = SERVICE_TYPE_LINKS[item.serviceType];
+const visual = SERVICE_TYPE_VISUALS[item.serviceType] ?? 'website';
+const details = [
+  { label: '產業', value: item.industry },
+  { label: '服務類型', value: item.serviceType },
+  { label: item.isSample ? '專案性質' : '客戶', value: item.isSample ? '版型 / 設計示意，非客戶專案' : item.clientLabel },
+  { label: '目前狀態', value: item.displayStatus },
+].filter((detail) => detail.value);
+
+const caseJsonLd: JsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: item.title,
+  description,
+  url: absoluteUrl(siteUrl, path),
+  inLanguage: 'zh-TW',
+  ...(item.industry ? { genre: item.industry } : {}),
+  ...(item.coverImageUrl ? { image: absoluteUrl(siteUrl, item.coverImageUrl) } : {}),
+  ...(item.publishedAt ? { datePublished: item.publishedAt } : {}),
+  creator: { '@type': 'Organization', '@id': `${siteUrl}/#organization`, name: brand.seo.name, url: siteUrl },
+};
+---
+
+<BaseLayout
+  seo={{ title: item.seo.seoTitle || `${item.title}｜案例作品`, description, path }}
+  ogImageOverride={item.seo.ogImageUrl}
+  canonicalOverride={item.seo.canonicalOverride}
+  breadcrumbs={breadcrumbs}
+  breadcrumbsInHero
+  jsonLd={[caseJsonLd]}
+  ogImage={ogImages.cases}
+>
+  <MockupAlignedHero
+    eyebrow={item.industry || 'CASE STUDY'}
+    title={item.title}
+    lead={item.excerpt}
+    breadcrumbs={breadcrumbs}
+    notice={item.isSample ? '這是版型 / 設計示意，不是實際客戶專案。' : undefined}
+    facts={details.slice(0, 4).map((detail) => ({ value: detail.value, label: detail.label }))}
+  />
+
+  <!-- 案例內容 -->
+  <Section tone="white" density="compact" name="case-detail" labelledby="case-detail-heading">
+    <h2 id="case-detail-heading" class="sr-only">案例內容</h2>
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div class="min-w-0">
+        <div class="relative aspect-[16/10] overflow-hidden rounded-card border border-border-gray bg-gradient-to-br from-deep-navy to-deep-navy-soft">
+          {
+            item.coverImageUrl ? (
+              <ContentImage src={item.coverImageUrl} alt={item.title} width={1200} height={750} loading="eager" />
+            ) : (
+              <div class="h-full w-full p-4" role="img" aria-label={`${item.title} 版面示意`}>
+                <MockPageWireframe variant={visual} class="h-full rounded-lg" />
+              </div>
+            )
+          }
+        </div>
+        <p class="mt-3 text-xs leading-relaxed text-slate-gray">{CASE_METRIC_NOTE}</p>
+
+        {item.content && <MarkdownContent content={item.content} class="mt-6" />}
+
+        {
+          item.challenge && (
+            <section class="mt-8 min-w-0" aria-labelledby="challenge-heading">
+              <h3 id="challenge-heading" class="text-lg font-bold text-ink">
+                面對的問題
+              </h3>
+              <p class="mt-2 leading-relaxed text-slate-gray">{item.challenge}</p>
+            </section>
+          )
+        }
+        {
+          item.solution && (
+            <section class="mt-6 min-w-0" aria-labelledby="solution-heading">
+              <h3 id="solution-heading" class="text-lg font-bold text-ink">
+                做法
+              </h3>
+              <p class="mt-2 leading-relaxed text-slate-gray">{item.solution}</p>
+            </section>
+          )
+        }
+        {
+          item.resultSummary ? (
+            <section class="mt-6 min-w-0" aria-labelledby="result-heading">
+              <h3 id="result-heading" class="text-lg font-bold text-ink">
+                成果
+              </h3>
+              <p class="mt-2 leading-relaxed text-slate-gray">{item.resultSummary}</p>
+            </section>
+          ) : (
+            <p class="mt-6 rounded-card border border-dashed border-border-gray bg-mist-white px-4 py-4 text-sm leading-relaxed text-slate-gray">
+              成效數據取得客戶同意並完成統計後才會公開，目前不提供未經確認的數字。
+            </p>
+          )
+        }
+
+        {
+          item.gallery.length > 0 && (
+            <section class="mt-8 min-w-0" aria-labelledby="gallery-heading">
+              <h3 id="gallery-heading" class="text-lg font-bold text-ink">
+                專案畫面
+              </h3>
+              <ul class="mt-3 grid gap-3 sm:grid-cols-2">
+                {item.gallery.map((image) => (
+                  <li class="min-w-0 overflow-hidden rounded-card border border-border-gray">
+                    <div class="aspect-[16/10]">
+                      <ContentImage src={image.url} alt={image.alt || item.title} width={1200} height={750} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+      </div>
+
+      <aside class="min-w-0">
+        <div class="rounded-card border border-border-gray bg-surface p-5 shadow-card">
+          <h3 class="text-base font-bold text-ink">案例資訊</h3>
+          <dl class="mt-3 grid gap-2 text-sm">
+            {
+              details.map((detail) => (
+                <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-2">
+                  <dt class="font-semibold text-ink">{detail.label}</dt>
+                  <dd class="leading-relaxed text-slate-gray">{detail.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+          {
+            productHref && (
+              <ButtonLink href={productHref} cta="primary" class="mt-4 w-full">
+                看 {item.serviceType}
+                <span aria-hidden="true">→</span>
+              </ButtonLink>
+            )
+          }
+          <ButtonLink href="/contact" variant="secondary" class="mt-2 w-full">討論類似需求</ButtonLink>
+        </div>
+      </aside>
+    </div>
+  </Section>
+
+  <!-- 相關案例 -->
+  <Section density="compact" name="related" labelledby="related-heading">
+    <SectionHeading id="related-heading" title="相關案例" description="同產業或使用相近產品的案例。" compact action={{ label: '回案例列表', href: '/cases' }} />
+    {
+      related.length > 0 ? (
+        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((entry) => (
+            <li class="min-w-0">
+              <CaseCard item={entry} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-8 text-center text-slate-gray">其他案例整理中，取得授權後會陸續公開。</p>
+      )
+    }
+  </Section>
+
+  <FinalCTA
+    title="下一個案例，也許就是你的品牌"
+    description="無論你屬於哪個產業，森映都能協助整理適合的網站做法。"
+    primary={{ label: '立即諮詢', href: '/contact' }}
+    secondary={{ label: '看產品服務', href: '/products' }}
+    script="好的案例，源於好的夥伴"
+  />
+</BaseLayout>

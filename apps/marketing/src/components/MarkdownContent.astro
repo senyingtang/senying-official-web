@@ -1,0 +1,20 @@
+---
+import { renderMarkdown } from '@syt/shared';
+
+interface Props {
+  content: string;
+  class?: string;
+}
+
+/**
+ * CMS 內容輸出。
+ *
+ * renderMarkdown 會先把整份原始碼 HTML escape，再只產生白名單標籤
+ * （h2 / h3 / p / ul / ol / li / blockquote / a / img / strong / em / code / pre / hr），
+ * 因此前台不會輸出任何未經處理的 HTML：<script>、<iframe>、on* 事件屬性只會以純文字顯示。
+ */
+const { content, class: className = '' } = Astro.props;
+const html = renderMarkdown(content);
+---
+
+<div class:list={['syt-prose min-w-0 text-base text-ink', className]} set:html={html} />

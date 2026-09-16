@@ -3,8 +3,11 @@ import BrandLockup from './BrandLockup.astro';
 import ButtonLink from './ButtonLink.astro';
 import Container from './Container.astro';
 import IconGlyph from './IconGlyph.astro';
-import { headerActions, mainNav, portalIsExternal, portalLoginUrl } from '../lib/site';
+import { headerActions, portalIsExternal, portalLoginUrl } from '../lib/site';
+import { getMarketingNavigation } from '../lib/navigation-runtime';
 
+// 主選單：supabase 模式讀 cms_navigation_items（後台改完重新建置即反映）；mock 模式使用設計預設值
+const { main: mainNav } = await getMarketingNavigation();
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isActive = (href: string) => currentPath === href || currentPath.startsWith(`${href}/`);
 const portalTarget = portalIsExternal ? '_blank' : undefined;

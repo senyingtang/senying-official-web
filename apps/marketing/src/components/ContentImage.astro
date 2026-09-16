@@ -1,0 +1,38 @@
+---
+import { isSafeContentUrl } from '@syt/shared';
+
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  loading?: 'eager' | 'lazy';
+  class?: string;
+  sizes?: string;
+}
+
+/**
+ * CMS 內容圖片（封面、相簿）。
+ *
+ * 與 ResponsiveImage 的差別：這裡的網址由後台填寫，沒有預先產生的 WebP / AVIF 變體，
+ * 因此只輸出單一 <img>（含 width / height，避免版面位移）。網址不安全時不輸出任何東西。
+ */
+const { src, alt, width = 1200, height = 675, loading = 'lazy', class: className = '', sizes } = Astro.props;
+const safe = isSafeContentUrl(src) && /^(\/(?!\/)|https:\/\/)/.test(src);
+---
+
+{
+  safe && (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={loading}
+      decoding="async"
+      sizes={sizes}
+      class:list={['h-full w-full object-cover', className]}
+      data-cms-image
+    />
+  )
+}

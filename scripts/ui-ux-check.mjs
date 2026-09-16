@@ -201,7 +201,8 @@ const expectText = (route, phrases) => {
 expectText('/checkout', ['選擇產品', '方案整理中', '權限代碼流程', '付款方式預留', '銀行轉帳', '綠界', 'LINE Pay', '目前尚未開放正式付款', '可先預約討論', '正式價格以確認報價為準']);
 expectText('/contact', ['LINE@', '需求表單', '常見需求', '預算區間', '服務類型', '聯絡方式', '不會送出']);
 expectText('/cases', ['Hungjui 形象官網', '品牌電商官網', 'SEO 文章生產器', '預約 / 活動頁', '產業', '需求', '使用產品', '成效指標', '頁面截圖']);
-expectText('/blog', ['全部文章', 'SEO 優化', '網站設計', '內容行銷', '數位工具', '品牌經營', '案例分享', '產業觀點', '即將發布']);
+// Phase 2.9：文章改由 CMS 發布，卡片顯示發布日期與閱讀時間，不再是「即將發布」
+expectText('/blog', ['全部文章', 'SEO 優化', '網站設計', '內容行銷', '數位工具', '品牌經營', '案例分享', '產業觀點', '閱讀約']);
 expectText('/about', ['不是單純的接案工作室', '產品', '可自助', '客製', '人工協助']);
 expectText('/solutions', ['新品牌起步', '舊網站翻新', 'SEO 內容累積', '活動短期轉換', '美業 / 店家預約', 'B2B 形象與詢價', '電商與商品展示']);
 expectText('/legal/terms', ['草稿', '目錄', '權限代碼']);
@@ -367,7 +368,13 @@ record('8. 效能', '<img> 都有 width / height', imgWithoutSize.length === 0, 
   record(group, 'ResponsiveImage 使用都有 width / height', usages.length > 0 && missingSize.length === 0, missingSize.map((usage) => usage.file).join(', ') || 'ok');
   const rawImg = sourceFiles.filter((file) => /<img\b/.test(read(file))).map(rel);
   // BrandLockup.astro：只在全站設定填了 Logo URL 時輸出品牌 Logo <img>（不是 /images 內容圖）
-  record(group, '前台原始碼沒有繞過 ResponsiveImage 的 <img>（BrandLockup 品牌 Logo 除外）', rawImg.filter((file) => !/(ResponsiveImage|BrandLockup)\.astro$/.test(file)).length === 0, rawImg.join(', '));
+  // ContentImage.astro（Phase 2.9）：CMS 內容圖片的網址由後台填寫，沒有預先產生的 WebP / AVIF 變體，只能輸出單一 <img>（仍必須有 width / height）
+  record(
+    group,
+    '前台原始碼沒有繞過 ResponsiveImage 的 <img>（BrandLockup 品牌 Logo、ContentImage CMS 圖片除外）',
+    rawImg.filter((file) => !/(ResponsiveImage|BrandLockup|ContentImage)\.astro$/.test(file)).length === 0,
+    rawImg.join(', '),
+  );
 
   const imgProblems = [...pages.entries()].flatMap(([route, page]) =>
     imgTags(page.html)

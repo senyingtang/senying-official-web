@@ -5,10 +5,13 @@ import BrandLockup from './BrandLockup.astro';
 import Container from './Container.astro';
 import IconGlyph from './IconGlyph.astro';
 import { getBrandRuntime } from '../lib/brand-runtime';
-import { footerGroups, legalLinks, lineIsExternal, lineOaUrl } from '../lib/site';
+import { footerGroups, lineIsExternal, lineOaUrl } from '../lib/site';
+import { getMarketingNavigation } from '../lib/navigation-runtime';
 import { getMarketingSiteSettings } from '../lib/site-settings';
 
 const year = new Date().getFullYear();
+// 頁尾法律連結：supabase 模式讀 cms_navigation_items（footer 選單）
+const { legal: legalLinks } = await getMarketingNavigation();
 const { socials } = await getMarketingSiteSettings();
 const brand = await getBrandRuntime();
 const visibleSocials = resolveVisibleSocials(socials, 'any');

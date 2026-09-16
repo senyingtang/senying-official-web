@@ -1,5 +1,5 @@
 ---
-import { webPageJsonLd } from '@syt/seo';
+import { itemListJsonLd, webPageJsonLd } from '@syt/seo';
 import ButtonLink from '../components/ButtonLink.astro';
 import CaseCard from '../components/CaseCard.astro';
 import CategoryChips from '../components/CategoryChips.astro';
@@ -13,22 +13,30 @@ import ProductHeroVisual from '../components/ProductHeroVisual.astro';
 import ProofStatsBand from '../components/ProofStatsBand.astro';
 import Section from '../components/Section.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import { CASE_METRIC_NOTE, CASE_RESULTS_NOTE, caseCategories, caseIndustries, caseResults, cases } from '../content/cases';
+import { CASE_METRIC_NOTE, CASE_RESULTS_NOTE, caseIndustries, caseResults } from '../content/cases';
 import { casesFaq } from '../content/faqs';
 import { mediaAssets } from '../content/media';
 import { ogImages } from '../content/ogImages';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getMarketingCmsContent } from '../lib/cms';
 import { siteUrl } from '../lib/site';
 import { getBrandRuntime } from '../lib/brand-runtime';
 
 const brand = await getBrandRuntime();
-const description = '森映案例作品：Hungjui 形象官網、品牌電商官網、SEO 文章生產器與預約活動頁，說明產業、需求與使用產品；成效數據整理後公開。';
+const { cases } = await getMarketingCmsContent();
+const description = '森映案例作品：形象官網、品牌電商、SEO 文章生產器與預約活動頁，說明產業、需求與使用產品；成效數據整理後公開。';
 const breadcrumbs = [
   { label: '首頁', href: '/' },
   { label: '案例作品', href: '/cases' },
 ];
-const clientCases = cases.filter((item) => !item.sample).length;
+const clientCases = cases.filter((item) => !item.isSample).length;
 const sampleCases = cases.length - clientCases;
+/** 分類 chip：以案例實際使用的服務類型產生 */
+const serviceTypes = [...new Set(cases.map((item) => item.serviceType).filter(Boolean))];
+const chips = [{ key: 'all', label: '全部案例' }, ...serviceTypes.map((type) => ({ key: type, label: type }))];
+/** data-filter-tags 不能有空白（以空白分隔多個 tag），改用索引當作 key */
+const tagOf = (serviceType: string) => (serviceType ? `type-${serviceTypes.indexOf(serviceType)}` : 'type-none');
+const chipItems = chips.map((chip) => (chip.key === 'all' ? chip : { key: tagOf(chip.key), label: chip.label }));
 ---
 
 <BaseLayout
@@ -36,7 +44,10 @@ const sampleCases = cases.length - clientCases;
   breadcrumbs={breadcrumbs}
   breadcrumbsInHero
   faq={casesFaq}
-  jsonLd={[webPageJsonLd(siteUrl, { type: 'CollectionPage', name: '森映案例作品', description, path: '/cases' }, brand.seo)]}
+  jsonLd={[
+    webPageJsonLd(siteUrl, { type: 'CollectionPage', name: '森映案例作品', description, path: '/cases' }, brand.seo),
+    ...(cases.length > 0 ? [itemListJsonLd(siteUrl, { name: '森映案例作品', items: cases.map((item) => ({ name: item.title, path: `/cases/${item.slug}` })) })] : []),
+  ]}
   ogImage={ogImages.cases}
 >
   <MockupAlignedHero
@@ -66,7 +77,7 @@ const sampleCases = cases.length - clientCases;
   <!-- 分類篩選 -->
   <section data-section="filters" aria-label="案例分類" class="bg-surface pt-6 sm:pt-8">
     <Container>
-      <CategoryChips items={caseCategories} target="cases" label="案例分類" />
+      <CategoryChips items={chipItems} target="cases" label="案例分類" />
     </Container>
   </section>
 
@@ -99,15 +110,19 @@ const sampleCases = cases.length - clientCases;
   <!-- 案例列表 -->
   <Section tone="white" density="compact" name="case-list" id="case-list" labelledby="case-list-heading" class="pt-6 md:pt-8">
     <SectionHeading id="case-list-heading" title="案例列表" description={CASE_METRIC_NOTE} compact />
-    <ul data-filter-list="cases" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {
-        cases.map((item, index) => (
-          <li data-filter-item data-filter-tags={item.categories.join(' ')} data-sort-latest={String(index).padStart(3, '0')} data-sort-name={item.title} class="min-w-0">
-            <CaseCard item={item} />
-          </li>
-        ))
-      }
-    </ul>
+    {
+      cases.length > 0 ? (
+        <ul data-filter-list="cases" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {cases.map((item, index) => (
+            <li data-filter-item data-filter-tags={tagOf(item.serviceType)} data-sort-latest={String(index).padStart(3, '0')} data-sort-name={item.title} class="min-w-0">
+              <CaseCard item={item} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-10 text-center text-slate-gray">案例整理中，取得授權後會陸續公開。</p>
+      )
+    }
     <p data-filter-empty="cases" hidden class="mt-4 text-sm text-slate-gray">找不到符合的案例，可以換個關鍵字或分類。</p>
   </Section>
 

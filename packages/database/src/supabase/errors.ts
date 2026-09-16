@@ -33,6 +33,11 @@ export class SupabasePermissionError extends SupabaseRepositoryError {
   }
 }
 
+/** repository 尚未接上 Supabase（Phase 3 模組）：畫面顯示「尚未啟用」，不可當成錯誤讓整頁 crash */
+export function isNotImplementedError(error: unknown): boolean {
+  return error instanceof NotImplementedInPhaseError || (error instanceof Error && error.name === 'NotImplementedInPhaseError');
+}
+
 export function isPermissionDeniedError(error: unknown): boolean {
   return error instanceof SupabasePermissionError || (error instanceof SupabaseRepositoryError && error.code === '42501');
 }

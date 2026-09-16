@@ -1,59 +1,75 @@
 ---
-import type { CaseStudy } from '../content/cases';
+import type { CaseStudySummary } from '@syt/database/cms-content';
+import { SERVICE_TYPE_LINKS, SERVICE_TYPE_VISUALS } from '../lib/cms';
+import ContentImage from './ContentImage.astro';
 import MockPageWireframe from './MockPageWireframe.astro';
-import PosterTile from './PosterTile.astro';
 
 interface Props {
-  item: CaseStudy;
+  item: CaseStudySummary;
   headingLevel?: 'h2' | 'h3';
 }
 
-/** 案例卡（設計稿密集版）：預覽畫面 + 產業標籤 + 名稱 + 需求 + 使用產品；截圖與成效數據取得授權前不公開 */
+/**
+ * 案例卡：預覽畫面 + 產業標籤 + 名稱 + 需求 + 使用產品。
+ * 客戶網站截圖與成效數據取得授權前不公開，沒有封面圖時顯示版面示意（並標示為示意）。
+ */
 const { item, headingLevel: Heading = 'h3' } = Astro.props;
+const href = `/cases/${item.slug}`;
+const productHref = SERVICE_TYPE_LINKS[item.serviceType];
+const visual = SERVICE_TYPE_VISUALS[item.serviceType] ?? 'website';
+const statusLabel = item.isSample ? item.displayStatus || '版型示意' : '頁面截圖整理中';
 ---
 
-<article class="syt-hover-glow flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border-gray bg-surface shadow-card transition-colors hover:border-teal/50">
+<article class="syt-hover-glow relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border-gray bg-surface shadow-card transition-colors hover:border-teal/50">
   <div class="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-deep-navy to-deep-navy-soft">
     {
-      item.poster ? (
-        <PosterTile poster={item.poster} />
+      item.coverImageUrl ? (
+        <ContentImage src={item.coverImageUrl} alt={item.title} width={1200} height={750} />
       ) : (
         <div class="h-full w-full p-3" role="img" aria-label={`${item.title} 頁面截圖 placeholder`}>
-          <MockPageWireframe variant={item.visual ?? 'website'} class="h-full rounded-lg" />
+          <MockPageWireframe variant={visual} class="h-full rounded-lg" />
         </div>
       )
     }
-    <span class="absolute bottom-2 left-2 rounded-full bg-teal px-2.5 py-0.5 text-[11px] font-semibold text-navy-black shadow">{item.industry}</span>
-    <span class="absolute right-2 top-2 rounded-full bg-navy-black/85 px-2 py-0.5 text-[10px] font-medium text-slate-100">{item.sample ? item.status : '頁面截圖整理中'}</span>
+    {item.industry && <span class="absolute bottom-2 left-2 rounded-full bg-teal px-2.5 py-0.5 text-[11px] font-semibold text-navy-black shadow">{item.industry}</span>}
+    <span class="absolute right-2 top-2 rounded-full bg-navy-black/85 px-2 py-0.5 text-[10px] font-medium text-slate-100">{statusLabel}</span>
   </div>
   <div class="flex flex-1 flex-col p-4">
-    <p class="text-xs text-slate-gray">{item.sample ? '非客戶專案' : `${item.status} · ${item.clientLabel}`}</p>
-    <Heading class="mt-1 text-base font-bold leading-snug text-ink">{item.title}</Heading>
+    <p class="text-xs text-slate-gray">{item.isSample ? '非客戶專案' : [item.displayStatus, item.clientLabel].filter(Boolean).join(' · ') || '案例整理中'}</p>
+    <Heading class="mt-1 text-base font-bold leading-snug text-ink">
+      <a href={href} class="after:absolute after:inset-0 hover:text-teal-strong">{item.title}</a>
+    </Heading>
     <dl class="mt-2 grid gap-1.5 text-sm">
       <div class="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2">
         <dt class="font-semibold text-ink">產業</dt>
-        <dd class="text-slate-gray">{item.industry}</dd>
+        <dd class="text-slate-gray">{item.industry || '整理中'}</dd>
       </div>
       <div class="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2">
         <dt class="font-semibold text-ink">需求</dt>
-        <dd class="leading-relaxed text-slate-gray">{item.need}</dd>
+        <dd class="leading-relaxed text-slate-gray">{item.excerpt}</dd>
       </div>
       <div class="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2">
         <dt class="font-semibold text-ink">使用產品</dt>
         <dd class="flex min-w-0 flex-wrap gap-1.5">
           {
-            item.products.map((product) => (
-              <a href={product.href} class="rounded-full border border-teal/40 px-2 py-0.5 text-xs font-medium text-teal-strong hover:bg-teal-soft">
-                {product.label}
-              </a>
-            ))
+            item.serviceType ? (
+              productHref ? (
+                <a href={productHref} class="relative z-10 rounded-full border border-teal/40 px-2 py-0.5 text-xs font-medium text-teal-strong hover:bg-teal-soft">
+                  {item.serviceType}
+                </a>
+              ) : (
+                <span class="rounded-full border border-border-gray px-2 py-0.5 text-xs font-medium text-slate-gray">{item.serviceType}</span>
+              )
+            ) : (
+              <span class="text-xs text-slate-gray">整理中</span>
+            )
           }
         </dd>
       </div>
     </dl>
-    <a href={item.cta.href} data-cta="case" class="mt-auto inline-flex min-h-11 items-center gap-1 self-start pt-3 text-sm font-semibold text-teal-strong hover:underline">
-      {item.cta.label}
+    <span data-cta="case" class="mt-auto inline-flex min-h-11 items-center gap-1 self-start pt-3 text-sm font-semibold text-teal-strong">
+      看案例內容
       <span aria-hidden="true">→</span>
-    </a>
+    </span>
   </div>
 </article>

@@ -1,0 +1,189 @@
+---
+import { webPageJsonLd } from '@syt/seo';
+import Container from '../components/Container.astro';
+import IconGlyph from '../components/IconGlyph.astro';
+import MockupAlignedHero from '../components/MockupAlignedHero.astro';
+import Section from '../components/Section.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildSearchIndex, SEARCH_TYPE_LABELS, type SearchEntryType } from '../lib/search-index';
+import { getBrandRuntime } from '../lib/brand-runtime';
+import { siteUrl } from '../lib/site';
+
+/**
+ * 全站搜尋（build-time index + 瀏覽器端比對）。
+ *
+ * - 索引內容與 /search-index.json 相同：已發布文章、已發布案例、產品頁與主要行銷頁面
+ * - 不含草稿、後台、客戶後台、結帳頁或任何需要登入的內容
+ * - 每次輸入都在瀏覽器端比對，不會送到伺服器；沒有 JavaScript 時直接顯示完整索引清單
+ */
+const brand = await getBrandRuntime();
+const entries = await buildSearchIndex();
+const description = '搜尋森映官網的文章、案例、產品與主要頁面。';
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '搜尋', href: '/search' },
+];
+const types: SearchEntryType[] = ['blog', 'case', 'product', 'page'];
+const countOf = (type: SearchEntryType) => entries.filter((entry) => entry.type === type).length;
+---
+
+<BaseLayout
+  seo={{ title: '站內搜尋', description, path: '/search', noindex: true }}
+  breadcrumbs={breadcrumbs}
+  breadcrumbsInHero
+  jsonLd={[webPageJsonLd(siteUrl, { type: 'WebPage', name: '站內搜尋', description, path: '/search' }, brand.seo)]}
+>
+  <MockupAlignedHero
+    eyebrow="SITE SEARCH"
+    title="搜尋站內內容"
+    lead="文章、案例、產品與主要頁面都在同一個搜尋結果中。輸入 2 個字元以上就會開始比對。"
+    breadcrumbs={breadcrumbs}
+    facts={[
+      { value: `${countOf('blog')} 篇`, label: '文章' },
+      { value: `${countOf('case')} 個`, label: '案例' },
+      { value: `${countOf('product')} 個`, label: '產品頁' },
+      { value: `${countOf('page')} 頁`, label: '主要頁面' },
+    ]}
+  />
+
+  <!-- 搜尋輸入與類型篩選 -->
+  <section data-section="search-form" aria-label="搜尋" class="border-b border-border-gray bg-surface py-5">
+    <Container class="grid gap-4">
+      <form action="/search" method="get" role="search" class="flex flex-col gap-2 sm:flex-row">
+        <label class="relative min-w-0 flex-1">
+          <span class="sr-only">搜尋關鍵字</span>
+          <input
+            id="site-search-input"
+            type="search"
+            name="q"
+            data-search-input
+            autocomplete="off"
+            placeholder="輸入關鍵字，例如 SEO、電商、網域"
+            class="block min-h-12 w-full min-w-0 rounded-input border border-border-gray bg-surface py-2 pl-3 pr-10 text-base text-ink placeholder:text-slate-gray focus:border-teal-strong focus:outline-2 focus:outline-teal/40"
+          />
+          <IconGlyph name="search" class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-gray" />
+        </label>
+        <button type="submit" class="min-h-12 shrink-0 rounded-button bg-teal px-6 font-semibold text-navy-black hover:bg-teal-hover">搜尋</button>
+      </form>
+
+      <div class="syt-chip-row -mx-4 min-w-0 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="group" aria-label="結果類型">
+        <ul class="flex w-max gap-2 py-1 sm:w-auto sm:flex-wrap">
+          <li class="shrink-0">
+            <button
+              type="button"
+              data-search-type="all"
+              aria-pressed="true"
+              class="inline-flex min-h-10 items-center rounded-full border border-border-gray bg-surface px-4 text-sm font-medium text-ink transition-colors hover:border-teal-strong aria-pressed:border-teal aria-pressed:bg-teal aria-pressed:text-navy-black"
+            >
+              全部
+            </button>
+          </li>
+          {
+            types.map((type) => (
+              <li class="shrink-0">
+                <button
+                  type="button"
+                  data-search-type={type}
+                  aria-pressed="false"
+                  class="inline-flex min-h-10 items-center rounded-full border border-border-gray bg-surface px-4 text-sm font-medium text-ink transition-colors hover:border-teal-strong aria-pressed:border-teal aria-pressed:bg-teal aria-pressed:text-navy-black"
+                >
+                  {SEARCH_TYPE_LABELS[type]}
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </Container>
+  </section>
+
+  <!-- 搜尋結果 -->
+  <Section density="compact" name="search-results" labelledby="search-results-heading">
+    <h2 id="search-results-heading" class="text-xl font-bold text-ink">搜尋結果</h2>
+    <p class="mt-1 text-sm text-slate-gray">
+      共 <span data-search-count class="font-semibold text-ink">{entries.length}</span> 筆結果<span data-search-query-label></span>
+    </p>
+    <p data-search-hint hidden class="mt-3 rounded-card border border-dashed border-border-gray bg-surface px-4 py-6 text-center text-sm text-slate-gray">
+      請輸入 2 個字元以上開始搜尋。
+    </p>
+    <p data-search-empty hidden class="mt-3 rounded-card border border-dashed border-border-gray bg-surface px-4 py-8 text-center text-slate-gray">
+      找不到符合的內容
+    </p>
+    <ul data-search-results class="mt-4 grid gap-3">
+      {
+        entries.map((entry) => (
+          <li
+            data-search-item
+            data-search-type-value={entry.type}
+            data-search-text={`${entry.title} ${entry.excerpt} ${entry.keywords.join(' ')}`.toLowerCase()}
+            class="min-w-0"
+          >
+            <a href={entry.url} class="syt-hover-glow block rounded-2xl border border-border-gray bg-surface p-4 shadow-card transition-colors hover:border-teal/50">
+              <p class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="rounded-full bg-teal-soft px-2.5 py-0.5 font-semibold text-teal-strong">{SEARCH_TYPE_LABELS[entry.type]}</span>
+                <span class="font-mono text-slate-gray">{entry.url}</span>
+              </p>
+              <h3 class="mt-2 text-base font-bold leading-snug text-ink sm:text-lg">{entry.title}</h3>
+              {entry.excerpt && <p class="mt-1 text-sm leading-relaxed text-slate-gray">{entry.excerpt}</p>}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6 text-xs leading-relaxed text-slate-gray">
+      搜尋索引在官網建置時產生（/search-index.json），只包含已發布的公開內容；草稿、後台與客戶後台頁面不會出現在結果中。
+    </p>
+  </Section>
+</BaseLayout>
+
+<script>
+  /**
+   * 站內搜尋（純瀏覽器端）：結果清單已在 build 時輸出，這裡只切換顯示。
+   * 不會在每次輸入時送出請求；沒有 JavaScript 時清單照常完整顯示。
+   */
+  const input = document.querySelector<HTMLInputElement>('[data-search-input]');
+  const items = [...document.querySelectorAll<HTMLElement>('[data-search-item]')];
+  const countEl = document.querySelector<HTMLElement>('[data-search-count]');
+  const queryLabel = document.querySelector<HTMLElement>('[data-search-query-label]');
+  const emptyEl = document.querySelector<HTMLElement>('[data-search-empty]');
+  const hintEl = document.querySelector<HTMLElement>('[data-search-hint]');
+  const listEl = document.querySelector<HTMLElement>('[data-search-results]');
+  const typeButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-search-type]')];
+
+  if (input && listEl) {
+    const MIN_LENGTH = 2;
+    let activeType = 'all';
+
+    const apply = () => {
+      const query = input.value.trim().toLowerCase();
+      const tooShort = query.length > 0 && query.length < MIN_LENGTH;
+      let visible = 0;
+      for (const item of items) {
+        const matchesType = activeType === 'all' || item.dataset.searchTypeValue === activeType;
+        const matchesQuery = query.length < MIN_LENGTH || (item.dataset.searchText ?? '').includes(query);
+        const show = matchesType && matchesQuery && !tooShort;
+        item.hidden = !show;
+        if (show) visible += 1;
+      }
+      if (countEl) countEl.textContent = String(visible);
+      if (queryLabel) queryLabel.textContent = query.length >= MIN_LENGTH ? `（關鍵字：${input.value.trim()}）` : '';
+      if (hintEl) hintEl.hidden = !tooShort;
+      if (emptyEl) emptyEl.hidden = tooShort || visible > 0;
+      listEl.hidden = visible === 0;
+    };
+
+    const initial = new URLSearchParams(window.location.search).get('q');
+    if (initial) input.value = initial;
+
+    input.addEventListener('input', apply);
+    for (const button of typeButtons) {
+      button.addEventListener('click', () => {
+        activeType = button.dataset.searchType ?? 'all';
+        for (const other of typeButtons) other.setAttribute('aria-pressed', other === button ? 'true' : 'false');
+        apply();
+      });
+    }
+    apply();
+    if (initial) input.focus();
+  }
+</script>

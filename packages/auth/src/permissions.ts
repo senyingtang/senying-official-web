@@ -97,6 +97,8 @@ export const ADMIN_ROUTE_RULES: readonly AdminRouteRule[] = [
   { prefix: '/admin/dashboard', roles: STAFF_ROLES, readOnlyRoles: ['viewer'] },
   { prefix: '/admin/cms', roles: STAFF_ROLES, readOnlyRoles: ['viewer'] },
   { prefix: '/admin/cms/pages', roles: STAFF_ROLES, readOnlyRoles: ['author', 'viewer'], note: 'author 只能編輯自己的文章草稿' },
+  { prefix: '/admin/cms/blog', roles: STAFF_ROLES, readOnlyRoles: ['viewer'], note: 'author 只能建立 / 編輯自己的未發布文章（RLS posts_author_*）' },
+  { prefix: '/admin/cms/cases', roles: ['owner', 'admin', 'editor', 'viewer'], readOnlyRoles: ['viewer'] },
   { prefix: '/admin/cms/navigation', roles: ['owner', 'admin', 'editor', 'viewer'], readOnlyRoles: ['editor', 'viewer'] },
   { prefix: '/admin/cms/assets', roles: ['owner', 'admin', 'editor', 'author'] },
   { prefix: '/admin/cms/seo', roles: ['owner', 'admin', 'editor'] },

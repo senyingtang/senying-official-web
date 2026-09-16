@@ -270,13 +270,14 @@ for (const [route, expectedCount] of Object.entries(EXPECTED_COUNTS)) {
 }
 
 // ---------------------------------------------------------------------------
-// 18. Blog 連結
+// 18. Blog 連結（Phase 2.9：文章已由 CMS 發布，卡片必須連到實際存在的文章頁）
 // ---------------------------------------------------------------------------
 {
   const html = pages.get('/blog') ?? '';
   const main = mainHtml(html);
   const cards = main.match(/<article\b[^>]*data-blog-card[\s\S]*?<\/article>/g) ?? [];
-  const cardLinks = cards.filter((card) => /<a\b/.test(card));
+  // Phase 2.6B 時文章尚未發布，卡片不可有連結；Phase 2.9 文章由 CMS 發布後，每張卡都必須連到文章頁
+  const cardsWithoutLink = cards.filter((card) => !/<a\b[^>]*\shref="\/blog\//.test(card));
   const hrefs = [...main.matchAll(/<a\b[^>]*\shref="([^"]+)"/g)].map((match) => decode(match[1]));
   const brokenLinks = hrefs.filter((href) => {
     if (/^(https?:|mailto:|tel:|#)/.test(href)) return false;
@@ -289,10 +290,10 @@ for (const [route, expectedCount] of Object.entries(EXPECTED_COUNTS)) {
   const brokenAnchors = hrefs.filter((href) => href.startsWith('#') && href.length > 1 && !ids.has(href.slice(1)));
   const problems = [];
   if (cards.length === 0) problems.push('沒有文章卡');
-  if (cardLinks.length) problems.push(`${cardLinks.length} 張文章卡含連結`);
+  if (cardsWithoutLink.length) problems.push(`${cardsWithoutLink.length} 張文章卡沒有連到 /blog/<slug>`);
   if (brokenLinks.length) problems.push(`不存在的頁面：${brokenLinks.join(', ')}`);
   if (brokenAnchors.length) problems.push(`不存在的錨點：${brokenAnchors.join(', ')}`);
-  record(18, '/blog 文章卡不連到不存在的文章頁，站內連結與錨點都存在', problems.length === 0, problems.join('; ') || `${cards.length} 張文章卡、${hrefs.length} 個連結`);
+  record(18, '/blog 文章卡都連到已建置的文章頁，站內連結與錨點都存在', problems.length === 0, problems.join('; ') || `${cards.length} 張文章卡、${hrefs.length} 個連結`);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import {
+  absoluteUrl,
   breadcrumbJsonLd,
   faqPageJsonLd,
   formatPageTitle,
@@ -31,13 +32,25 @@ interface Props {
   breadcrumbsInHero?: boolean;
   /** 社群分享圖（1200×630 PNG，content/ogImages.ts）；未傳入時使用 default */
   ogImage?: OgImageAsset;
+  /**
+   * CMS 內容自訂的 OG 圖網址（seo_metadata.og_image_url）。
+   * 尺寸未知，因此輸出時不附帶 og:image:width / height / type；未設定時使用上面的 ogImage。
+   */
+  ogImageOverride?: string;
+  /** canonical 覆寫（seo_metadata.canonical_url）：轉載或同步發布時使用 */
+  canonicalOverride?: string;
 }
 
-const { seo, breadcrumbs, faq = [], jsonLd = [], hideBreadcrumbs = false, breadcrumbsInHero = false, ogImage = ogImages.default } = Astro.props;
+const { seo, breadcrumbs, faq = [], jsonLd = [], hideBreadcrumbs = false, breadcrumbsInHero = false, ogImage = ogImages.default, ogImageOverride, canonicalOverride } = Astro.props;
+// CMS 覆寫只接受站內路徑或 https 網址
+const safeOverride = (value: string | undefined) => (value && /^(\/(?!\/)|https:\/\/)/.test(value) ? value : undefined);
+const customOgImage = safeOverride(ogImageOverride);
+const customCanonical = safeOverride(canonicalOverride);
 
 // 品牌：全站設定優先，BRAND 常數 / public/brand 內建素材為 fallback（lib/brand-runtime.ts）
 const brand = await getBrandRuntime();
 const resolved = resolvePageSeo({ ...seo, ogImage: ogImage.src }, siteUrl, { brandName: brand.displayName });
+const socialImage = customOgImage ? absoluteUrl(siteUrl, customOgImage) : resolved.og.image;
 const ogImageAlt = formatPageTitle(ogImage.label, { brandName: brand.displayName, template: ogImage.key === 'home' || ogImage.key === 'default' ? 'home' : 'page' });
 // 未明確允許索引（SITE_ALLOW_INDEXING=true）時，所有頁面輸出 noindex；個別頁面仍可設定 noindex
 const robots = allowIndexing ? resolved.robots : 'noindex,nofollow';
@@ -60,7 +73,7 @@ if (import.meta.env.DEV && resolved.warnings.length > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{resolved.title}</title>
     <meta name="description" content={resolved.description} />
-    <link rel="canonical" href={resolved.canonical} />
+    <link rel="canonical" href={customCanonical ?? resolved.canonical} />
     <meta name="robots" content={robots} />
     {/* 未設定 SITE_PUBLIC_URL：本機 / 預覽 build，canonical 為本機 fallback（全站 noindex；正式 build 缺網址會直接失敗） */}
     {siteUrlIsFallback && <meta name="syt-site-url" content="local-fallback" />}
@@ -82,15 +95,21 @@ if (import.meta.env.DEV && resolved.warnings.length > 0) {
     <meta property="og:title" content={resolved.og.title} />
     <meta property="og:description" content={resolved.og.description} />
     <meta property="og:url" content={resolved.og.url} />
-    <meta property="og:image" content={resolved.og.image} />
-    <meta property="og:image:type" content={ogImage.type} />
-    <meta property="og:image:width" content={String(ogImage.width)} />
-    <meta property="og:image:height" content={String(ogImage.height)} />
+    <meta property="og:image" content={socialImage} />
+    {
+      !customOgImage && (
+        <>
+          <meta property="og:image:type" content={ogImage.type} />
+          <meta property="og:image:width" content={String(ogImage.width)} />
+          <meta property="og:image:height" content={String(ogImage.height)} />
+        </>
+      )
+    }
     <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={resolved.og.title} />
     <meta name="twitter:description" content={resolved.og.description} />
-    <meta name="twitter:image" content={resolved.og.image} />
+    <meta name="twitter:image" content={socialImage} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
 
     {structuredData.map((item) => <script is:inline type="application/ld+json" set:html={serializeJsonLd(item)} />)}

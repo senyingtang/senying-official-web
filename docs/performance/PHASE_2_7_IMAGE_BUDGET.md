@@ -56,8 +56,8 @@
 | `/products/ecommerce-website` | 82.2 KB | 1 / 3 | 53.0 KB / 30.3 KB / 53.0 KB | 198.8 KB / 139.4 KB / 177.4 KB | 73.8 KB | 6787.4 KB |
 | `/products/promo-page-design` | 76.4 KB | 1 / 3 | 67.8 KB / 37.5 KB / 67.8 KB | 375.0 KB / 181.1 KB / 291.8 KB | 165.6 KB | 7776.6 KB |
 | `/products/seo-article-generator` | 76.1 KB | 1 / 2 | 53.4 KB / 30.7 KB / 53.4 KB | 175.5 KB / 131.2 KB / 175.5 KB | 73.8 KB | 5168.3 KB |
-| `/cases` | 83.5 KB | 1 / 1 | 114.9 KB / 78.1 KB / 114.9 KB | 188.6 KB / 151.8 KB / 188.6 KB | 114.9 KB | 4303.3 KB |
-| `/blog` | 69.1 KB | 0 / 1 | 0.0 KB / 0.0 KB / 0.0 KB | 61.3 KB / 41.6 KB / 61.3 KB | 61.3 KB | 1739.1 KB |
+| `/cases` | 88.6 KB | 1 / 1 | 114.9 KB / 78.1 KB / 114.9 KB | 188.6 KB / 151.8 KB / 188.6 KB | 114.9 KB | 4303.3 KB |
+| `/blog` | 56.9 KB | 0 / 1 | 0.0 KB / 0.0 KB / 0.0 KB | 61.3 KB / 41.6 KB / 61.3 KB | 61.3 KB | 1739.1 KB |
 | `/about` | 69.1 KB | 1 / 1 | 90.3 KB / 47.4 KB / 90.3 KB | 164.0 KB / 121.2 KB / 164.0 KB | 90.3 KB | 4064.9 KB |
 | `/contact` | 49.4 KB | 0 / 0 | 0.0 KB / 0.0 KB / 0.0 KB | 0.0 KB / 0.0 KB / 0.0 KB | 0.0 KB | 0.0 KB |
 | `/solutions` | 56.0 KB | 0 / 1 | 0.0 KB / 0.0 KB / 0.0 KB | 73.8 KB / 73.8 KB / 73.8 KB | 73.8 KB | 2008.9 KB |

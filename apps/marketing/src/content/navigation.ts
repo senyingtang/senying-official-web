@@ -12,9 +12,9 @@ export const mainNav: NavLink[] = [
   { label: '關於我們', href: '/about' },
 ];
 
-/** Header 右側動作：搜尋導向文章搜尋、登入導向客戶後台、立即開始導向方案頁 */
+/** Header 右側動作：搜尋導向全站搜尋、登入導向客戶後台、立即開始導向方案頁 */
 export const headerActions = {
-  search: { label: '搜尋文章', href: '/blog#search' },
+  search: { label: '搜尋站內內容', href: '/search' },
   login: { label: '登入' },
   start: { label: '立即開始', href: '/checkout' },
 };

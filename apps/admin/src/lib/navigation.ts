@@ -26,7 +26,9 @@ export const adminNav: NavGroup[] = [
     label: '官網 CMS',
     href: '/admin/cms',
     items: [
-      { label: '頁面管理', href: '/admin/cms/pages', description: '官網頁面與區塊內容' },
+      { label: '頁面管理', href: '/admin/cms/pages', description: '官網固定頁 route、SEO 與索引狀態' },
+      { label: '文章管理', href: '/admin/cms/blog', description: '部落格文章：建立、編輯、發布與下架' },
+      { label: '案例管理', href: '/admin/cms/cases', description: '案例作品：產業、服務類型、發布與排序' },
       { label: '選單管理', href: '/admin/cms/navigation', description: 'Header 與 Footer 選單' },
       { label: '媒體庫', href: '/admin/cms/assets', description: '圖片與檔案' },
       { label: 'SEO 管理', href: '/admin/cms/seo', description: '標題、描述、Canonical、結構化資料' },

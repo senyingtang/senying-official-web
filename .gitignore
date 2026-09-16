@@ -31,6 +31,7 @@ test-results/
 .global-ui-report/
 .phase27-report/
 .phase28-report/
+.phase29-report/
 
 # supabase local
 supabase/.branches/

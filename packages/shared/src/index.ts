@@ -5,3 +5,5 @@ export * from './access-code';
 export * from './dns';
 export * from './types/domain';
 export * from './utils/format';
+export * from './utils/markdown';
+export * from './constants/marketing-routes';
