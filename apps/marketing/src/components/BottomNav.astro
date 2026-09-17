@@ -1,0 +1,59 @@
+---
+import IconGlyph from './IconGlyph.astro';
+import type { IconName } from '../lib/icons';
+
+/**
+ * 手機 / PWA 底部導覽（Global Shell）。
+ *
+ * - 只在 < 1024px 顯示（桌機由 Header 主選單負責）
+ * - fixed bottom + env(safe-area-inset-bottom)；整頁底部由 global.css 補等高 padding，不會蓋住內容
+ * - 每一項 touch target ≥ 44px（實際 56px 高）
+ * - 「更多」開啟與 Header 漢堡相同的 NavSheet，不另建一套選單
+ */
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) => (href === '/' ? currentPath === '/' : currentPath === href || currentPath.startsWith(`${href}/`));
+
+const items: { label: string; href: string; icon: IconName }[] = [
+  { label: '首頁', href: '/', icon: 'home' },
+  { label: '產品服務', href: '/products', icon: 'grid' },
+  { label: '案例作品', href: '/cases', icon: 'star' },
+  { label: '聯絡我們', href: '/contact', icon: 'message' },
+];
+
+const itemClass =
+  'flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 text-[11px] leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal';
+---
+
+<nav data-bottom-nav aria-label="快速導覽" class="syt-z-bottom-nav syt-bottom-nav syt-fa-glass fixed inset-x-0 border-t border-white/10 text-white lg:hidden">
+  <ul class="grid grid-cols-5">
+    {
+      items.map((item) => (
+        <li class="min-w-0">
+          <a
+            href={item.href}
+            data-bottom-nav-item
+            aria-current={isActive(item.href) ? 'page' : undefined}
+            class:list={[itemClass, isActive(item.href) ? 'text-teal' : 'text-slate-300 hover:text-white']}
+          >
+            <IconGlyph name={item.icon} class="h-5 w-5" />
+            <span class="max-w-full truncate">{item.label}</span>
+          </a>
+        </li>
+      ))
+    }
+    <li class="min-w-0">
+      <button
+        type="button"
+        data-nav-sheet-open
+        data-bottom-nav-item
+        aria-haspopup="dialog"
+        aria-controls="nav-sheet"
+        aria-expanded="false"
+        class:list={[itemClass, 'text-slate-300 hover:text-white']}
+      >
+        <IconGlyph name="dots-horizontal" class="h-5 w-5" />
+        <span class="max-w-full truncate">更多</span>
+      </button>
+    </li>
+  </ul>
+</nav>

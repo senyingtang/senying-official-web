@@ -148,6 +148,91 @@
   }
 }
 
+/* =====================================================================
+   Global Shell：層級與底部固定 UI 的唯一來源
+   元件不自行指定 z-index / bottom，一律使用這裡的 class，避免各自為政。
+
+   疊放順序（由下而上）：
+     content < sticky header < bottom nav < floating actions
+             < sheet backdrop < sheet panel < critical overlay
+   ===================================================================== */
+:root {
+  --syt-z-content: 0;
+  --syt-z-header: 40;
+  --syt-z-bottom-nav: 45;
+  --syt-z-floating: 50;
+  --syt-z-sheet-backdrop: 60;
+  --syt-z-sheet-panel: 61;
+  --syt-z-critical: 70;
+
+  /* 手機底部固定 UI 高度（不含 safe area） */
+  --syt-bottom-nav-h: 3.5rem;
+  --syt-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 桌機沒有 Bottom Nav */
+@media (min-width: 1024px) {
+  :root {
+    --syt-bottom-nav-h: 0rem;
+  }
+}
+
+.syt-z-header {
+  z-index: var(--syt-z-header);
+}
+.syt-z-bottom-nav {
+  z-index: var(--syt-z-bottom-nav);
+}
+.syt-z-floating {
+  z-index: var(--syt-z-floating);
+}
+.syt-z-sheet {
+  z-index: var(--syt-z-sheet-backdrop);
+}
+.syt-z-sheet-panel {
+  z-index: var(--syt-z-sheet-panel);
+}
+.syt-z-critical {
+  z-index: var(--syt-z-critical);
+}
+
+/* 底部固定 UI 疊放（由下而上）：Bottom Nav → 浮動聯絡按鈕 → 回到頂端 */
+.syt-bottom-nav {
+  bottom: 0;
+  padding-bottom: var(--syt-safe-bottom);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.syt-fab-contact {
+  bottom: calc(var(--syt-bottom-nav-h) + var(--syt-safe-bottom) + 0.75rem);
+}
+
+.syt-fab-top {
+  bottom: calc(var(--syt-bottom-nav-h) + var(--syt-safe-bottom) + 0.75rem + 3.5rem + 0.5rem);
+}
+
+/* 桌機沒有 Bottom Nav 與浮動聯絡按鈕：回到頂端回到右下角 */
+@media (min-width: 1024px) {
+  .syt-fab-top {
+    bottom: 1.5rem;
+  }
+}
+
+/* Bottom Nav 顯示時，整頁底部留出等高空間，內容與頁尾都不會被蓋住 */
+@media (max-width: 1023.98px) {
+  html[data-shell-bottom-nav] body {
+    padding-bottom: calc(var(--syt-bottom-nav-h) + var(--syt-safe-bottom));
+  }
+}
+
+/* 減少動態：回到頂端不使用 smooth scroll（JS 也會再判斷一次） */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /* ---- Phase 2.6C 全站浮動快捷列（不放在 @layer，確保蓋過 utility 的 display） ---- */
 .syt-fa-glass {
   background-color: rgb(11 31 59 / 0.86);

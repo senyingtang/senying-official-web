@@ -1,0 +1,28 @@
+---
+import IconGlyph from './IconGlyph.astro';
+
+/**
+ * 回到頂端（Global Shell）。
+ *
+ * - 桌機與手機都有；捲動超過門檻才出現（預設 600px）
+ * - 手機位置在底部固定 UI 的最上層（Bottom Nav → 浮動聯絡按鈕 → 回到頂端），由 global.css 統一計算
+ * - prefers-reduced-motion 時直接跳頂端，不強制 smooth
+ * - touch target 48×48（≥ 44px），aria-label 固定為「回到頂端」
+ */
+---
+
+<button
+  type="button"
+  data-back-to-top
+  hidden
+  aria-label="回到頂端"
+  class="syt-z-floating syt-fab-top syt-fa-glass fixed right-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white shadow-xl shadow-black/30 transition-colors hover:border-teal/60 hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal lg:right-5"
+>
+  <IconGlyph name="arrow-up" class="h-5 w-5" />
+</button>
+
+<script>
+  import { initBackToTop } from '../lib/back-to-top-client';
+
+  initBackToTop();
+</script>

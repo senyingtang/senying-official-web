@@ -14,8 +14,12 @@ const portalTarget = portalIsExternal ? '_blank' : undefined;
 const portalRel = portalIsExternal ? 'noopener noreferrer' : undefined;
 ---
 
-<!-- 深色玻璃 Header（設計稿區塊 1）：Logo 左、主選單中、搜尋 / 登入 / 立即開始右；手機收進漢堡選單，不擠壓 -->
-<header data-section="header" class="syt-glass-header sticky top-0 z-40 border-b border-white/10 text-white">
+<!--
+  深色玻璃 Header（設計稿區塊 1）：Logo 左、主選單中、搜尋 / 登入 / 立即開始右。
+  手機的主選單改由 NavSheet（Bottom Sheet）呈現：原生 <details> 無法提供 ESC / backdrop /
+  focus trap / scroll lock，改用共用的 dialog 契約，與 Bottom Nav 的「更多」是同一個 sheet。
+-->
+<header data-section="header" class="syt-glass-header syt-z-header sticky top-0 border-b border-white/10 text-white">
   <Container class="flex h-16 items-center justify-between gap-3 lg:h-[72px]">
     <BrandLockup variant="header" />
 
@@ -28,7 +32,7 @@ const portalRel = portalIsExternal ? 'noopener noreferrer' : undefined;
                 href={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
                 class:list={[
-                  'relative inline-flex min-h-11 items-center px-3 text-sm font-medium transition-colors hover:text-teal',
+                  'relative inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal',
                   isActive(item.href) ? 'text-teal after:absolute after:inset-x-3 after:bottom-1.5 after:h-0.5 after:rounded-full after:bg-teal' : 'text-slate-200',
                 ]}
               >
@@ -44,7 +48,7 @@ const portalRel = portalIsExternal ? 'noopener noreferrer' : undefined;
       <a
         href={headerActions.search.href}
         data-header-action="search"
-        class="flex h-10 w-10 items-center justify-center rounded-full text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+        class="flex h-10 w-10 items-center justify-center rounded-full text-slate-200 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
         aria-label={headerActions.search.label}
       >
         <IconGlyph name="search" class="h-5 w-5" />
@@ -55,7 +59,7 @@ const portalRel = portalIsExternal ? 'noopener noreferrer' : undefined;
         target={portalTarget}
         rel={portalRel}
         data-header-action="login"
-        class="inline-flex min-h-9 items-center rounded-button border border-white/40 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
+        class="inline-flex min-h-9 items-center rounded-button border border-white/40 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
       >
         {headerActions.login.label}
       </a>
@@ -65,57 +69,23 @@ const portalRel = portalIsExternal ? 'noopener noreferrer' : undefined;
     <div class="flex shrink-0 items-center gap-1 lg:hidden">
       <a
         href={headerActions.search.href}
-        class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200 hover:bg-white/10"
+        class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
         aria-label={headerActions.search.label}
       >
         <IconGlyph name="search" class="h-5 w-5" />
       </a>
-      <!-- 手機選單：原生 details，不需 JS -->
-      <details class="group">
-        <summary
-          class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg hover:bg-white/10 [&::-webkit-details-marker]:hidden"
-          aria-label="開啟選單"
-        >
-          <svg class="h-6 w-6 group-open:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M4 7h16M4 12h16M4 17h16"></path>
-          </svg>
-          <svg class="hidden h-6 w-6 group-open:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M6 6l12 12M18 6 6 18"></path>
-          </svg>
-        </summary>
-        <div class="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-white/10 bg-navy-black shadow-card">
-          <Container class="py-4">
-            <nav aria-label="手機主選單">
-              <ul class="grid gap-1">
-                {
-                  mainNav.map((item) => (
-                    <li>
-                      <a
-                        href={item.href}
-                        aria-current={isActive(item.href) ? 'page' : undefined}
-                        class:list={['flex min-h-11 items-center rounded-lg px-3 text-base hover:bg-white/10', isActive(item.href) ? 'text-teal' : 'text-slate-100']}
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  ))
-                }
-              </ul>
-            </nav>
-            <div class="mt-4 grid grid-cols-2 gap-2">
-              <a
-                href={portalLoginUrl}
-                target={portalTarget}
-                rel={portalRel}
-                class="flex min-h-11 items-center justify-center rounded-button border border-white/30 text-sm font-medium text-white hover:bg-white/10"
-              >
-                {headerActions.login.label}
-              </a>
-              <ButtonLink href={headerActions.start.href} class="w-full">{headerActions.start.label}</ButtonLink>
-            </div>
-          </Container>
-        </div>
-      </details>
+      <button
+        type="button"
+        data-nav-sheet-open
+        data-header-menu
+        aria-haspopup="dialog"
+        aria-controls="nav-sheet"
+        aria-expanded="false"
+        aria-label="開啟選單"
+        class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+      >
+        <IconGlyph name="menu" class="h-6 w-6" />
+      </button>
     </div>
   </Container>
 </header>

@@ -12,10 +12,13 @@ import {
   type JsonLd,
   type PageSeoInput,
 } from '@syt/seo';
+import BackToTop from '../components/BackToTop.astro';
+import BottomNav from '../components/BottomNav.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import FloatingActions from '../components/FloatingActions.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
+import NavSheet from '../components/NavSheet.astro';
 import { ogImages, type OgImageAsset } from '../content/ogImages';
 import { BRAND_ASSET_FALLBACKS, getBrandRuntime } from '../lib/brand-runtime';
 import { allowIndexing, siteUrl, siteUrlIsFallback } from '../lib/site';
@@ -67,10 +70,10 @@ if (import.meta.env.DEV && resolved.warnings.length > 0) {
 ---
 
 <!doctype html>
-<html lang="zh-Hant-TW" data-fa-rail={floating.desktop ? '' : undefined} data-fa-mobile={floating.mobile ? '' : undefined}>
+<html lang="zh-Hant-TW" data-shell-bottom-nav data-fa-rail={floating.desktop ? '' : undefined} data-fa-mobile={floating.mobile ? '' : undefined}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{resolved.title}</title>
     <meta name="description" content={resolved.description} />
     <link rel="canonical" href={customCanonical ?? resolved.canonical} />
@@ -127,6 +130,10 @@ if (import.meta.env.DEV && resolved.warnings.length > 0) {
       <slot />
     </main>
     <Footer />
+    {/* Global Shell：底部導覽（手機）、浮動快捷列、回到頂端、共用手機主選單 sheet */}
+    <BottomNav />
     <FloatingActions settings={siteSettings} />
+    <BackToTop />
+    <NavSheet />
   </body>
 </html>

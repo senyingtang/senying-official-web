@@ -1,0 +1,94 @@
+---
+import ButtonLink from './ButtonLink.astro';
+import IconGlyph from './IconGlyph.astro';
+import { headerActions, portalIsExternal, portalLoginUrl } from '../lib/site';
+import { getMarketingNavigation } from '../lib/navigation-runtime';
+
+/**
+ * 手機主選單 Bottom Sheet（Global Shell）。
+ *
+ * 全站只輸出一次（BaseLayout），由兩個按鈕共用開啟：
+ *   - Header 漢堡鍵 [data-nav-sheet-open]
+ *   - Bottom Nav 的「更多」[data-nav-sheet-open]
+ * 兩者共用同一個 dialog，不會出現兩套重複的選單與重複的 selector。
+ *
+ * 行為（ESC / backdrop / 關閉鍵 / focus trap / focus restore / scroll lock）
+ * 全部來自 lib/sheet-controller.ts，與浮動快捷列的 sheet 是同一套契約。
+ */
+const { main: mainNav } = await getMarketingNavigation();
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) => currentPath === href || currentPath.startsWith(`${href}/`);
+const portalTarget = portalIsExternal ? '_blank' : undefined;
+const portalRel = portalIsExternal ? 'noopener noreferrer' : undefined;
+---
+
+<div data-nav-sheet id="nav-sheet" hidden class="syt-z-sheet fixed inset-0 lg:hidden">
+  {/* backdrop 刻意不是 button：可見關閉鍵才是唯一的 button[data-nav-sheet-close] */}
+  <div data-nav-sheet-close aria-hidden="true" class="absolute inset-0 bg-navy-black/60"></div>
+
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="nav-sheet-title"
+    class="syt-z-sheet-panel absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-white/10 bg-[#0b1f3b] px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 text-white shadow-2xl"
+  >
+    <span aria-hidden="true" class="mx-auto block h-1.5 w-10 rounded-full bg-white/25"></span>
+
+    <div class="mt-3 flex items-center justify-between gap-3">
+      <p id="nav-sheet-title" class="text-lg font-bold">網站選單</p>
+      <button
+        type="button"
+        data-nav-sheet-close
+        aria-label="關閉選單"
+        class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-teal"
+      >
+        <IconGlyph name="close" class="h-5 w-5" />
+      </button>
+    </div>
+
+    <nav aria-label="手機主選單" class="mt-2">
+      <ul class="grid gap-1">
+        {
+          mainNav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class:list={[
+                  'flex min-h-12 items-center rounded-lg px-3 text-base hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-teal',
+                  isActive(item.href) ? 'text-teal' : 'text-slate-100',
+                ]}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="mt-4 grid grid-cols-2 gap-2">
+      <a
+        href={portalLoginUrl}
+        target={portalTarget}
+        rel={portalRel}
+        class="flex min-h-12 items-center justify-center rounded-button border border-white/30 text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-teal"
+      >
+        {headerActions.login.label}
+      </a>
+      <ButtonLink href={headerActions.start.href} class="w-full">{headerActions.start.label}</ButtonLink>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { createSheet } from '../lib/sheet-controller';
+
+  const sheet = document.querySelector<HTMLElement>('[data-nav-sheet]');
+  const panel = sheet?.querySelector<HTMLElement>('[role="dialog"]');
+  const triggers = [...document.querySelectorAll<HTMLElement>('[data-nav-sheet-open]')];
+  if (sheet && panel && triggers.length > 0 && sheet.dataset.ready !== 'true') {
+    sheet.dataset.ready = 'true';
+    createSheet({ sheet, panel, triggers, closers: [...sheet.querySelectorAll<HTMLElement>('[data-nav-sheet-close]')] });
+  }
+</script>

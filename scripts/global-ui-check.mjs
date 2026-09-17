@@ -2,13 +2,14 @@
 //
 // 做法：
 //   - 預設 build（mock 預設設定：購物車捷徑關閉、未提供網址的社群不顯示）
-//   - 驗收 build（SITE_SETTINGS_MOCK_PRESET=verification：example.com 網址、購物車捷徑開啟）複製到 .global-ui-report/verification-dist
-//     驗收 build 只用於本腳本，完成後重新 build 預設版本，apps/marketing/dist 永遠是預設設定
+//   - 驗收 build（SITE_SETTINGS_MOCK_PRESET=verification：example.com 網址、購物車捷徑開啟）
+//     以 ASTRO_OUT_DIR 直接輸出到 .global-ui-report/verification-dist，不經過 apps/marketing/dist，
+//     因此 apps/marketing/dist 永遠是預設設定，也不需要再 build 一次還原
 //   - 以本機 Chrome 檢查收合 / 展開、aria、localStorage、badge、bottom sheet、遮擋
 //
 // 用法：pnpm global-ui:verify [--skip-build] [--skip-rwd]
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright-core';
@@ -22,16 +23,6 @@ const results = [];
 const record = (no, name, ok, detail = '') => results.push({ no, name, ok: Boolean(ok), detail: String(detail ?? '') });
 const rel = (file) => path.relative(ROOT, file).split(path.sep).join('/');
 
-// fs.cpSync 在此 Windows / OneDrive 路徑會讓 Node 直接結束（exit 127、無錯誤訊息），改用逐檔複製
-function copyDir(source, target) {
-  mkdirSync(target, { recursive: true });
-  for (const entry of readdirSync(source, { withFileTypes: true })) {
-    const from = path.join(source, entry.name);
-    const to = path.join(target, entry.name);
-    if (entry.isDirectory()) copyDir(from, to);
-    else copyFileSync(from, to);
-  }
-}
 const read = (file) => (existsSync(file) ? readFileSync(file, 'utf8') : '');
 const WIDTHS = [375, 430, 768, 1024, 1280, 1440];
 
@@ -62,16 +53,26 @@ const verificationSettings = settingsModule.getMockMarketingSiteSettings('verifi
 // 27. Build（預設 build + 驗收 build）
 // ---------------------------------------------------------------------------
 {
+  // build isolation（與 cms-integration / site-settings / seo 驗收相同做法）：
+  //   - 預設 build 是唯一會寫入 apps/marketing/dist 的一次（其他驗收腳本也讀這一份）
+  //   - 驗收 preset build 以 ASTRO_OUT_DIR 輸出到 .global-ui-report/verification-dist
+  // 先前的做法是「preset build 蓋掉 dist → 整包複製 → 再 build 一次還原 dist」，
+  // 同一輪就對 dist 刪寫三次又整包複製；在 OneDrive 同步路徑上會出現
+  // .prerender/chunks/*.mjs 讀不到與 libuv handle assertion。現在完全不需要還原。
   const steps = [];
-  if (!args.has('--skip-build')) steps.push(['pnpm build', run('pnpm build')]);
-  const presetBuilt = run('pnpm --filter @syt/marketing build', { SITE_SETTINGS_MOCK_PRESET: 'verification' });
-  steps.push(['marketing build（verification preset）', presetBuilt]);
-  if (presetBuilt) {
-    rmSync(VERIFY_DIST, { recursive: true, force: true });
-    copyDir(DIST, VERIFY_DIST);
-  }
-  steps.push(['marketing build（預設設定，還原 dist）', run('pnpm --filter @syt/marketing build', { SITE_SETTINGS_MOCK_PRESET: '' })]);
-  record(27, 'build 通過（預設 build + 驗收 build）', steps.every(([, ok]) => ok) && existsSync(path.join(VERIFY_DIST, 'index.html')), steps.map(([name, ok]) => `${ok ? '✓' : '✗'} ${name}`).join(' / '));
+  if (!args.has('--skip-build')) steps.push(['pnpm build（預設設定 → apps/marketing/dist）', run('pnpm build')]);
+  rmSync(VERIFY_DIST, { recursive: true, force: true });
+  const presetBuilt = run('pnpm --filter @syt/marketing build', {
+    SITE_SETTINGS_MOCK_PRESET: 'verification',
+    ASTRO_OUT_DIR: path.relative(MARKETING_DIR, VERIFY_DIST).split(path.sep).join('/'),
+  });
+  steps.push([`marketing build（verification preset → ${rel(VERIFY_DIST)}）`, presetBuilt]);
+  record(
+    27,
+    'build 通過（預設 build 寫 dist、驗收 build 寫獨立資料夾，同一輪不重複覆蓋 dist）',
+    steps.every(([, ok]) => ok) && existsSync(path.join(VERIFY_DIST, 'index.html')) && existsSync(path.join(DIST, 'index.html')),
+    steps.map(([name, ok]) => `${ok ? '✓' : '✗'} ${name}`).join(' / '),
+  );
 }
 
 const defaultHome = htmlOf(DIST, '/');
@@ -422,9 +423,9 @@ try {
         await ready(page);
         await setCart(page, 3);
         const issues = await page.evaluate(() => {
-          const floating = ['[data-fa-expanded]', '[data-fa-compact]', '[data-fa-sheet-open]']
+          const floating = ['[data-fa-expanded]', '[data-fa-compact]', '[data-fa-sheet-open]', 'nav[data-bottom-nav]', '[data-back-to-top]']
             .map((selector) => document.querySelector(selector))
-            .filter((element) => element && element.getBoundingClientRect().width > 0);
+            .filter((element) => element && !element.hidden && element.getBoundingClientRect().width > 0);
           const targets = [
             ...document.querySelectorAll(
               '[data-final-cta] a, [data-final-cta] button, [data-section="order-summary"] button, [data-section="order-summary"] a, [data-section="hero"] [data-cta], footer a, [data-section="product-cards"] a, [data-section="comparison"] th, header a, header button, header summary',
@@ -438,7 +439,7 @@ try {
             if (rect.width === 0 || rect.height === 0) continue;
             for (const element of floating) {
               if (overlap(rect, element.getBoundingClientRect())) {
-                found.push(`${target.tagName.toLowerCase()}「${(target.textContent ?? '').trim().slice(0, 12)}」× ${element.getAttribute('data-fa-expanded') !== null ? 'rail' : element.hasAttribute('data-fa-compact') ? 'compact' : 'mobile-button'}`);
+                found.push(`${target.tagName.toLowerCase()}「${(target.textContent ?? '').trim().slice(0, 12)}」× ${element.getAttribute('data-fa-expanded') !== null ? 'rail' : element.hasAttribute('data-fa-compact') ? 'compact' : element.hasAttribute('data-bottom-nav') ? 'bottom-nav' : element.hasAttribute('data-back-to-top') ? 'back-to-top' : 'mobile-button'}`);
                 break;
               }
             }
@@ -454,7 +455,419 @@ try {
       }
       await context.close();
     }
-    record(28, '浮動快捷列不遮擋 Hero CTA / Final CTA / Checkout 摘要 / 產品卡 / 比較表 / Header / Footer，無水平捲軸（6 個寬度）', problems.length === 0, problems.slice(0, 4).join(' || ') || `${WIDTHS.join(' / ')} × 5 頁`);
+    record(28, 'Global Shell（浮動快捷列 / Bottom Nav / 回到頂端）不遮擋 Hero CTA / Final CTA / Checkout 摘要 / 產品卡 / 比較表 / Header / Footer，無水平捲軸（6 個寬度）', problems.length === 0, problems.slice(0, 4).join(' || ') || `${WIDTHS.join(' / ')} × 5 頁`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 29–30. Header（桌機 / 手機）
+  // ---------------------------------------------------------------------------
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(page);
+    const desktop = await page.evaluate(() => {
+      const header = document.querySelector('header[data-section="header"]');
+      const style = header ? getComputedStyle(header) : null;
+      const rect = header?.getBoundingClientRect();
+      const navLinks = [...document.querySelectorAll('header[data-section="header"] nav[aria-label="主選單"] a')];
+      const overlapsFloating = ['[data-fa-expanded]', '[data-fa-compact]']
+        .map((selector) => document.querySelector(selector))
+        .filter((element) => element && element.getBoundingClientRect().width > 0)
+        .some((element) => {
+          const a = element.getBoundingClientRect();
+          return rect && a.left < rect.right - 1 && a.right > rect.left + 1 && a.top < rect.bottom - 1 && a.bottom > rect.top + 1;
+        });
+      return {
+        position: style?.position,
+        top: style?.top,
+        zIndex: style?.zIndex,
+        stuckToTop: rect ? Math.round(rect.top) === 0 : false,
+        navCount: navLinks.length,
+        current: navLinks.filter((a) => a.getAttribute('aria-current') === 'page').length,
+        focusVisible: navLinks.every((a) => a.className.includes('focus-visible:outline')),
+        search: Boolean(document.querySelector('header [data-header-action="search"]')),
+        login: Boolean(document.querySelector('header [data-header-action="login"]')),
+        cta: Boolean(document.querySelector('header [data-cta="header-start"]')),
+        mobileMenuVisible: (document.querySelector('[data-header-menu]')?.getBoundingClientRect().width ?? 0) > 0,
+        horizontal: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
+        overlapsFloating,
+      };
+    });
+    // 捲動後仍固定在頂端，不跳動
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.waitForTimeout(120);
+    const afterScroll = await page.evaluate(() => Math.round(document.querySelector('header[data-section="header"]').getBoundingClientRect().top));
+    record(
+      29,
+      'Header 桌機：sticky 固定不跳動、主選單 / 搜尋 / 登入 / CTA 齊全、aria-current、focus-visible、不被浮動快捷列遮擋、無水平捲軸',
+      desktop.position === 'sticky' &&
+        desktop.stuckToTop &&
+        afterScroll === 0 &&
+        desktop.navCount >= 4 &&
+        desktop.current === 1 &&
+        desktop.focusVisible &&
+        desktop.search &&
+        desktop.login &&
+        desktop.cta &&
+        !desktop.mobileMenuVisible &&
+        desktop.horizontal <= 1 &&
+        !desktop.overlapsFloating,
+      JSON.stringify({ ...desktop, afterScroll }),
+    );
+    await context.close();
+  }
+
+  {
+    const context = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(page);
+    const mobile = await page.evaluate(() => {
+      const trigger = document.querySelector('[data-header-menu]');
+      return {
+        triggerVisible: (trigger?.getBoundingClientRect().width ?? 0) > 0,
+        tag: trigger?.tagName.toLowerCase(),
+        haspopup: trigger?.getAttribute('aria-haspopup'),
+        controls: trigger?.getAttribute('aria-controls'),
+        expanded: trigger?.getAttribute('aria-expanded'),
+        label: trigger?.getAttribute('aria-label'),
+        size: trigger ? Math.round(Math.min(trigger.getBoundingClientRect().width, trigger.getBoundingClientRect().height)) : 0,
+        desktopNavVisible: (document.querySelector('header nav[aria-label="主選單"]')?.getBoundingClientRect().width ?? 0) > 0,
+        // 舊的 <details> 選單不可再存在（無法提供 ESC / focus trap / scroll lock）
+        legacyDetails: document.querySelectorAll('header details').length,
+      };
+    });
+    record(
+      30,
+      'Header 手機：漢堡為 button + aria-haspopup="dialog" / aria-controls / aria-expanded，touch target ≥ 44px，桌機主選單隱藏，不再使用 <details>',
+      mobile.triggerVisible &&
+        mobile.tag === 'button' &&
+        mobile.haspopup === 'dialog' &&
+        mobile.controls === 'nav-sheet' &&
+        mobile.expanded === 'false' &&
+        Boolean(mobile.label) &&
+        mobile.size >= 44 &&
+        !mobile.desktopNavVisible &&
+        mobile.legacyDetails === 0,
+      JSON.stringify(mobile),
+    );
+    await context.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 31. 手機主選單 Bottom Sheet（Header 漢堡與 Bottom Nav「更多」共用同一個 dialog）
+  // ---------------------------------------------------------------------------
+  {
+    const context = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(page);
+
+    const uniqueClose = await page.evaluate(() => ({
+      buttons: document.querySelectorAll('[data-nav-sheet] button[data-nav-sheet-close]').length,
+      targets: document.querySelectorAll('[data-nav-sheet] [data-nav-sheet-close]').length,
+      triggers: document.querySelectorAll('[data-nav-sheet-open]').length,
+      sheets: document.querySelectorAll('[data-nav-sheet]').length,
+    }));
+
+    await page.locator('[data-header-menu]').click();
+    const opened = await page.evaluate(() => {
+      const dialog = document.querySelector('[data-nav-sheet] [role="dialog"]');
+      const labelId = dialog?.getAttribute('aria-labelledby');
+      return {
+        visible: (dialog?.getBoundingClientRect().width ?? 0) > 0,
+        modal: dialog?.getAttribute('aria-modal'),
+        label: labelId ? document.getElementById(labelId)?.textContent?.trim() : null,
+        scrollLocked: document.documentElement.style.overflow === 'hidden',
+        focusInside: dialog?.contains(document.activeElement) ?? false,
+        // 兩個觸發按鈕的 aria-expanded 都要同步
+        expandedAll: [...document.querySelectorAll('[data-nav-sheet-open]')].every((el) => el.getAttribute('aria-expanded') === 'true'),
+        links: dialog?.querySelectorAll('nav a').length ?? 0,
+        withinViewport: dialog ? dialog.getBoundingClientRect().left >= 0 && dialog.getBoundingClientRect().right <= window.innerWidth + 1 : false,
+      };
+    });
+
+    // focus trap：連按 Tab 超過可聚焦元素數量，焦點仍在 panel 內
+    const focusCount = await page.evaluate(() => document.querySelectorAll('[data-nav-sheet] [role="dialog"] a[href], [data-nav-sheet] [role="dialog"] button').length);
+    for (let index = 0; index < focusCount + 2; index += 1) await page.keyboard.press('Tab');
+    const trapped = await page.evaluate(() => document.querySelector('[data-nav-sheet] [role="dialog"]')?.contains(document.activeElement) ?? false);
+
+    await page.keyboard.press('Escape');
+    const afterEsc = await page.evaluate(() => ({
+      hidden: document.querySelector('[data-nav-sheet]').hidden,
+      overflow: document.documentElement.style.overflow,
+      focusRestored: document.activeElement?.hasAttribute('data-header-menu') ?? false,
+      expandedAll: [...document.querySelectorAll('[data-nav-sheet-open]')].every((el) => el.getAttribute('aria-expanded') === 'false'),
+    }));
+
+    // Bottom Nav 的「更多」開同一個 sheet，backdrop 可關閉
+    await page.locator('[data-bottom-nav] [data-nav-sheet-open]').click();
+    const viaBottomNav = await page.evaluate(() => !document.querySelector('[data-nav-sheet]').hidden);
+    await page.mouse.click(180, 40);
+    const closedByBackdrop = await page.evaluate(() => document.querySelector('[data-nav-sheet]').hidden);
+
+    // 可見關閉鍵
+    await page.locator('[data-bottom-nav] [data-nav-sheet-open]').click();
+    await page.locator('[data-nav-sheet] button[data-nav-sheet-close]').click();
+    const closedByButton = await page.evaluate(() => ({
+      hidden: document.querySelector('[data-nav-sheet]').hidden,
+      overflow: document.documentElement.style.overflow,
+    }));
+
+    record(
+      31,
+      '手機主選單 Bottom Sheet：Header 漢堡與 Bottom Nav「更多」共用同一個 dialog，ESC / backdrop / 關閉鍵皆可關閉，focus trap + focus restore + scroll lock，button[data-nav-sheet-close] 唯一',
+      uniqueClose.sheets === 1 &&
+        uniqueClose.buttons === 1 &&
+        uniqueClose.targets === 2 &&
+        uniqueClose.triggers === 2 &&
+        opened.visible &&
+        opened.modal === 'true' &&
+        Boolean(opened.label) &&
+        opened.scrollLocked &&
+        opened.focusInside &&
+        opened.expandedAll &&
+        opened.links >= 4 &&
+        opened.withinViewport &&
+        trapped &&
+        afterEsc.hidden &&
+        afterEsc.overflow !== 'hidden' &&
+        afterEsc.focusRestored &&
+        afterEsc.expandedAll &&
+        viaBottomNav &&
+        closedByBackdrop &&
+        closedByButton.hidden &&
+        closedByButton.overflow !== 'hidden' &&
+        errors.length === 0,
+      JSON.stringify({ uniqueClose, opened, trapped, afterEsc, viaBottomNav, closedByBackdrop, closedByButton, errors }),
+    );
+    await context.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 32. Bottom Navigation（手機限定）
+  // ---------------------------------------------------------------------------
+  {
+    const problems = [];
+    let detail = '';
+    for (const width of [375, 430, 768]) {
+      const context = await browser.newContext({ viewport: { width, height: 812 }, hasTouch: true, isMobile: true });
+      const page = await context.newPage();
+      await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+      await ready(page);
+      const info = await page.evaluate(() => {
+        const nav = document.querySelector('nav[data-bottom-nav]');
+        const rect = nav?.getBoundingClientRect();
+        const style = nav ? getComputedStyle(nav) : null;
+        const items = [...document.querySelectorAll('[data-bottom-nav-item]')].map((item) => {
+          const r = item.getBoundingClientRect();
+          return { h: Math.round(r.height), w: Math.round(r.width), current: item.getAttribute('aria-current'), text: (item.textContent ?? '').trim() };
+        });
+        const bodyPad = Number.parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+        return {
+          visible: (rect?.width ?? 0) > 0,
+          position: style?.position,
+          bottomGap: rect ? Math.round(window.innerHeight - rect.bottom) : null,
+          fullWidth: rect ? Math.round(rect.width) === window.innerWidth : false,
+          height: rect ? Math.round(rect.height) : 0,
+          safeArea: style?.paddingBottom,
+          items,
+          activeCount: items.filter((item) => item.current === 'page').length,
+          minTouch: items.length ? Math.min(...items.map((item) => Math.min(item.h, item.w))) : 0,
+          bodyPad,
+        };
+      });
+      if (!info.visible) problems.push(`${width}px: bottom nav 未顯示`);
+      if (info.position !== 'fixed' || info.bottomGap !== 0) problems.push(`${width}px: 未固定在底部（${info.position} / ${info.bottomGap}）`);
+      if (!info.fullWidth) problems.push(`${width}px: 未滿版`);
+      if (info.items.length < 4 || info.items.length > 5) problems.push(`${width}px: 項目數 ${info.items.length}`);
+      if (info.activeCount !== 1) problems.push(`${width}px: aria-current 數量 ${info.activeCount}`);
+      if (info.minTouch < 44) problems.push(`${width}px: touch target ${info.minTouch}px`);
+      if (info.bodyPad < info.height - 1) problems.push(`${width}px: body 底部保留 ${info.bodyPad} < nav ${info.height}`);
+      if (width === 375) detail = JSON.stringify(info);
+      await context.close();
+    }
+    const desktopContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const desktopPage = await desktopContext.newPage();
+    await desktopPage.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(desktopPage);
+    const desktopVisible = await isVisible(desktopPage, 'nav[data-bottom-nav]');
+    if (desktopVisible) problems.push('1280px: 桌機仍顯示 bottom nav');
+    await desktopContext.close();
+    record(32, 'Bottom Nav：只在手機顯示、fixed 貼底滿版、safe-area、4–5 項且每項 ≥ 44px、單一 aria-current、整頁底部保留等高空間', problems.length === 0, problems.slice(0, 3).join(' | ') || detail);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 33. 回到頂端
+  // ---------------------------------------------------------------------------
+  {
+    const problems = [];
+    let detail = '';
+    for (const [width, height, mobile] of [
+      [375, 812, true],
+      [1440, 900, false],
+    ]) {
+      const context = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile });
+      const page = await context.newPage();
+      await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+      await ready(page);
+      const atTop = await page.evaluate(() => document.querySelector('[data-back-to-top]')?.hidden ?? null);
+      if (atTop !== true) problems.push(`${width}px: 頁面頂端未隱藏（hidden=${atTop}）`);
+      await page.evaluate(() => window.scrollTo(0, 1500));
+      await page.waitForTimeout(150);
+      const shown = await page.evaluate(() => {
+        const button = document.querySelector('[data-back-to-top]');
+        const rect = button.getBoundingClientRect();
+        return { hidden: button.hidden, label: button.getAttribute('aria-label'), size: Math.round(Math.min(rect.width, rect.height)), tag: button.tagName.toLowerCase() };
+      });
+      if (shown.hidden) problems.push(`${width}px: 捲動後仍隱藏`);
+      if (shown.label !== '回到頂端') problems.push(`${width}px: aria-label=${shown.label}`);
+      if (shown.size < 44) problems.push(`${width}px: touch target ${shown.size}px`);
+      await page.locator('[data-back-to-top]').click();
+      await page.waitForTimeout(800);
+      const scrollY = await page.evaluate(() => Math.round(window.scrollY));
+      if (scrollY > 2) problems.push(`${width}px: 點擊後未回到頂端（${scrollY}）`);
+      if (width === 375) detail = JSON.stringify({ atTop, ...shown, scrollY });
+      await context.close();
+    }
+    // prefers-reduced-motion：不使用 smooth，點擊後立即回到頂端
+    const reduced = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+    const reducedPage = await reduced.newPage();
+    await reducedPage.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(reducedPage);
+    await reducedPage.evaluate(() => window.scrollTo(0, 1500));
+    await reducedPage.waitForTimeout(150);
+    await reducedPage.locator('[data-back-to-top]').click();
+    const immediate = await reducedPage.evaluate(() => ({
+      matches: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      scrollY: Math.round(window.scrollY),
+    }));
+    if (!immediate.matches) problems.push('reduced-motion context 未生效');
+    if (immediate.scrollY > 2) problems.push(`reduced-motion 仍使用 smooth（點擊後 ${immediate.scrollY}）`);
+    await reduced.close();
+    record(33, '回到頂端：頂端隱藏、捲動超過門檻顯示、點擊回到頂端、prefers-reduced-motion 不使用 smooth、aria-label 與 touch target 合格（手機 + 桌機）', problems.length === 0, problems.slice(0, 3).join(' | ') || `${detail} · reduced-motion 立即回頂`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 34. Global Shell 層級順序
+  // ---------------------------------------------------------------------------
+  {
+    const context = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(page);
+    await page.locator('[data-header-menu]').click();
+    const layers = await page.evaluate(() => {
+      const z = (selector) => {
+        const element = document.querySelector(selector);
+        if (!element) return null;
+        const value = Number.parseInt(getComputedStyle(element).zIndex, 10);
+        return Number.isNaN(value) ? null : value;
+      };
+      return {
+        header: z('header[data-section="header"]'),
+        bottomNav: z('nav[data-bottom-nav]'),
+        floating: z('[data-fa-sheet-open]'),
+        sheetBackdrop: z('[data-nav-sheet]'),
+        sheetPanel: z('[data-nav-sheet] [role="dialog"]'),
+        // 元件不可自行寫死 z-index：檢查 shell 元素都用 syt-z-* class
+        tokenised: ['header[data-section="header"]', 'nav[data-bottom-nav]', '[data-fa-sheet-open]', '[data-nav-sheet]', '[data-fa-sheet]']
+          .map((selector) => document.querySelector(selector))
+          .filter(Boolean)
+          .every((element) => /\bsyt-z-/.test(element.className)),
+      };
+    });
+    const ordered =
+      layers.header !== null &&
+      layers.bottomNav !== null &&
+      layers.floating !== null &&
+      layers.sheetBackdrop !== null &&
+      layers.sheetPanel !== null &&
+      layers.header < layers.bottomNav &&
+      layers.bottomNav < layers.floating &&
+      layers.floating < layers.sheetBackdrop &&
+      layers.sheetBackdrop < layers.sheetPanel;
+    record(34, 'Global Shell 層級一致：header < bottom nav < floating < sheet backdrop < sheet panel，且都使用共用的 syt-z-* token', ordered && layers.tokenised, JSON.stringify(layers));
+    await context.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 35. 底部固定 UI 互不重疊（手機）
+  // ---------------------------------------------------------------------------
+  {
+    const problems = [];
+    let detail = '';
+    for (const width of [375, 430, 768]) {
+      const context = await browser.newContext({ viewport: { width, height: 812 }, hasTouch: true, isMobile: true });
+      const page = await context.newPage();
+      await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+      await ready(page);
+      await page.evaluate(() => window.scrollTo(0, 1500));
+      await page.waitForTimeout(150);
+      const boxes = await page.evaluate(() => {
+        const box = (selector) => {
+          const element = document.querySelector(selector);
+          if (!element || element.hidden) return null;
+          const rect = element.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 ? { top: Math.round(rect.top), bottom: Math.round(rect.bottom), left: Math.round(rect.left), right: Math.round(rect.right) } : null;
+        };
+        return { nav: box('nav[data-bottom-nav]'), contact: box('[data-fa-sheet-open]'), backToTop: box('[data-back-to-top]') };
+      });
+      const overlap = (a, b) => a && b && a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+      for (const [left, right] of [
+        ['nav', 'contact'],
+        ['nav', 'backToTop'],
+        ['contact', 'backToTop'],
+      ]) {
+        if (overlap(boxes[left], boxes[right])) problems.push(`${width}px: ${left} × ${right} 重疊`);
+      }
+      for (const [name, rect] of Object.entries(boxes)) {
+        if (rect && rect.bottom > 813) problems.push(`${width}px: ${name} 超出畫面底部`);
+      }
+      if (!boxes.nav || !boxes.contact || !boxes.backToTop) problems.push(`${width}px: 底部 UI 缺少 ${Object.entries(boxes).filter(([, v]) => !v).map(([k]) => k).join('/')}`);
+      if (width === 375) detail = JSON.stringify(boxes);
+      await context.close();
+    }
+    record(35, '手機底部固定 UI（Bottom Nav / 浮動聯絡按鈕 / 回到頂端）由下而上排列且互不重疊、不超出畫面', problems.length === 0, problems.slice(0, 3).join(' | ') || detail);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 36. Footer 手機 compact 版面
+  // ---------------------------------------------------------------------------
+  {
+    const context = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await page.goto(`${verifyServer.url}/products`, { waitUntil: 'networkidle' });
+    await ready(page);
+    const footer = await page.evaluate(() => {
+      const element = document.querySelector('footer[data-section="footer"]');
+      const grid = element?.querySelector('div');
+      const columns = grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length : 0;
+      const navs = [...(element?.querySelectorAll('nav') ?? [])].map((nav) => ({
+        label: nav.getAttribute('aria-label'),
+        cols: getComputedStyle(nav.querySelector('ul')).gridTemplateColumns.split(' ').filter(Boolean).length,
+      }));
+      const rect = element?.getBoundingClientRect();
+      const bottomNav = document.querySelector('nav[data-bottom-nav]')?.getBoundingClientRect();
+      const lastLink = [...(element?.querySelectorAll('a') ?? [])].pop()?.getBoundingClientRect();
+      return {
+        columns,
+        navs,
+        paddingBottom: element ? getComputedStyle(element).paddingBottom : '',
+        height: rect ? Math.round(rect.height) : 0,
+        lastLinkAboveNav: lastLink && bottomNav ? lastLink.bottom <= bottomNav.top + 1 : null,
+      };
+    });
+    // 手機不可全部單欄一路垂直堆：外層 grid 必須是 2 欄
+    const problems = [];
+    if (footer.columns !== 2) problems.push(`外層 grid ${footer.columns} 欄（手機應為 2 欄 compact）`);
+    if (!footer.navs.some((nav) => nav.cols === 2)) problems.push('沒有任何導覽群組使用雙欄');
+    if (Number.parseFloat(footer.paddingBottom) < 80) problems.push(`底部保留 ${footer.paddingBottom}（浮動按鈕會蓋住連結）`);
+    record(36, 'Footer 手機為 2 欄 compact 版面（品牌全寬、導覽雙欄），底部保留浮動按鈕與 Bottom Nav 空間', problems.length === 0, problems.join(' | ') || JSON.stringify(footer));
+    await context.close();
   }
 } catch (error) {
   record(0, 'runtime 檢查', false, error.stack?.split('\n').slice(0, 3).join(' ') ?? error.message);

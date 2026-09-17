@@ -1,10 +1,9 @@
 import { cartCountText, formatCartBadge } from './cart';
 import { createCartCountStore } from './cart-store';
+import { createSheet } from './sheet-controller';
 
 /** 使用者手動收合 / 展開的偏好（跨頁記憶） */
 export const FLOATING_COLLAPSED_STORAGE_KEY = 'syt-floating-actions-collapsed';
-
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function readCollapsedPreference(): boolean | null {
   try {
@@ -30,6 +29,8 @@ function visible(element: HTMLElement): boolean {
 /**
  * 浮動快捷列（桌機 rail + 手機 bottom sheet）的互動。
  * 只在瀏覽器執行；HTML 在 build 時已完整輸出，沒有 JS 時連結仍可使用。
+ * Bottom sheet 的 ESC / backdrop / focus trap / scroll lock 由 lib/sheet-controller.ts 提供，
+ * 與手機主選單（NavSheet）是同一套契約。
  */
 export function initFloatingActions(): void {
   const root = document.querySelector<HTMLElement>('[data-floating-actions]');
@@ -77,56 +78,15 @@ export function initFloatingActions(): void {
     store.subscribe?.(renderCart);
   }
 
-  // ---- 手機 bottom sheet ----
+  // ---- 手機 bottom sheet（共用契約）----
   const sheet = root.querySelector<HTMLElement>('[data-fa-sheet]');
   const panel = sheet?.querySelector<HTMLElement>('[role="dialog"]');
   const opener = root.querySelector<HTMLButtonElement>('[data-fa-sheet-open]');
   if (!sheet || !panel || !opener) return;
-  let previousOverflow = '';
-
-  const onKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeSheet();
-      return;
-    }
-    if (event.key !== 'Tab') return;
-    const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(visible);
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (!first || !last) return;
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
-  function openSheet() {
-    if (!sheet || !panel || !opener) return;
-    sheet.hidden = false;
-    opener.setAttribute('aria-expanded', 'true');
-    previousOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
-    document.addEventListener('keydown', onKeydown);
-    panel.querySelector<HTMLElement>(FOCUSABLE)?.focus();
-  }
-
-  function closeSheet() {
-    if (!sheet || !opener || sheet.hidden) return;
-    sheet.hidden = true;
-    opener.setAttribute('aria-expanded', 'false');
-    document.documentElement.style.overflow = previousOverflow;
-    document.removeEventListener('keydown', onKeydown);
-    opener.focus();
-  }
-
-  opener.addEventListener('click', openSheet);
-  for (const closer of sheet.querySelectorAll<HTMLElement>('[data-fa-sheet-close]')) closer.addEventListener('click', closeSheet);
-  // 桌機寬度時自動關閉，避免放大視窗後留下 scroll lock
-  window.matchMedia('(min-width: 1024px)').addEventListener('change', (event) => {
-    if (event.matches) closeSheet();
+  createSheet({
+    sheet,
+    panel,
+    triggers: [opener],
+    closers: [...sheet.querySelectorAll<HTMLElement>('[data-fa-sheet-close]')],
   });
 }

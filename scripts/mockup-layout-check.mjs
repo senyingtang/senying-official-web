@@ -166,11 +166,19 @@ for (const [route, expectedCount] of Object.entries(EXPECTED_COUNTS)) {
     if (!/搜尋/.test(`${text} ${labels}`) || !/data-header-action="search"/.test(header)) missing.push('搜尋');
     if (!/data-header-action="login"/.test(header) || !text.includes('登入')) missing.push('登入');
     if (!/data-cta="header-start"/.test(header) || !text.includes('立即開始')) missing.push('立即開始');
-    if (!/<summary\b/.test(header)) missing.push('手機選單');
+    // 手機選單觸發鍵：必須是 button 並具備 dialog 語意（aria-haspopup / aria-controls / aria-expanded / aria-label）
+    const menuTrigger = header.match(/<button\b[^>]*\sdata-nav-sheet-open[^>]*>/)?.[0] ?? '';
+    const menuOk =
+      menuTrigger !== '' &&
+      /\saria-haspopup="dialog"/.test(menuTrigger) &&
+      /\saria-controls="nav-sheet"/.test(menuTrigger) &&
+      /\saria-expanded="false"/.test(menuTrigger) &&
+      /\saria-label="[^"]+"/.test(menuTrigger);
+    if (!menuOk) missing.push('手機選單（dialog 觸發鍵）');
     if (!/syt-glass-header/.test(header)) missing.push('深色玻璃樣式');
     if (missing.length) problems.push(`${rel(file)}: ${missing.join('/')}`);
   }
-  record(12, `Header 有搜尋 / 登入 / 立即開始 + 手機漢堡選單（${allRoutes.length} 頁）`, allRoutes.length > 0 && problems.length === 0, problems.slice(0, 3).join(' | ') || 'ok');
+  record(12, `Header 有搜尋 / 登入 / 立即開始 + 手機選單觸發鍵（dialog 語意，${allRoutes.length} 頁）`, allRoutes.length > 0 && problems.length === 0, problems.slice(0, 3).join(' | ') || 'ok');
 }
 
 // ---------------------------------------------------------------------------
