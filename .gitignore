@@ -38,3 +38,6 @@ test-results/
 # supabase local
 supabase/.branches/
 supabase/.temp/
+
+# Local Supabase remote audit artifacts
+.remote-audit/
