@@ -201,11 +201,18 @@ end $$;
 -- 7. 金流設定：預設全部停用、無商店代號、secret_refs 只有參照；public_config 放密鑰會被 CHECK 擋下
 do $$
 begin
-  if exists (select 1 from public.commerce_payment_provider_configs where is_enabled) then
-    raise exception 'FAIL seeded payment provider is enabled';
+  -- Phase 3.0：本機 sandbox 模擬付款是啟用的；真實金流 provider 與 production 環境必須全部停用
+  if exists (select 1 from public.commerce_payment_provider_configs where is_enabled and provider <> 'sandbox') then
+    raise exception 'FAIL a real-money payment provider is enabled';
   end if;
-  if exists (select 1 from public.commerce_payment_methods where is_enabled) then
-    raise exception 'FAIL seeded payment method is enabled';
+  if exists (select 1 from public.commerce_payment_provider_configs where is_enabled and environment = 'production') then
+    raise exception 'FAIL a production payment environment is enabled';
+  end if;
+  if exists (select 1 from public.commerce_payment_methods where is_enabled and provider <> 'sandbox') then
+    raise exception 'FAIL a real-money payment method is enabled';
+  end if;
+  if coalesce(public.platform_feature_enabled('commerce.live_payments'), false) then
+    raise exception 'FAIL commerce.live_payments must stay disabled';
   end if;
   if exists (select 1 from public.commerce_payment_provider_configs where merchant_id is not null) then
     raise exception 'FAIL seeded merchant_id found';

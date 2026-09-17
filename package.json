@@ -52,6 +52,11 @@
     "search:verify": "node scripts/search-check.mjs",
     "cms-integration:verify": "node scripts/cms-integration-check.mjs",
     "phase29:verify": "node scripts/phase29-verify.mjs",
+    "cart:verify": "node scripts/cart-check.mjs",
+    "payment:verify": "node scripts/payment-check.mjs",
+    "commerce:verify": "node scripts/commerce-check.mjs",
+    "commerce-integration:verify": "node scripts/commerce-integration-check.mjs",
+    "phase30:verify": "node scripts/phase30-verify.mjs",
     "git:verify": "node scripts/git-baseline-check.mjs",
     "rwd:report:verify": "node scripts/rwd-report-check.mjs"
   },

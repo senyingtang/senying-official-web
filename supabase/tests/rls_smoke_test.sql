@@ -102,7 +102,10 @@ begin
   if exists (select 1 from public.access_codes) then raise exception 'FAIL anon can read access codes'; end if;
   if exists (select 1 from public.external_project_connections) then raise exception 'FAIL anon can read external projects'; end if;
   if exists (select 1 from public.site_templates where status <> 'published') then raise exception 'FAIL anon can read draft templates'; end if;
-  if (select count(*) from public.get_enabled_payment_methods()) <> 0 then raise exception 'FAIL disabled payment methods are exposed'; end if;
+  -- Phase 3.0：sandbox 模擬付款可以公開，真實金流（ecpay / linepay / bank_transfer）一律不得曝光
+  if exists (select 1 from public.get_enabled_payment_methods() where provider <> 'sandbox') then
+    raise exception 'FAIL real-money payment methods are exposed to anon';
+  end if;
   begin
     insert into public.customer_site_form_submissions(form_id, site_project_id, workspace_id, payload)
     values (current_setting('test.form_a')::uuid, current_setting('test.p_a')::uuid, current_setting('test.ws_a')::uuid, '{}');

@@ -56,9 +56,11 @@ select pg_temp.assert((select jsonb_typeof(setting_value->'items') = 'array' and
                   where jsonb_typeof(i->'platform') <> 'string' or jsonb_typeof(i->'url') <> 'string' or jsonb_typeof(i->'enabled') <> 'boolean'
                      or jsonb_typeof(i->'sort_order') <> 'number' or jsonb_typeof(i->'show_on_desktop') <> 'boolean' or jsonb_typeof(i->'show_on_mobile') <> 'boolean')
   from public.cms_site_settings where setting_key = 'site.socials'), 'site.socials.items 為 8 筆且欄位型別正確');
+-- Phase 3.0：已有可自助購買的商品，購物車捷徑開啟；真正必須保持關閉的是正式付款
 select pg_temp.assert((select jsonb_typeof(setting_value->'default_collapsed') = 'boolean' and jsonb_typeof(setting_value->'cart') = 'object'
-  and (setting_value->'cart'->>'enabled')::boolean = false
-  from public.cms_site_settings where setting_key = 'site.floating_actions'), 'site.floating_actions 結構正確且購物車預設關閉');
+  and jsonb_typeof(setting_value->'cart'->'enabled') = 'boolean' and (setting_value->'cart'->>'href') ~ '^/[a-z0-9/-]*$'
+  from public.cms_site_settings where setting_key = 'site.floating_actions'), 'site.floating_actions 結構正確（含購物車捷徑）');
+select pg_temp.assert(not coalesce(public.platform_feature_enabled('commerce.live_payments'), false), 'commerce.live_payments 必須保持關閉');
 select pg_temp.assert(exists (select 1 from pg_trigger where tgrelid = 'public.cms_site_settings'::regclass and tgname = 'trg_cms_site_settings_updated_at' and not tgisinternal),
   'cms_site_settings 必須有 updated_at trigger');
 

@@ -7,7 +7,30 @@ export type SslStatus = 'not_requested' | 'pending' | 'provisioning' | 'active' 
 export type DeploymentStatus = 'queued' | 'building' | 'ready' | 'failed' | 'cancelled' | 'skipped';
 export type OrderStatus = 'pending' | 'awaiting_payment' | 'paid' | 'fulfilled' | 'cancelled' | 'refunded' | 'partially_refunded' | 'failed';
 export type SubscriptionStatus = 'incomplete' | 'trialing' | 'active' | 'past_due' | 'cancel_scheduled' | 'cancelled' | 'expired';
-export type PaymentProvider = 'ecpay' | 'linepay' | 'bank_transfer' | 'manual';
+/** 'sandbox' 是本機模擬付款（Phase 3.0），不是任何真實金流機構 */
+export type PaymentProvider = 'ecpay' | 'linepay' | 'bank_transfer' | 'manual' | 'sandbox';
+export type PaymentStatus =
+  | 'pending'
+  | 'processing'
+  | 'awaiting_transfer'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled'
+  | 'expired'
+  | 'refunded'
+  | 'partially_refunded';
+export type PaymentMethodType =
+  | 'credit_card'
+  | 'credit_card_recurring'
+  | 'atm_virtual_account'
+  | 'web_atm'
+  | 'bank_transfer'
+  | 'linepay'
+  | 'manual'
+  | 'sandbox';
+/** 真實金流：這些 provider 只有在 commerce.live_payments 開啟且有正式憑證時才能啟用 */
+export const REAL_MONEY_PAYMENT_PROVIDERS: readonly PaymentProvider[] = ['ecpay', 'linepay', 'bank_transfer'];
+export const isSimulatedPaymentProvider = (provider: string): boolean => provider === 'sandbox';
 export type ProviderEnvironment = 'sandbox' | 'production';
 export type TemplatePricingType = 'free' | 'paid' | 'plan_restricted' | 'private';
 export type AiContentStatus = 'draft' | 'in_review' | 'approved' | 'published' | 'rejected' | 'archived';

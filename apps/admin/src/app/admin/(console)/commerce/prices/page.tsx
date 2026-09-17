@@ -15,9 +15,12 @@ export default async function CommercePricesPage() {
     <>
       <PageHeader eyebrow="商務" title="價格" description="commerce_product_prices：一次購買、月繳、年繳。TWD 金額必須是整數元（綠界 TotalAmount 為整數）。" />
       <div className="grid gap-4">
-        <Notice tone="warning" title="價格待業主確認">目前所有價格為 0 且未啟用，確認後再啟用。</Notice>
+        <Notice tone="warning" title="目前只有測試價格">
+          已啟用的價格是本機驗收用的「測試價格（非正式售價）」，官網會同步標示。正式售價確認後再另行建立並啟用。
+        </Notice>
         <DataTablePlaceholder
           caption="價格"
+          footnote="資料來自 commerce_product_prices；結帳金額一律以這裡的資料重新計算。"
           columns={[
             { key: 'product', label: '方案' },
             { key: 'priceKey', label: 'price_key', className: 'font-mono text-xs' },

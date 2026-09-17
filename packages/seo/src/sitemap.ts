@@ -30,5 +30,5 @@ export function buildRobotsTxt(siteUrl: string, options: { allowIndexing: boolea
   if (!options.allowIndexing) {
     return 'User-agent: *\nDisallow: /\n';
   }
-  return `User-agent: *\nAllow: /\nDisallow: /checkout\n\nSitemap: ${absoluteUrl(siteUrl, '/sitemap.xml')}\n`;
+  return `User-agent: *\nAllow: /\nDisallow: /cart\nDisallow: /checkout\n\nSitemap: ${absoluteUrl(siteUrl, '/sitemap.xml')}\n`;
 }

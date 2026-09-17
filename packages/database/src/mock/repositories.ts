@@ -10,16 +10,14 @@ import {
   mockFormSubmissions,
   mockOrders,
   mockPaymentProviderCards,
-  mockPrices,
-  mockProducts,
   mockSeoProjects,
   mockSites,
-  mockSubscriptions,
   mockTemplateLicenses,
   mockTemplates,
 } from './data';
 import { getMockMarketingSiteSettings } from '../site-settings';
 import { createMockCmsRepositories } from './cms-repositories';
+import { createMockCommerceRepositories } from './commerce-repositories';
 import { findMockAccountById } from './identities';
 
 const clone = <T>(value: T): T => structuredClone(value);
@@ -31,6 +29,7 @@ const clone = <T>(value: T): T => structuredClone(value);
 export function createMockRepositories(context: RepositoryContext = {}): Repositories {
   const viewer = context.viewer;
   const cms = createMockCmsRepositories(context);
+  const shop = createMockCommerceRepositories(context);
 
   function visibleSites(): CustomerSiteSummary[] {
     if (!viewer) return [];
@@ -83,13 +82,10 @@ export function createMockRepositories(context: RepositoryContext = {}): Reposit
       list: async () => clone(mockAccessCodes),
       redeem: async (code) => redeem(code),
     },
-    commerce: {
-      listProducts: async () => clone(mockProducts),
-      listPrices: async () => clone(mockPrices),
-      listOrders: async () => clone(mockOrders),
-      listSubscriptions: async () => clone(mockSubscriptions),
-      listPaymentProviderCards: async () => clone(mockPaymentProviderCards),
-    },
+    commerce: shop.commerce,
+    catalog: shop.catalog,
+    cart: shop.cart,
+    orders: shop.orders,
     customerSites: {
       listSites: async () => clone(visibleSites()),
       getSite: async (siteId) => clone(visibleSites().find((site) => site.id === siteId) ?? null),

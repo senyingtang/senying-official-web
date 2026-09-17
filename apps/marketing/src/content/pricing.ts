@@ -153,14 +153,14 @@ export const paymentMethodIcons: Record<string, IconName> = {
 };
 
 export const accessCodeSteps: TimelineStep[] = [
-  { icon: 'check-circle', title: '完成付款', description: '正式付款開放後，付款確認即建立訂單；目前由專人確認方案。' },
+  { icon: 'check-circle', title: '完成付款', description: '送出結帳後由伺服器依資料庫價格重新開單；是否付款成功只由金流回報決定。' },
   { icon: 'mail', title: '發送權限代碼', description: `以 Email 寄送專屬代碼，例如 ${ACCESS_CODE_EXAMPLE}。` },
   { icon: 'key', title: '立即啟用', description: '登入客戶後台輸入代碼，建立工作區後開始建站。' },
 ];
 
 export const checkoutTrust: IconFeature[] = [
-  { icon: 'lock', title: '付款資料由金流商處理', description: '正式付款開放後，卡號等資料在金流商頁面填寫，本站不保存卡號。' },
-  { icon: 'check-circle', title: '先確認內容再開單', description: '方案內容與報價確認後才開單，不會自動扣款。' },
+  { icon: 'lock', title: '本站不收卡號與 CVV', description: '這裡只收姓名與聯絡方式；正式金流開放後，卡號等資料只會在金流商頁面填寫。' },
+  { icon: 'check-circle', title: '金額由伺服器重新計算', description: '訂單金額一律以資料庫價格重算，瀏覽器送來的金額不會被採用，也不會自動扣款。' },
   { icon: 'headset', title: '專人協助', description: '方案、開通或發票問題，可以透過 LINE@ 或聯絡表單詢問。' },
 ];
 

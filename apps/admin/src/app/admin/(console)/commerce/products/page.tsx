@@ -15,6 +15,7 @@ export default async function CommerceProductsPage() {
       <PageHeader eyebrow="商務" title="商品方案" description="commerce_products：每個方案對應一組權限（entitlement_products），付款成功後依此發放代碼。" />
       <DataTablePlaceholder
         caption="商品方案"
+        footnote="資料來自 commerce_products；只有已上架且可自助購買的方案會出現在官網。"
         columns={[
           { key: 'name', label: '方案' },
           { key: 'code', label: '產品代碼' },

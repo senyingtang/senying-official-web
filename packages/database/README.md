@@ -9,12 +9,13 @@ Supabase 資料存取邊界。預設 `DATA_SOURCE=mock`：不連線任何資料�
 | `src/tables.ts` | 資料表 / RPC 名稱對照（DB SQL v2.0） |
 | `src/models.ts` | UI 使用的 view model |
 | `src/data-source.ts` | `DATA_SOURCE` 解析；supabase 缺 env 時丟出 `DataSourceConfigError`（無相依，驗收腳本可直接載入） |
-| `src/repositories.ts` | repository 介面（含 `IdentityRepository`、`Viewer`、`RedeemOutcome`、`CmsBlogRepository`、`CmsCaseRepository`、`CmsStructureRepository`、`MarketingRebuildTrigger`） |
+| `src/repositories.ts` | repository 介面（含 `IdentityRepository`、`Viewer`、`RedeemOutcome`、`CmsBlogRepository`、`CmsCaseRepository`、`CmsStructureRepository`、`MarketingRebuildTrigger`、`CommerceCatalogRepository`、`CartRepository`、`OrderRepository`） |
 | `src/site-settings.ts` | 官網全站設定模型與驗證（無相依，驗收腳本可直接載入） |
 | `src/cms-content.ts` | 官網 CMS 內容模型（Blog / Case / SEO）、狀態規則、驗證與資料表對應 |
-| `src/public-site-settings.ts` / `src/public-cms.ts` | 官網 static build 以 anon key 讀取公開設定與已發布內容（不使用 service role） |
+| `src/commerce.ts` | 購物車 / 結帳模型與 RPC 回傳解析（無相依；前台與驗收腳本可直接載入）。金額一律 `*Cents` 整數 |
+| `src/public-site-settings.ts` / `src/public-cms.ts` / `src/public-commerce.ts` | 官網 static build 以 anon key 讀取公開設定、已發布內容與可購買商品（不使用 service role） |
 | `src/mock/` | mock 資料、mock 帳號（`identities.ts`）與 mock repository（依 viewer 過濾） |
-| `src/supabase/` | Supabase repository（`repositories.ts`）、RPC 邊界（`rpc.ts`）、錯誤型別（`errors.ts`） |
+| `src/supabase/` | Supabase repository（`repositories.ts`、`cms-repositories.ts`、`commerce-repositories.ts`）、RPC 邊界（`rpc.ts`）、錯誤型別（`errors.ts`） |
 | `src/client.ts` | 瀏覽器 / 前台 Supabase client（只用 anon key） |
 | `src/server.ts` | 伺服器 client 與 service role client 工廠（禁止在瀏覽器 import；不讀 env，由呼叫端傳入） |
 

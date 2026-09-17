@@ -21,6 +21,7 @@ import type { Repositories, RepositoryContext } from '../repositories';
 import { SITE_SETTING_KEYS, siteSettingsFromRows, siteSettingsToRows } from '../site-settings';
 import { TABLES } from '../tables';
 import { createSupabaseCmsRepositories } from './cms-repositories';
+import { createSupabaseCommerceRepositories } from './commerce-repositories';
 import { NotImplementedInPhaseError, SupabasePermissionError, unwrap } from './errors';
 import { rpcCreateWorkspaceFromAccessCode } from './rpc';
 
@@ -88,6 +89,7 @@ export function createSupabaseRepositories(client: SupabaseClient, context: Repo
   };
   const head = { count: 'exact', head: true } as const;
   const cms = createSupabaseCmsRepositories(client, context);
+  const shop = createSupabaseCommerceRepositories(client, context);
 
   return {
     identity: {
@@ -188,13 +190,10 @@ export function createSupabaseRepositories(client: SupabaseClient, context: Repo
       },
     },
 
-    commerce: {
-      listProducts: notYet('commerce.listProducts'),
-      listPrices: notYet('commerce.listPrices'),
-      listOrders: notYet('commerce.listOrders'),
-      listSubscriptions: notYet('commerce.listSubscriptions'),
-      listPaymentProviderCards: notYet('commerce.listPaymentProviderCards'),
-    },
+    commerce: shop.commerce,
+    catalog: shop.catalog,
+    cart: shop.cart,
+    orders: shop.orders,
 
     customerSites: {
       async listSites() {

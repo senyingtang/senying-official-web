@@ -1,0 +1,201 @@
+---
+import ButtonLink from '../../components/ButtonLink.astro';
+import Container from '../../components/Container.astro';
+import IconGlyph from '../../components/IconGlyph.astro';
+import Section from '../../components/Section.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SANDBOX_PAYMENT_NOTICE } from '@syt/database/commerce';
+import { portalLoginUrl } from '../../lib/site';
+
+/**
+ * 訂單完成頁（Phase 3.0）。
+ *
+ * 以「不可猜測的收據 token」查詢訂單（不是流水號 id）：
+ * token 存在 sessionStorage，也支援 ?token= 直接連結；權限代碼永遠不會出現在網址上。
+ */
+const description = '付款完成後的訂單明細與權限代碼。';
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '結帳', href: '/checkout' },
+  { label: '訂單完成', href: '/checkout/success' },
+];
+---
+
+<BaseLayout seo={{ title: '訂單完成', description, path: '/checkout/success', noindex: true }} breadcrumbs={breadcrumbs}>
+  <Section tone="white" density="compact" name="order-success" labelledby="success-heading">
+    <div data-receipt-root class="mx-auto min-w-0 max-w-3xl">
+      <p data-receipt-loading class="rounded-card border border-border-gray bg-surface px-4 py-10 text-center text-sm text-slate-gray">訂單載入中…</p>
+
+      <div data-receipt-missing hidden class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-10 text-center">
+        <h1 id="success-heading" class="text-xl font-bold text-ink">找不到這筆訂單</h1>
+        <p class="mt-2 text-sm leading-relaxed text-slate-gray">
+          收據連結可能已過期，或這個瀏覽器沒有這筆訂單的紀錄。請改用訂單完成信中的連結，或聯絡我們協助查詢。
+        </p>
+        <div class="mt-5 flex flex-wrap justify-center gap-2">
+          <ButtonLink href="/contact" cta="primary">聯絡森映</ButtonLink>
+          <ButtonLink href="/products" variant="secondary">回產品服務</ButtonLink>
+        </div>
+      </div>
+
+      <div data-receipt-body hidden>
+        <div class="flex flex-col items-center text-center">
+          <span class="flex h-14 w-14 items-center justify-center rounded-full bg-teal-soft text-teal-strong">
+            <IconGlyph name="check-circle" class="h-7 w-7" />
+          </span>
+          <h1 class="mt-4 text-2xl font-bold text-ink sm:text-3xl" data-receipt-title>付款成功</h1>
+          <p class="mt-2 text-sm leading-relaxed text-slate-gray" data-receipt-subtitle></p>
+        </div>
+
+        <p data-receipt-sandbox hidden class="mt-6 rounded-card border border-warning/40 bg-warning/10 px-4 py-3 text-sm leading-relaxed text-ink">{SANDBOX_PAYMENT_NOTICE}</p>
+
+        <section class="mt-6 rounded-card border border-border-gray bg-surface p-5 shadow-card sm:p-6" aria-labelledby="order-detail-heading">
+          <h2 id="order-detail-heading" class="text-lg font-bold text-ink">訂單明細</h2>
+          <dl class="mt-4 grid gap-2 text-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <dt class="text-slate-gray">訂單編號</dt>
+              <dd class="font-mono font-semibold text-ink" data-receipt-number></dd>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <dt class="text-slate-gray">付款狀態</dt>
+              <dd class="font-semibold text-ink" data-receipt-status></dd>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <dt class="text-slate-gray">訂購人</dt>
+              <dd class="font-semibold text-ink" data-receipt-buyer></dd>
+            </div>
+          </dl>
+          <ul class="mt-4 grid gap-2 border-t border-border-gray pt-4" data-receipt-items></ul>
+          <p class="mt-4 flex items-center justify-between gap-3 border-t border-border-gray pt-4 text-base">
+            <span class="text-slate-gray">總金額</span>
+            <span class="text-xl font-bold text-ink" data-receipt-total></span>
+          </p>
+          <p data-receipt-test-price hidden class="mt-2 text-xs leading-relaxed text-slate-gray">這筆訂單使用測試價格（非正式售價）。</p>
+        </section>
+
+        <section data-receipt-codes-section hidden class="mt-6 rounded-card border border-teal/40 bg-teal-soft/40 p-5 sm:p-6" aria-labelledby="codes-heading">
+          <h2 id="codes-heading" class="text-lg font-bold text-ink">你的權限代碼</h2>
+          <p class="mt-1 text-sm leading-relaxed text-slate-gray">請妥善保存；登入客戶後台輸入代碼即可建立工作區。代碼也會寄到你的 Email。</p>
+          <ul class="mt-4 grid gap-2" data-receipt-codes></ul>
+        </section>
+
+        <section class="mt-6 rounded-card border border-border-gray bg-surface p-5 shadow-card sm:p-6" aria-labelledby="next-heading">
+          <h2 id="next-heading" class="text-lg font-bold text-ink">下一步</h2>
+          <ol class="mt-3 grid gap-2 text-sm leading-relaxed text-slate-gray">
+            <li>1. 登入客戶後台。</li>
+            <li>2. 輸入權限代碼並建立工作區。</li>
+            <li>3. 選擇版型，開始填內容。</li>
+          </ol>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <ButtonLink href={portalLoginUrl} cta="primary">前往客戶後台</ButtonLink>
+            <ButtonLink href="/contact" variant="secondary">需要協助</ButtonLink>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <Container class="mt-8 px-0">
+      <p class="text-center text-xs text-slate-gray">收據連結只有你看得到；權限代碼不會出現在網址上。</p>
+    </Container>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { formatMoneyFromCents } from '@syt/shared';
+  import { PAYMENT_STATUS_LABELS_ZH, isPaidOrderStatus } from '@syt/database/commerce';
+  import { createCartClient } from '../../lib/cart-client';
+  import { clearCheckoutToken, readCheckoutToken } from '../../lib/checkout-session';
+
+  const root = document.querySelector<HTMLElement>('[data-receipt-root]');
+  if (root) {
+    const el = (selector: string) => root.querySelector<HTMLElement>(selector);
+    const loading = el('[data-receipt-loading]');
+    const missing = el('[data-receipt-missing]');
+    const body = el('[data-receipt-body]');
+
+    const showMissing = () => {
+      if (loading) loading.hidden = true;
+      if (missing) missing.hidden = false;
+    };
+
+    void (async () => {
+      const token = readCheckoutToken();
+      if (!token) {
+        showMissing();
+        return;
+      }
+      try {
+        const receipt = await createCartClient().getReceipt(token);
+        if (!receipt.found) {
+          showMissing();
+          return;
+        }
+        if (loading) loading.hidden = true;
+        if (body) body.hidden = false;
+
+        const paid = isPaidOrderStatus(receipt.status);
+        const title = el('[data-receipt-title]');
+        if (title) title.textContent = paid ? '付款成功' : '訂單已建立';
+        const subtitle = el('[data-receipt-subtitle]');
+        if (subtitle) {
+          subtitle.textContent = paid
+            ? '我們已收到你的付款，權限代碼如下。'
+            : '訂單已建立，但付款尚未完成；完成付款後才會發放權限代碼。';
+        }
+        const sandbox = el('[data-receipt-sandbox]');
+        if (sandbox) sandbox.hidden = receipt.paymentEnvironment !== 'sandbox' && receipt.paymentProvider !== 'sandbox';
+
+        const number = el('[data-receipt-number]');
+        if (number) number.textContent = receipt.orderNumber;
+        const status = el('[data-receipt-status]');
+        if (status) status.textContent = PAYMENT_STATUS_LABELS_ZH[receipt.paymentStatus] ?? receipt.status;
+        const buyer = el('[data-receipt-buyer]');
+        if (buyer) buyer.textContent = `${receipt.buyerName}（${receipt.buyerEmail}）`;
+        const total = el('[data-receipt-total]');
+        if (total) total.textContent = formatMoneyFromCents(receipt.totalCents, receipt.currency);
+        const testPrice = el('[data-receipt-test-price]');
+        if (testPrice) testPrice.hidden = !receipt.items.some((item) => item.isTestPrice);
+
+        const items = root.querySelector<HTMLUListElement>('[data-receipt-items]');
+        if (items) {
+          items.replaceChildren();
+          for (const item of receipt.items) {
+            const li = document.createElement('li');
+            li.className = 'flex flex-wrap items-center justify-between gap-2 text-sm';
+            const left = document.createElement('span');
+            left.className = 'min-w-0 text-ink';
+            left.textContent = `${item.productName} × ${item.quantity}`;
+            const right = document.createElement('span');
+            right.className = 'font-semibold text-ink';
+            right.textContent = formatMoneyFromCents(item.lineTotalCents, receipt.currency);
+            li.append(left, right);
+            items.append(li);
+          }
+        }
+
+        const codesSection = el('[data-receipt-codes-section]');
+        const codes = root.querySelector<HTMLUListElement>('[data-receipt-codes]');
+        if (codesSection) codesSection.hidden = receipt.accessCodes.length === 0;
+        if (codes) {
+          codes.replaceChildren();
+          for (const code of receipt.accessCodes) {
+            const li = document.createElement('li');
+            li.className = 'flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-gray bg-surface px-4 py-3';
+            const value = document.createElement('code');
+            value.className = 'font-mono text-base font-bold text-ink';
+            value.textContent = code.code;
+            const meta = document.createElement('span');
+            meta.className = 'text-xs text-slate-gray';
+            meta.textContent = code.expiresAt ? `有效期限 ${new Date(code.expiresAt).toLocaleDateString('zh-TW')}` : '無使用期限';
+            li.append(value, meta);
+            codes.append(li);
+          }
+        }
+
+        // 付款完成後就不需要再保留 token（?token= 連結仍可再查一次）
+        if (paid) clearCheckoutToken();
+      } catch {
+        showMissing();
+      }
+    })();
+  }
+</script>

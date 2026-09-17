@@ -7,6 +7,7 @@ import type {
   DomainStatus,
   OrderStatus,
   PaymentProvider,
+  PaymentStatus,
   ProductCode,
   ProviderEnvironment,
   SiteProjectStatus,
@@ -46,7 +47,8 @@ export interface ProviderField {
   help?: string;
 }
 
-export type PaymentProviderCardKey = 'ecpay' | 'bank_transfer' | 'linepay' | 'subscription_monthly' | 'subscription_yearly';
+/** 金流設定卡片的識別字串（mock 為固定值；supabase 模式為 `${provider}-${environment}`） */
+export type PaymentProviderCardKey = string;
 
 export interface PaymentProviderCardConfig {
   key: PaymentProviderCardKey;
@@ -76,6 +78,101 @@ export interface PriceItem {
   interval: BillingInterval;
   amountCents: number;
   isActive: boolean;
+}
+
+/** 後台訂單列表（Phase 3.0：接 commerce_orders 真實資料） */
+export interface AdminOrderListItem {
+  id: string;
+  orderNumber: string;
+  buyerName: string;
+  buyerEmail: string;
+  status: OrderStatus;
+  currency: string;
+  totalCents: number;
+  itemCount: number;
+  paymentStatus: PaymentStatus | null;
+  paymentProvider: PaymentProvider | null;
+  paymentEnvironment: ProviderEnvironment | null;
+  accessCodeCount: number;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+export interface AdminOrderItemLine {
+  id: string;
+  productName: string;
+  sku: string;
+  quantity: number;
+  unitAmountCents: number;
+  totalCents: number;
+  isTestPrice: boolean;
+}
+
+export interface AdminPaymentLine {
+  id: string;
+  provider: PaymentProvider;
+  methodType: string;
+  environment: ProviderEnvironment;
+  status: PaymentStatus;
+  amountCents: number;
+  currency: string;
+  merchantTradeNo: string | null;
+  providerTradeNo: string | null;
+  failureMessage: string | null;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+export interface AdminOrderAuditLine {
+  id: string;
+  action: string;
+  actorType: string;
+  createdAt: string;
+  summary: string;
+}
+
+/** 權限代碼在後台只顯示遮罩後的值（完整代碼只給已付款的客戶） */
+export interface AdminOrderEntitlementLine {
+  id: string;
+  maskedCode: string;
+  productCode: ProductCode;
+  status: AccessCodeStatus;
+  issuedToEmail: string | null;
+  expiresAt: string | null;
+}
+
+export interface AdminOrderDetail {
+  id: string;
+  orderNumber: string;
+  status: OrderStatus;
+  source: string;
+  currency: string;
+  subtotalCents: number;
+  discountCents: number;
+  taxCents: number;
+  totalCents: number;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string | null;
+  buyerCompany: string | null;
+  buyerTaxId: string | null;
+  adminNote: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  fulfilledAt: string | null;
+  entitlementsIssuedAt: string | null;
+  items: AdminOrderItemLine[];
+  payments: AdminPaymentLine[];
+  entitlements: AdminOrderEntitlementLine[];
+  auditTrail: AdminOrderAuditLine[];
+}
+
+export interface OrderStatusCounts {
+  total: number;
+  paid: number;
+  awaitingPayment: number;
+  failed: number;
+  grossPaidCents: number;
 }
 
 export interface OrderSummary {

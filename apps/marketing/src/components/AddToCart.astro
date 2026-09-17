@@ -1,0 +1,93 @@
+---
+import { TEST_PRICE_BADGE, TEST_PRICE_NOTICE } from '@syt/database/commerce';
+import { formatMoneyFromCents } from '@syt/shared';
+
+interface Props {
+  priceId: string;
+  amountCents: number;
+  currency: string;
+  isTestPrice: boolean;
+  productName: string;
+  /** dark：放在深色 Hero 內 */
+  tone?: 'dark' | 'light';
+}
+
+/**
+ * 加入購物車（Phase 3.0）。
+ *
+ * 只傳 price id 給伺服器：金額、可購買性與幣別都由資料庫判斷，前台送出的任何金額都不會被採用。
+ * 目前開放的價格是「測試價格」，因此畫面一定會同時顯示「測試價格 · 非正式售價」。
+ */
+const { priceId, amountCents, currency, isTestPrice, productName, tone = 'dark' } = Astro.props;
+const dark = tone === 'dark';
+---
+
+<div data-add-to-cart-root data-price-id={priceId} class:list={['mt-5 min-w-0 rounded-2xl border p-4', dark ? 'border-white/20 bg-white/5 backdrop-blur' : 'border-border-gray bg-surface']}>
+  <p class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+    <span class:list={['text-2xl font-bold', dark ? 'text-white' : 'text-ink']}>{formatMoneyFromCents(amountCents, currency)}</span>
+    {
+      isTestPrice && (
+        <span class:list={['rounded-full px-2 py-0.5 text-[11px] font-semibold', dark ? 'bg-warning/30 text-white' : 'bg-warning/20 text-ink']}>{TEST_PRICE_BADGE}</span>
+      )
+    }
+    <span class:list={['text-xs', dark ? 'text-slate-300' : 'text-slate-gray']}>一次購買</span>
+  </p>
+  {isTestPrice && <p class:list={['mt-1 text-xs leading-relaxed', dark ? 'text-slate-300' : 'text-slate-gray']}>{TEST_PRICE_NOTICE}</p>}
+
+  <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+    <button
+      type="button"
+      data-add-to-cart
+      data-mode="add"
+      class="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-button bg-teal px-5 font-semibold text-navy-black transition-colors hover:bg-teal-hover disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      <span data-add-label>加入購物車</span>
+    </button>
+    <button
+      type="button"
+      data-add-to-cart
+      data-mode="buy"
+      class:list={[
+        'inline-flex min-h-12 flex-1 items-center justify-center rounded-button border px-5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+        dark ? 'border-white/40 text-white hover:bg-white/10' : 'border-teal-strong text-teal-strong hover:bg-teal-soft',
+      ]}
+    >
+      立即購買
+    </button>
+  </div>
+  <p data-add-status role="status" aria-live="polite" class:list={['mt-2 text-xs', dark ? 'text-slate-200' : 'text-slate-gray']}></p>
+  <p class="sr-only">{productName} 的購買選項</p>
+</div>
+
+<script>
+  import { CartRpcError, createCartClient } from '../lib/cart-client';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-add-to-cart-root]')) {
+    if (root.dataset.ready === 'true') continue;
+    root.dataset.ready = 'true';
+    const priceId = root.dataset.priceId ?? '';
+    const status = root.querySelector<HTMLElement>('[data-add-status]');
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-add-to-cart]')];
+    const client = createCartClient();
+
+    for (const button of buttons) {
+      button.addEventListener('click', async () => {
+        if (!priceId) return;
+        for (const item of buttons) item.disabled = true;
+        if (status) status.textContent = '加入購物車中…';
+        try {
+          const state = await client.addItem(priceId, 1);
+          if (status) status.textContent = `已加入購物車，目前 ${state.itemCount} 件。`;
+          if (button.dataset.mode === 'buy') {
+            window.location.href = '/checkout';
+            return;
+          }
+        } catch (error) {
+          if (status) status.textContent = error instanceof CartRpcError ? error.message : '加入購物車失敗，請稍後再試。';
+        } finally {
+          for (const item of buttons) item.disabled = false;
+        }
+      });
+    }
+  }
+</script>

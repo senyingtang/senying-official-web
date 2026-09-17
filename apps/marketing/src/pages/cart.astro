@@ -1,0 +1,236 @@
+---
+import ButtonLink from '../components/ButtonLink.astro';
+import Container from '../components/Container.astro';
+import IconGlyph from '../components/IconGlyph.astro';
+import Section from '../components/Section.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getStorefront } from '../lib/commerce';
+import { TEST_PRICE_NOTICE } from '@syt/database/commerce';
+
+/**
+ * 購物車（Phase 3.0）。
+ *
+ * 版面在 build 時輸出，內容由瀏覽器向 Supabase RPC 取得（訪客以 cart token 識別，資料庫只存 sha256）。
+ * 單價與小計一律來自資料庫，頁面不會自己計算或保存價格。
+ */
+const storefront = await getStorefront();
+const description = '查看購物車中的方案、數量與小計，並前往結帳。';
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '購物車', href: '/cart' },
+];
+---
+
+<BaseLayout seo={{ title: '購物車', description, path: '/cart', noindex: true }} breadcrumbs={breadcrumbs}>
+  <Section tone="white" density="compact" name="cart" labelledby="cart-heading">
+    <SectionHeading id="cart-heading" title="購物車" description="數量與金額都會即時與伺服器同步；正式金額以結帳頁為準。" compact />
+
+    <div data-cart-root data-mock="false" class="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:items-start">
+      <div class="min-w-0">
+        <p data-cart-mock-notice hidden class="mb-4 rounded-card border border-warning/40 bg-warning/10 px-4 py-3 text-sm leading-relaxed text-ink">
+          示範購物車（未連線資料庫）：這個 build 沒有設定 Supabase，購物車只存在這個瀏覽器，無法結帳。
+        </p>
+        <p data-cart-error hidden role="alert" class="mb-4 rounded-card border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-ink"></p>
+
+        <p data-cart-loading class="rounded-card border border-border-gray bg-surface px-4 py-10 text-center text-sm text-slate-gray">購物車載入中…</p>
+
+        <div data-cart-empty hidden class="rounded-card border border-dashed border-border-gray bg-surface px-4 py-10 text-center">
+          <p class="text-base font-semibold text-ink">購物車是空的</p>
+          <p class="mt-1 text-sm text-slate-gray">選擇一個方案後就可以加入購物車。</p>
+          <ButtonLink href="/products" cta="primary" class="mt-5">看產品服務</ButtonLink>
+        </div>
+
+        <ul data-cart-list hidden class="grid gap-3"></ul>
+
+        <div data-cart-actions hidden class="mt-4 flex flex-wrap items-center gap-3">
+          <button type="button" data-cart-clear class="inline-flex min-h-11 items-center rounded-button border border-border-gray px-4 text-sm font-medium text-ink hover:bg-mist-white">
+            清空購物車
+          </button>
+          <a href="/products" class="inline-flex min-h-11 items-center text-sm font-semibold text-teal-strong hover:underline">繼續選購</a>
+        </div>
+      </div>
+
+      <aside data-cart-summary hidden class="min-w-0 rounded-card border border-border-gray bg-surface p-5 shadow-card lg:sticky lg:top-24">
+        <h2 class="text-lg font-bold text-ink">訂單摘要</h2>
+        <dl class="mt-4 grid gap-2 text-sm">
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-slate-gray">商品件數</dt>
+            <dd class="font-semibold text-ink"><span data-cart-count>0</span> 件</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3 border-t border-border-gray pt-2">
+            <dt class="text-slate-gray">小計</dt>
+            <dd class="text-lg font-bold text-ink" data-cart-subtotal>—</dd>
+          </div>
+        </dl>
+        <p data-cart-test-price hidden class="mt-3 rounded-lg bg-warning/10 px-3 py-2 text-xs leading-relaxed text-ink">{TEST_PRICE_NOTICE}</p>
+        <a
+          href="/checkout"
+          data-cart-checkout
+          class="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-button bg-teal px-6 font-semibold text-navy-black transition-colors hover:bg-teal-hover aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
+        >
+          前往結帳
+          <span aria-hidden="true">→</span>
+        </a>
+        <p class="mt-3 text-xs leading-relaxed text-slate-gray">結帳時會由伺服器重新計算金額，畫面上的數字只是顯示用。</p>
+      </aside>
+    </div>
+
+    <Container class="mt-8 px-0">
+      <p class="text-xs leading-relaxed text-slate-gray">
+        <IconGlyph name="check" class="mr-1 inline h-3.5 w-3.5 text-teal-strong" />
+        購物車內容存在伺服器；換頁或重新整理都會保留。
+      </p>
+    </Container>
+  </Section>
+
+  <script type="application/json" data-cart-catalog set:html={JSON.stringify(storefront.products)} is:inline />
+
+  <template data-cart-row>
+    <li class="min-w-0 rounded-2xl border border-border-gray bg-surface p-4 shadow-card">
+      <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <p class="text-base font-bold leading-snug text-ink" data-row-name></p>
+          <p class="mt-1 text-xs text-slate-gray"><span data-row-sku class="font-mono"></span> · <span data-row-price-name></span></p>
+          <p data-row-unavailable hidden class="mt-2 rounded-lg bg-danger/10 px-2 py-1 text-xs text-danger-strong">這個項目目前無法購買，請先移除。</p>
+        </div>
+        <p class="shrink-0 text-sm text-slate-gray">單價 <span data-row-unit class="font-semibold text-ink"></span></p>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border-gray pt-3">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-slate-gray">數量</span>
+          <div class="flex items-center gap-1 rounded-lg border border-border-gray p-1">
+            <button type="button" data-row-decrease class="flex h-9 w-9 items-center justify-center rounded-md text-ink hover:bg-mist-white" aria-label="減少數量">−</button>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              step="1"
+              inputmode="numeric"
+              data-row-quantity
+              class="h-9 w-14 min-w-0 rounded-md border border-transparent bg-transparent text-center text-sm font-semibold text-ink focus:border-teal-strong focus:outline-none"
+              aria-label="數量"
+            />
+            <button type="button" data-row-increase class="flex h-9 w-9 items-center justify-center rounded-md text-ink hover:bg-mist-white" aria-label="增加數量">＋</button>
+          </div>
+        </div>
+        <p class="text-sm text-slate-gray">小計 <span data-row-total class="text-base font-bold text-ink"></span></p>
+        <button type="button" data-row-remove class="inline-flex min-h-9 items-center rounded-button border border-border-gray px-3 text-sm text-ink hover:bg-mist-white">移除</button>
+      </div>
+    </li>
+  </template>
+</BaseLayout>
+
+<script>
+  import { formatMoneyFromCents } from '@syt/shared';
+  import type { CartState } from '@syt/database/commerce';
+  import { CartRpcError, createCartClient } from '../lib/cart-client';
+
+  const root = document.querySelector<HTMLElement>('[data-cart-root]');
+  const template = document.querySelector<HTMLTemplateElement>('[data-cart-row]');
+  if (root && template) {
+    const catalogEl = document.querySelector<HTMLScriptElement>('[data-cart-catalog]');
+    let catalog = [];
+    try {
+      catalog = JSON.parse(catalogEl?.textContent ?? '[]');
+    } catch {
+      catalog = [];
+    }
+    const client = createCartClient(catalog);
+    root.dataset.mock = String(client.isMock);
+
+    const el = (selector: string) => root.querySelector<HTMLElement>(selector);
+    const loading = el('[data-cart-loading]');
+    const empty = el('[data-cart-empty]');
+    const list = root.querySelector<HTMLUListElement>('[data-cart-list]');
+    const actions = el('[data-cart-actions]');
+    const summary = el('[data-cart-summary]');
+    const errorBox = el('[data-cart-error]');
+    const mockNotice = el('[data-cart-mock-notice]');
+    const checkout = root.querySelector<HTMLAnchorElement>('[data-cart-checkout]');
+
+    if (mockNotice) mockNotice.hidden = !client.isMock;
+
+    const showError = (message: string) => {
+      if (!errorBox) return;
+      errorBox.textContent = message;
+      errorBox.hidden = false;
+    };
+    const clearError = () => {
+      if (errorBox) errorBox.hidden = true;
+    };
+
+    const render = (state: CartState) => {
+      if (loading) loading.hidden = true;
+      const hasItems = state.items.length > 0;
+      if (empty) empty.hidden = hasItems;
+      if (list) list.hidden = !hasItems;
+      if (actions) actions.hidden = !hasItems;
+      if (summary) summary.hidden = !hasItems;
+      if (!list) return;
+      list.replaceChildren();
+      for (const item of state.items) {
+        const node = template.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+        if (!node) continue;
+        node.dataset.itemId = item.itemId;
+        node.querySelector('[data-row-name]')!.textContent = item.productName;
+        node.querySelector('[data-row-sku]')!.textContent = item.sku;
+        node.querySelector('[data-row-price-name]')!.textContent = item.priceName;
+        node.querySelector('[data-row-unit]')!.textContent = formatMoneyFromCents(item.unitAmountCents, item.currency);
+        node.querySelector('[data-row-total]')!.textContent = formatMoneyFromCents(item.lineTotalCents, item.currency);
+        const unavailable = node.querySelector<HTMLElement>('[data-row-unavailable]');
+        if (unavailable) unavailable.hidden = item.isAvailable;
+        const quantity = node.querySelector<HTMLInputElement>('[data-row-quantity]');
+        if (quantity) quantity.value = String(item.quantity);
+        list.append(node);
+      }
+      const countEl = el('[data-cart-count]');
+      if (countEl) countEl.textContent = String(state.itemCount);
+      const subtotalEl = el('[data-cart-subtotal]');
+      if (subtotalEl) subtotalEl.textContent = formatMoneyFromCents(state.subtotalCents, state.currency);
+      const testPrice = el('[data-cart-test-price]');
+      if (testPrice) testPrice.hidden = !state.hasTestPrice;
+      if (checkout) {
+        const blocked = client.isMock || state.hasUnavailableItem || !hasItems;
+        checkout.setAttribute('aria-disabled', String(blocked));
+        if (blocked) checkout.removeAttribute('href');
+        else checkout.setAttribute('href', '/checkout');
+      }
+    };
+
+    const run = async (action: () => Promise<CartState>) => {
+      clearError();
+      try {
+        render(await action());
+      } catch (error) {
+        showError(error instanceof CartRpcError ? error.message : '購物車操作失敗，請稍後再試。');
+      }
+    };
+
+    list?.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const row = target.closest<HTMLElement>('[data-item-id]');
+      const itemId = row?.dataset.itemId;
+      if (!itemId) return;
+      const input = row?.querySelector<HTMLInputElement>('[data-row-quantity]');
+      const current = Number(input?.value ?? '1') || 1;
+      if (target.closest('[data-row-remove]')) void run(() => client.removeItem(itemId));
+      else if (target.closest('[data-row-increase]')) void run(() => client.setQuantity(itemId, Math.min(current + 1, 100)));
+      else if (target.closest('[data-row-decrease]')) void run(() => client.setQuantity(itemId, Math.max(current - 1, 0)));
+    });
+
+    list?.addEventListener('change', (event) => {
+      const input = event.target as HTMLInputElement;
+      if (!input.matches('[data-row-quantity]')) return;
+      const row = input.closest<HTMLElement>('[data-item-id]');
+      const itemId = row?.dataset.itemId;
+      if (!itemId) return;
+      const next = Math.max(0, Math.min(Number(input.value) || 0, 100));
+      void run(() => client.setQuantity(itemId, next));
+    });
+
+    el('[data-cart-clear]')?.addEventListener('click', () => void run(() => client.clear()));
+
+    void run(() => client.get());
+  }
+</script>

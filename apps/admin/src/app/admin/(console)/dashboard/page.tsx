@@ -11,7 +11,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { requireAdminPage } from '@/lib/auth/guards';
 import { safeLoad } from '@/lib/safe-load';
-import { ORDER_STATUS_LABELS, orderTone } from '@/lib/status';
+import { ENVIRONMENT_LABELS, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS, SUBSCRIPTION_STATUS_LABELS, environmentTone, orderTone, paymentTone, subscriptionTone } from '@/lib/status';
 
 export const metadata: Metadata = { title: '儀表板' };
 
@@ -34,18 +34,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const { session, repos } = await requireAdminPage('/admin/dashboard');
   const { error } = await searchParams;
 
-  const [stats, blogCounts, caseCounts, siteSettings, rebuild, orders] = await Promise.all([
+  const [stats, blogCounts, caseCounts, siteSettings, rebuild, orders, orderCounts, subscriptions] = await Promise.all([
     safeLoad('dashboard.getAdminStats', () => repos.dashboard.getAdminStats()),
     safeLoad('cmsBlog.countsByStatus', () => repos.cmsBlog.countsByStatus()),
     safeLoad('cmsCases.countsByStatus', () => repos.cmsCases.countsByStatus()),
     safeLoad('siteSettings.get', () => repos.siteSettings.getMarketingSiteSettings()),
     safeLoad('marketingRebuild.getStatus', () => repos.marketingRebuild.getStatus()),
-    safeLoad('commerce.listOrders', () => repos.commerce.listOrders()),
+    safeLoad('commerce.listAdminOrders', () => repos.commerce.listAdminOrders({ limit: 8 })),
+    safeLoad('commerce.getOrderStatusCounts', () => repos.commerce.getOrderStatusCounts()),
+    safeLoad('commerce.listSubscriptions', () => repos.commerce.listSubscriptions({ limit: 5 })),
   ]);
 
   return (
     <>
-      <PageHeader title="儀表板" description="平台目前為 v1 階段：模板制自助建站、預覽不公開發布、金流尚未串接。" />
+      <PageHeader title="儀表板" description="平台目前為 v1 階段：模板制自助建站、預覽不公開發布、正式金流尚未開放（只開放本機 Sandbox 模擬付款）。" />
       {error === 'forbidden' && (
         <div className="mb-6">
           <ForbiddenState description="你的角色無法使用剛才的功能，已帶你回到儀表板。" />
@@ -85,34 +87,63 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         )}
       </section>
 
+      {/* 商務概況 */}
+      <section aria-labelledby="commerce-heading" className="mt-6 min-w-0">
+        <h2 id="commerce-heading" className="mb-3 text-lg font-bold text-ink">
+          商務概況
+        </h2>
+        {orderCounts.ok ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="訂單總數" value={String(orderCounts.data.total)} hint="commerce_orders" />
+            <StatCard label="已付款" value={String(orderCounts.data.paid)} hint="含已發放權限代碼" />
+            <StatCard label="待付款" value={String(orderCounts.data.awaitingPayment)} hint="尚未收到付款回調" />
+            <StatCard label="已收款金額" value={formatMoneyFromCents(orderCounts.data.grossPaidCents)} hint="沙箱訂單為模擬金額" />
+          </div>
+        ) : (
+          <ModuleUnavailable title="商務概況" reason={orderCounts.reason} />
+        )}
+      </section>
+
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section className="min-w-0">
           <h2 className="mb-3 text-lg font-bold text-ink">最近訂單</h2>
           {orders.ok ? (
             <DataTablePlaceholder
               caption="最近訂單"
+              emptyTitle="還沒有訂單"
+              emptyDescription="官網完成一次結帳後，訂單會出現在這裡。"
+              footnote="資料來自 commerce_orders；點訂單編號查看明細。"
               columns={[
                 { key: 'orderNumber', label: '訂單編號', className: 'whitespace-nowrap font-mono text-xs' },
                 { key: 'buyer', label: '購買人' },
-                { key: 'total', label: '金額' },
+                { key: 'total', label: '金額', className: 'whitespace-nowrap' },
                 { key: 'status', label: '狀態' },
+                { key: 'payment', label: '付款' },
                 { key: 'createdAt', label: '建立時間', className: 'whitespace-nowrap' },
               ]}
               rows={orders.data.map((order) => ({
                 id: order.id,
-                orderNumber: order.orderNumber,
+                orderNumber: (
+                  <Link href={`/admin/commerce/orders/${order.id}`} className="font-semibold text-teal-strong hover:underline">
+                    {order.orderNumber}
+                  </Link>
+                ),
                 buyer: order.buyerEmail,
-                total: formatMoneyFromCents(order.totalCents),
+                total: formatMoneyFromCents(order.totalCents, order.currency),
                 status: <StatusBadge tone={orderTone[order.status]}>{ORDER_STATUS_LABELS[order.status]}</StatusBadge>,
+                payment: order.paymentStatus ? (
+                  <span className="flex flex-wrap items-center gap-1">
+                    <StatusBadge tone={paymentTone[order.paymentStatus]}>{PAYMENT_STATUS_LABELS[order.paymentStatus]}</StatusBadge>
+                    {order.paymentEnvironment && <StatusBadge tone={environmentTone[order.paymentEnvironment]}>{ENVIRONMENT_LABELS[order.paymentEnvironment]}</StatusBadge>}
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-gray">尚未建立付款</span>
+                ),
                 createdAt: formatDateTime(order.createdAt),
               }))}
             />
           ) : (
-            <ModuleUnavailable
-              title="最近訂單"
-              reason={orders.reason}
-              note={orders.reason === 'not_implemented' ? 'Commerce 模組將於後續階段接入，目前沒有可顯示的訂單資料。' : undefined}
-            />
+            <ModuleUnavailable title="最近訂單" reason={orders.reason} />
           )}
         </section>
 
@@ -148,7 +179,31 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <ModuleUnavailable title="全站設定" reason={siteSettings.reason} />
           )}
 
-          <ModuleUnavailable title="訂閱" reason="not_implemented" note="訂閱模組將於後續階段接入，目前沒有可顯示的資料。" />
+          {subscriptions.ok ? (
+            <section className={`${cardClass} min-w-0`} aria-labelledby="subscriptions-heading">
+              <h2 id="subscriptions-heading" className="text-lg font-bold text-ink">
+                訂閱
+              </h2>
+              <p className="mt-1 text-xs text-slate-gray">唯讀：目前沒有實作定期扣款。</p>
+              {subscriptions.data.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-gray">還沒有訂閱紀錄。</p>
+              ) : (
+                <ul className="mt-3 grid gap-2 text-sm">
+                  {subscriptions.data.map((sub) => (
+                    <li key={sub.id} className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="min-w-0 text-ink">{sub.planName}</span>
+                      <StatusBadge tone={subscriptionTone[sub.status]}>{SUBSCRIPTION_STATUS_LABELS[sub.status]}</StatusBadge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Link href="/admin/commerce/subscriptions" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-teal-strong hover:underline">
+                前往訂閱 →
+              </Link>
+            </section>
+          ) : (
+            <ModuleUnavailable title="訂閱" reason={subscriptions.reason} />
+          )}
           <ModuleUnavailable title="部署紀錄" reason="not_implemented" note="客戶網站部署模組將於後續階段接入，目前沒有可顯示的資料。" />
 
           <section className={`${cardClass} min-w-0`}>

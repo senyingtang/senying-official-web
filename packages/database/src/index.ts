@@ -11,11 +11,14 @@ export type { Database, Json } from './types/database.types';
 export * from './data-source';
 export * from './site-settings';
 export * from './cms-content';
+export * from './commerce';
 export { createMockRepositories } from './mock/repositories';
 export { createSupabaseRepositories } from './supabase/repositories';
 export { MOCK_ACCOUNTS, MOCK_WORKSPACES, findMockAccountByEmail, findMockAccountById, type MockAccount } from './mock/identities';
 export { isNotImplementedError, isPermissionDeniedError, NotImplementedInPhaseError, SupabasePermissionError, SupabaseRepositoryError } from './supabase/errors';
 export { ContentSlugConflictError, isSlugConflictError } from './supabase/cms-repositories';
+export { MOCK_CATALOG, MOCK_PAYMENT_METHODS, resetMockCommerceState } from './mock/commerce-repositories';
+export { maskAccessCode } from './supabase/commerce-repositories';
 export { MOCK_BLOG_CATEGORIES, MOCK_BLOG_POSTS, MOCK_CASE_STUDIES, MOCK_NAVIGATION_ITEMS } from './mock/cms-content';
 export { rpcCreateWorkspaceFromAccessCode, rpcGenerateDnsInstruction, rpcRedeemAccessCode, type AccessCodeRpcResult } from './supabase/rpc';
 

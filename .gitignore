@@ -5,6 +5,7 @@ node_modules/
 # build output
 dist/
 .next/
+.next-supabase/
 .astro/
 out/
 .turbo/
@@ -32,6 +33,7 @@ test-results/
 .phase27-report/
 .phase28-report/
 .phase29-report/
+.phase30-report/
 
 # supabase local
 supabase/.branches/

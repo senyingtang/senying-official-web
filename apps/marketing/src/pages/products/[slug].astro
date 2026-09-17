@@ -1,5 +1,6 @@
 ---
 import { serviceJsonLd, softwareApplicationJsonLd } from '@syt/seo';
+import AddToCart from '../../components/AddToCart.astro';
 import ButtonLink from '../../components/ButtonLink.astro';
 import CategoryChips from '../../components/CategoryChips.astro';
 import DenseFeatureGrid from '../../components/DenseFeatureGrid.astro';
@@ -23,6 +24,7 @@ import { PRICING_NOTICE } from '../../content/pricing';
 import { getProductLayout } from '../../content/productLayouts';
 import { products, type ProductPage } from '../../content/products';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getStorefront, purchaseOptionFor } from '../../lib/commerce';
 import { siteUrl } from '../../lib/site';
 import { getBrandRuntime } from '../../lib/brand-runtime';
 
@@ -49,6 +51,8 @@ const breadcrumbs = [
   { label: product.name, href: product.path },
 ];
 const pricingNote = PRICING_NOTICE.join('・');
+// 可自助購買的商品才顯示加入購物車；其餘維持「預約討論 / 聯絡我們」
+const purchase = purchaseOptionFor(await getStorefront(), product.slug);
 const lightTone = (tone: string | undefined) => (tone === 'mist' ? 'mist' : 'white');
 ---
 
@@ -84,6 +88,17 @@ const lightTone = (tone: string | undefined) => (tone === 'mist' ? 'mist' : 'whi
           {hero.tertiary.href === 'line' && <IconGlyph name="message" class="h-5 w-5 text-teal" />}
           {hero.tertiary.label}
         </ButtonLink>
+      )
+    }
+    {
+      purchase && (
+        <AddToCart
+          priceId={purchase.priceId}
+          amountCents={purchase.amountCents}
+          currency={purchase.currency}
+          isTestPrice={purchase.isTestPrice}
+          productName={product.name}
+        />
       )
     }
     <Fragment slot="visual">

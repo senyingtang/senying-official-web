@@ -198,7 +198,8 @@ const expectText = (route, phrases) => {
   const missing = phrases.filter((phrase) => !page.text.includes(phrase));
   record(group5, `${route} 包含必要內容`, missing.length === 0, missing.length ? `缺少：${missing.join('、')}` : phrases.join('、'));
 };
-expectText('/checkout', ['選擇產品', '方案整理中', '權限代碼流程', '付款方式預留', '銀行轉帳', '綠界', 'LINE Pay', '目前尚未開放正式付款', '可先預約討論', '正式價格以確認報價為準']);
+// Phase 3.0：/checkout 是真的結帳流程（購物車 → 客戶資料 → 付款方式 → 訂單摘要），但只開放本機 Sandbox 模擬付款。
+expectText('/checkout', ['購物車內容', '客戶資料', '付款方式', '訂單摘要', '權限代碼流程', 'Sandbox', '不會真的扣款', '綠界', 'LINE Pay', '銀行轉帳', '尚未開放', '測試價格', '非正式售價', '隱私權政策']);
 expectText('/contact', ['LINE@', '需求表單', '常見需求', '預算區間', '服務類型', '聯絡方式', '不會送出']);
 expectText('/cases', ['Hungjui 形象官網', '品牌電商官網', 'SEO 文章生產器', '預約 / 活動頁', '產業', '需求', '使用產品', '成效指標', '頁面截圖']);
 // Phase 2.9：文章改由 CMS 發布，卡片顯示發布日期與閱讀時間，不再是「即將發布」
@@ -210,8 +211,27 @@ expectText('/legal/privacy', ['草稿', '目錄', '資料']);
 
 const checkout = pages.get('/checkout');
 if (checkout) {
-  const enabledSubmit = (checkout.html.match(/<button\b[^>]*>/g) ?? []).filter((tag) => /type="submit"/.test(tag) && !/\sdisabled/.test(tag));
-  record(group5, '/checkout 沒有可送出的付款表單', !/<form\b[^>]*\saction=/.test(checkout.html) && enabledSubmit.length === 0, `enabled submit: ${enabledSubmit.length}`);
+  // Phase 3.0：可以送出訂單，但不可以有任何卡號 / CVV 欄位，也不可以把資料直接 POST 給第三方；
+  // 付款按鈕必須預設停用，等購物車與客戶資料在瀏覽器就緒後才由 script 開啟。
+  const checkoutInputs = checkout.html.match(/<input\b[^>]*>/g) ?? [];
+  const CARD_FIELD = /\s(?:name|id|autocomplete)="[^"]*(?:card|cvv|cvc|credit[-_]?card|security[-_]?code|cc[-_]?num)[^"]*"/i;
+  const cardFields = checkoutInputs.filter((tag) => CARD_FIELD.test(tag));
+  const submitButtons = (checkout.html.match(/<button\b[^>]*>/g) ?? []).filter((tag) => /data-checkout-submit/.test(tag));
+  const enabledSubmit = submitButtons.filter((tag) => !/\sdisabled/.test(tag));
+  record(
+    group5,
+    '/checkout 不收卡號 / CVV、無 form action、付款按鈕預設停用',
+    cardFields.length === 0 && !/<form\b[^>]*\saction=/.test(checkout.html) && submitButtons.length === 1 && enabledSubmit.length === 0,
+    `card fields: ${cardFields.length}, submit: ${submitButtons.length}, enabled: ${enabledSubmit.length}`,
+  );
+  const methodInputs = checkoutInputs.filter((tag) => /\sname="payment_method"/.test(tag));
+  const realMoney = methodInputs.filter((tag) => /\svalue="(?:ecpay|linepay|bank_transfer)/i.test(tag));
+  record(
+    group5,
+    '/checkout 只提供模擬付款方式（沒有真實金流選項）',
+    methodInputs.length > 0 && realMoney.length === 0,
+    `methods: ${methodInputs.length}, real-money: ${realMoney.length}`,
+  );
   record(group5, '/checkout 為 noindex', (metaContent(checkout.html, 'name', 'robots') ?? '').includes('noindex'));
 }
 const contact = pages.get('/contact');
@@ -232,9 +252,21 @@ if (casesPage) {
 const sourceFiles = walk(SRC).filter((file) => /\.(astro|ts|css|md|mdx)$/.test(file));
 const bannedInSource = sourceFiles.flatMap((file) => BANNED.filter((phrase) => read(file).includes(phrase)).map((phrase) => `${rel(file)}: ${phrase}`));
 record('6. 文案', `禁用 AI 套話未出現（${BANNED.join('、')}）`, bannedInSource.length === 0, bannedInSource.join(' | ') || `${sourceFiles.length} source files + ${pages.size} pages`);
-const allText = [...pages.values()].map((page) => page.text).join('\n');
-const pricePattern = /(NT\$|NTD|新台幣)\s*[\d,]+|\$\s?\d{3,}|\d{1,3}(,\d{3})+\s*元|\d{4,}\s*元/;
-record('6. 文案', '沒有寫死未確認的價格', !pricePattern.test(allText), allText.match(pricePattern)?.[0] ?? 'clean');
+// Phase 3.0：價格不再全部隱藏，但目前資料庫裡只有測試價格。
+// 規則改成「頁面只要出現金額，同一頁就必須標示測試價格與非正式售價」，避免測試金額被當成正式報價。
+const PRICE_PATTERN = /(?:NT\$|NTD|新台幣|US\$|\$)\s?\d{1,3}(?:,\d{3})+|(?:NT\$|NTD|新台幣|US\$|\$)\s?\d{3,}|\d{1,3}(?:,\d{3})+\s*元|\d{4,}\s*元/g;
+const pricedPages = [...pages.entries()]
+  .map(([route, page]) => ({ route, amounts: page.text.match(PRICE_PATTERN) ?? [], text: page.text }))
+  .filter(({ amounts }) => amounts.length > 0);
+const unlabelledPrices = pricedPages
+  .filter(({ text }) => !(text.includes('測試價格') && text.includes('非正式售價')))
+  .map(({ route, amounts }) => `${route}: ${amounts.slice(0, 3).join(', ')}`);
+record(
+  '6. 文案',
+  '出現金額的頁面都標示「測試價格 / 非正式售價」（沒有未標示的價格）',
+  unlabelledPrices.length === 0,
+  unlabelledPrices.join(' | ') || (pricedPages.length ? `已標示：${pricedPages.map(({ route }) => route).join('、')}` : '目前沒有頁面顯示金額'),
+);
 const hoverOnly = sourceFiles.flatMap((file) =>
   [...read(file).matchAll(/(?:group-)?hover:(?:block|flex|grid|inline|inline-block|inline-flex|visible|opacity-100)(?![\w-])/g)].map((match) => `${rel(file)}: ${match[0]}`),
 );

@@ -3,6 +3,8 @@ import type {
   DeploymentStatus,
   DomainStatus,
   OrderStatus,
+  PaymentStatus,
+  ProviderEnvironment,
   SiteProjectStatus,
   SslStatus,
   SubscriptionStatus,
@@ -37,6 +39,41 @@ export const orderTone: Record<OrderStatus, BadgeTone> = {
   refunded: 'danger',
   partially_refunded: 'warning',
   failed: 'danger',
+};
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  pending: '待付款',
+  processing: '處理中',
+  awaiting_transfer: '等待轉帳',
+  succeeded: '付款成功',
+  failed: '付款失敗',
+  cancelled: '已取消',
+  expired: '已逾期',
+  refunded: '已退款',
+  partially_refunded: '部分退款',
+};
+
+export const paymentTone: Record<PaymentStatus, BadgeTone> = {
+  pending: 'warning',
+  processing: 'teal',
+  awaiting_transfer: 'warning',
+  succeeded: 'success',
+  failed: 'danger',
+  cancelled: 'neutral',
+  expired: 'neutral',
+  refunded: 'danger',
+  partially_refunded: 'warning',
+};
+
+/** sandbox 一律以警示色標示，避免把模擬付款誤看成正式收款 */
+export const ENVIRONMENT_LABELS: Record<ProviderEnvironment, string> = {
+  sandbox: '沙箱（模擬）',
+  production: '正式',
+};
+
+export const environmentTone: Record<ProviderEnvironment, BadgeTone> = {
+  sandbox: 'warning',
+  production: 'success',
 };
 
 export const SUBSCRIPTION_STATUS_LABELS: Record<SubscriptionStatus, string> = {

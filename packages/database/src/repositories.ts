@@ -1,6 +1,14 @@
 import type { CmsAdminRole, WorkspaceMembership } from '@syt/auth';
 import type { MarketingRouteGroup, RedeemStatus } from '@syt/shared';
 import type {
+  BuyerInput,
+  CartState,
+  CatalogProduct,
+  CreatedOrder,
+  OrderReceipt,
+  PaymentMethodOption,
+} from './commerce';
+import type {
   BlogCategoryOption,
   BlogPostDetail,
   BlogPostInput,
@@ -12,11 +20,14 @@ import type {
 } from './cms-content';
 import type {
   AccessCodeListItem,
+  AdminOrderDetail,
+  AdminOrderListItem,
   AuditLogItem,
   CustomerSiteSummary,
   DashboardStat,
   DeploymentItem,
   FormSubmissionItem,
+  OrderStatusCounts,
   OrderSummary,
   PaymentProviderCardConfig,
   PortalEntitlementItem,
@@ -82,12 +93,55 @@ export interface AccessCodeRepository {
   redeem(code: string): Promise<RedeemOutcome>;
 }
 
+/** 後台商務資料（Phase 3.0 起為 Supabase 真實資料） */
 export interface CommerceRepository {
   listProducts(): Promise<ProductPlanItem[]>;
   listPrices(): Promise<PriceItem[]>;
   listOrders(options?: ListOptions): Promise<OrderSummary[]>;
   listSubscriptions(options?: ListOptions): Promise<SubscriptionSummary[]>;
   listPaymentProviderCards(): Promise<PaymentProviderCardConfig[]>;
+  /** 後台訂單列表（含付款狀態與發碼數量） */
+  listAdminOrders(options?: ListOptions): Promise<AdminOrderListItem[]>;
+  /** 後台訂單明細；找不到或無權限時回傳 null（不透露訂單是否存在） */
+  getAdminOrder(orderId: string): Promise<AdminOrderDetail | null>;
+  /** 儀表板統計：訂單數、已付款、待付款、失敗、已收款金額 */
+  getOrderStatusCounts(): Promise<OrderStatusCounts>;
+}
+
+// ---------------------------------------------------------------------------
+// 前台商店（Phase 3.0）
+// ---------------------------------------------------------------------------
+
+/**
+ * 商品目錄：只回傳「可自助購買」的商品與可結帳的價格。
+ * 價格永遠來自資料庫，前台不得自行決定金額。
+ */
+export interface CommerceCatalogRepository {
+  listPurchasableProducts(): Promise<CatalogProduct[]>;
+  listPaymentMethods(): Promise<PaymentMethodOption[]>;
+}
+
+/**
+ * 購物車。
+ * token 是瀏覽器持有的訪客識別碼；資料庫只保存 sha256，且所有操作都經過 SECURITY DEFINER RPC，
+ * 因此瀏覽器既讀不到別人的購物車，也無法寫入單價。
+ */
+export interface CartRepository {
+  get(token: string | null): Promise<CartState>;
+  addItem(token: string, priceId: string, quantity: number): Promise<CartState>;
+  setQuantity(token: string, itemId: string, quantity: number): Promise<CartState>;
+  removeItem(token: string, itemId: string): Promise<CartState>;
+  clear(token: string): Promise<CartState>;
+}
+
+/**
+ * 訂單。
+ * createFromCart 由資料庫重新計算金額：client 傳來的任何金額都會被忽略。
+ */
+export interface OrderRepository {
+  createFromCart(token: string, buyer: BuyerInput, paymentMethodKey: string): Promise<CreatedOrder>;
+  /** 收據：以 unguessable token 查詢，付款完成後才回傳權限代碼 */
+  getReceipt(publicToken: string): Promise<OrderReceipt>;
 }
 
 export interface CustomerSiteRepository {
@@ -281,4 +335,7 @@ export interface Repositories {
   cmsCases: CmsCaseRepository;
   cmsStructure: CmsStructureRepository;
   marketingRebuild: MarketingRebuildTrigger;
+  catalog: CommerceCatalogRepository;
+  cart: CartRepository;
+  orders: OrderRepository;
 }

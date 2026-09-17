@@ -292,19 +292,20 @@ const eachPage = (fn) => all.flatMap((variant) => [...variant.pages].flatMap(([r
     const missing = INDEXABLE.filter((route) => !locs.includes(expectedCanonical(variant, route)));
     if (!xml.startsWith('<?xml')) problems.push(`${label(variant)} sitemap.xml 不存在`);
     if (missing.length) problems.push(`${label(variant)} 缺 ${missing.join(',')}`);
-    if (locs.some((loc) => loc.includes('/checkout'))) problems.push(`${label(variant)} 收錄 checkout`);
+    // Phase 3.0：購物車與結帳相關頁面（含 /checkout/success、/checkout/failed）都是交易頁，一律不進 sitemap
+    if (locs.some((loc) => /\/(?:cart|checkout)(?:\/|$)/.test(loc))) problems.push(`${label(variant)} 收錄交易頁（/cart 或 /checkout）`);
     if (locs.some((loc) => !loc.startsWith(variant.base))) problems.push(`${label(variant)} loc 網域不一致`);
     if (variant.indexing && locs.some((loc) => /localhost/.test(loc))) problems.push(`${label(variant)} 出現 localhost`);
   }
-  record(19, `sitemap.xml 收錄 ${INDEXABLE.length} 個可索引頁面、不含 checkout、網址使用 SITE_PUBLIC_URL`, problems.length === 0, problems.join(' | ') || 'ok');
+  record(19, `sitemap.xml 收錄 ${INDEXABLE.length} 個可索引頁面、不含 /cart 與 /checkout、網址使用 SITE_PUBLIC_URL`, problems.length === 0, problems.join(' | ') || 'ok');
 
   const robotsDefault = read(path.join(DIST, 'robots.txt'));
   const robotsProduction = production ? read(path.join(PRODUCTION_DIST, 'robots.txt')) : '';
   const robotsOk =
     robotsDefault.trim() === 'User-agent: *\nDisallow: /' &&
-    /User-agent: \*\nAllow: \/\nDisallow: \/checkout/.test(robotsProduction) &&
+    /User-agent: \*\nAllow: \/\nDisallow: \/cart\nDisallow: \/checkout/.test(robotsProduction) &&
     robotsProduction.includes(`Sitemap: ${PRODUCTION_URL}/sitemap.xml`);
-  record(20, 'robots.txt：未允許索引時 Disallow: /；正式設定為 Allow + Disallow /checkout + 絕對 Sitemap', robotsOk, `default=${JSON.stringify(robotsDefault.trim())} production=${JSON.stringify(robotsProduction.trim())}`);
+  record(20, 'robots.txt：未允許索引時 Disallow: /；正式設定為 Allow + Disallow /cart + /checkout + 絕對 Sitemap', robotsOk, `default=${JSON.stringify(robotsDefault.trim())} production=${JSON.stringify(robotsProduction.trim())}`);
 }
 
 // 正式設定 build 只是驗收用，完成後刪除，避免誤用

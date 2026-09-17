@@ -28,7 +28,7 @@ export const SEARCH_TYPE_LABELS: Record<SearchEntryType, string> = {
 };
 
 /** 索引不得包含的路徑前綴（驗收與執行時都以這份清單為準） */
-export const SEARCH_EXCLUDED_PREFIXES = ['/admin', '/portal', '/checkout', '/api'];
+export const SEARCH_EXCLUDED_PREFIXES = ['/admin', '/portal', '/cart', '/checkout', '/api'];
 
 const clamp = (value: string, max = 160): string => (value.length <= max ? value : `${value.slice(0, max - 1)}…`);
 

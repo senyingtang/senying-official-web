@@ -49,7 +49,7 @@ export const contactFaq: FaqItem[] = [
 ];
 
 export const checkoutFaq: FaqItem[] = [
-  { question: '現在付款會被扣款嗎？', answer: '不會。正式付款尚未開放，這個頁面沒有串接任何金流，也不會建立訂單。' },
+  { question: '現在付款會被扣款嗎？', answer: '不會。目前只開放本機 Sandbox 模擬付款：會建立訂單，但不會向任何金流機構請款，也不會真的扣款。正式金流（綠界、LINE Pay、銀行轉帳）尚未開放。' },
   { question: '付款後多久可以開始建站？', answer: '付款確認後會收到權限代碼，到客戶後台兌換即可開始。' },
   { question: '代碼可以買來送人嗎？', answer: '可以。代碼在兌換前可以轉讓，兌換後會綁定兌換的帳號。' },
   { question: '可以開發票嗎？', answer: '可以，購買時請提供發票需求與統一編號（如需要）。' },

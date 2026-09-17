@@ -1,0 +1,92 @@
+---
+import ButtonLink from '../../components/ButtonLink.astro';
+import Container from '../../components/Container.astro';
+import IconGlyph from '../../components/IconGlyph.astro';
+import Section from '../../components/Section.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/**
+ * 付款未完成頁（Phase 3.0）。
+ * 付款失敗或取消時不會發放任何權限：這一頁只提供重新付款與聯絡管道。
+ */
+const description = '付款未完成時的處理方式：重新付款、回購物車或聯絡森映。';
+const breadcrumbs = [
+  { label: '首頁', href: '/' },
+  { label: '結帳', href: '/checkout' },
+  { label: '付款未完成', href: '/checkout/failed' },
+];
+---
+
+<BaseLayout seo={{ title: '付款未完成', description, path: '/checkout/failed', noindex: true }} breadcrumbs={breadcrumbs}>
+  <Section tone="white" density="compact" name="order-failed" labelledby="failed-heading">
+    <div class="mx-auto min-w-0 max-w-2xl text-center">
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-warning/20 text-warning-strong">
+        <IconGlyph name="alert" class="h-7 w-7" />
+      </span>
+      <h1 id="failed-heading" class="mt-4 text-2xl font-bold text-ink sm:text-3xl">付款未完成</h1>
+      <p class="mt-3 text-sm leading-relaxed text-slate-gray">
+        這筆訂單沒有完成付款，因此<strong class="font-semibold text-ink">沒有發放任何權限代碼</strong>，也不會向你收取任何費用。
+        你可以重新付款，或回購物車調整內容。
+      </p>
+
+      <div data-failed-detail hidden class="mt-6 rounded-card border border-border-gray bg-surface p-5 text-left shadow-card">
+        <h2 class="text-base font-bold text-ink">訂單資訊</h2>
+        <dl class="mt-3 grid gap-2 text-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <dt class="text-slate-gray">訂單編號</dt>
+            <dd class="font-mono font-semibold text-ink" data-failed-number></dd>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <dt class="text-slate-gray">付款狀態</dt>
+            <dd class="font-semibold text-ink" data-failed-status></dd>
+          </div>
+          <div data-failed-reason-row hidden class="flex flex-wrap items-center justify-between gap-2">
+            <dt class="text-slate-gray">原因</dt>
+            <dd class="font-semibold text-ink" data-failed-reason></dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="mt-7 flex flex-col flex-wrap justify-center gap-2 sm:flex-row">
+        <ButtonLink href="/checkout" cta="primary" fullWidthOnMobile>重新付款</ButtonLink>
+        <ButtonLink href="/cart" variant="secondary" fullWidthOnMobile>回購物車</ButtonLink>
+        <ButtonLink href="/contact" variant="ghost" fullWidthOnMobile class="border border-border-gray">聯絡 SEN YING</ButtonLink>
+      </div>
+    </div>
+
+    <Container class="mt-8 px-0">
+      <p class="text-center text-xs leading-relaxed text-slate-gray">如果你已經被扣款但看到這一頁，請直接聯絡我們，我們會協助查詢與處理。</p>
+    </Container>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { PAYMENT_STATUS_LABELS_ZH } from '@syt/database/commerce';
+  import { createCartClient } from '../../lib/cart-client';
+  import { readCheckoutToken } from '../../lib/checkout-session';
+
+  const detail = document.querySelector<HTMLElement>('[data-failed-detail]');
+  if (detail) {
+    void (async () => {
+      const token = readCheckoutToken();
+      if (!token) return;
+      try {
+        const receipt = await createCartClient().getReceipt(token);
+        if (!receipt.found) return;
+        detail.hidden = false;
+        const number = detail.querySelector<HTMLElement>('[data-failed-number]');
+        if (number) number.textContent = receipt.orderNumber;
+        const status = detail.querySelector<HTMLElement>('[data-failed-status]');
+        if (status) status.textContent = PAYMENT_STATUS_LABELS_ZH[receipt.paymentStatus] ?? receipt.status;
+        const reasonRow = detail.querySelector<HTMLElement>('[data-failed-reason-row]');
+        const reason = detail.querySelector<HTMLElement>('[data-failed-reason]');
+        if (reasonRow && reason && receipt.paymentFailureMessage) {
+          reason.textContent = receipt.paymentFailureMessage;
+          reasonRow.hidden = false;
+        }
+      } catch {
+        // 查不到就只顯示一般說明
+      }
+    })();
+  }
+</script>

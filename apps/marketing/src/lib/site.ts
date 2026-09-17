@@ -20,6 +20,11 @@ export const lineIsExternal = /^https?:\/\//.test(lineOaUrl);
  * 未設定時：開發環境指向本機後台；正式 build 導向結帳頁的權限代碼說明。
  */
 const adminPublicUrl = normalizeBaseUrl(import.meta.env.ADMIN_PUBLIC_URL);
+/**
+ * 後台 API 來源（Phase 3.0）：sandbox 付款頁與金流 callback 都在 Next.js 後台。
+ * 未設定時：開發 / 驗收使用本機後台；正式 build 沒有設定就代表不開放結帳。
+ */
+export const adminApiBase = adminPublicUrl ?? (import.meta.env.DEV ? 'http://localhost:3000' : null);
 export const portalLoginUrl = adminPublicUrl
   ? `${adminPublicUrl}/portal/login`
   : import.meta.env.DEV

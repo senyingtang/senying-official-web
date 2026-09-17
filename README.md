@@ -98,7 +98,12 @@ pnpm dev:admin       # http://localhost:3000（/admin/login、/portal/login）
 | `pnpm search:verify` | Phase 2.9 全站搜尋驗收（12 項）：`/search`、`/search-index.json`、索引與 build 輸出一致、不含 draft / admin / portal / checkout、Header 入口、執行時行為與類型篩選 |
 | `pnpm phase29:verify` | db:verify-sync → db:smoke → build → cms:verify → cms-integration:verify → search:verify → site-settings:verify → local-env:verify → asset / seo / perf / global-ui / mockup / ui → phase2:verify（完整 RWD 一次）→ git:verify，見 `docs/PHASE_2_9_CMS_CONTENT_NOTES.md` |
 | `pnpm git:verify` | Phase 2.8.1 Git baseline：main 分支、origin 為官方 repo、working tree clean、.env / .next / dist / supabase/.temp 被 ignore、tracked 檔案無 secret、HEAD 與 GitHub origin/main 一致 |
-| `pnpm rwd:report:verify` | 確認最近一次完整 RWD 報告為 582 checks / 0 failures（`phase28:verify` / `phase29:verify` 的 `--skip-rwd` 使用，避免同一輪重跑 RWD） |
+| `pnpm payment:verify` | Phase 3.0 金流安全驗收（16 項）：`.env.example` 金流欄位空白、無寫死憑證、綠界 / LINE Pay 未設定時不 fallback 成假成功、CheckMacValue 與 HMAC 簽章、timingSafeEqual、webhook 冪等、不收卡號 / CVV、金額整數、sandbox 未啟用時 404 |
+| `pnpm commerce:verify` | Phase 3.0 資料庫 / RLS 驗收（14 項）：0018 與 docs 同步、8 支 SQL 測試、購物車結構、RPC deny-by-default、anon 讀不到訂單 / 付款 / 代碼、金額伺服器重算、發碼冪等、正式付款未開放、測試價格標示、收據 token 只存 sha256 |
+| `pnpm commerce-integration:verify` | Phase 3.0 端到端（16 項）：加入購物車 → 竄改金額測試 → 建立訂單 → 後台 Sandbox 付款頁 → 偽造簽章被拒 → 模擬付款成功 → 發碼 → 重送回調冪等 → 收據查詢 → 代碼遮罩 → audit 軌跡 |
+| `pnpm cart:verify` | Phase 3.0 購物車 / 結帳前台驗收（18 項）：`/cart` 與 `/checkout*` noindex 且不進 sitemap / 搜尋、加入購物車只送 price id、訪客 token 隨機且只存 sha256、顯示金額必標示測試價格、不收卡號 / CVV、官網不打包 supabase-js |
+| `pnpm phase30:verify` | db:verify-sync → db:smoke → build → payment / commerce / commerce-integration / cart → cms / cms-integration / search → site-settings → local-env → asset / seo / perf / global-ui / mockup / ui → phase2:verify（完整 RWD 一次）→ git:verify，見 `docs/PHASE_3_0_COMMERCE_NOTES.md` |
+| `pnpm rwd:report:verify` | 確認最近一次完整 RWD 報告為 606 checks / 0 failures（`phase28:verify` / `phase29:verify` / `phase30:verify` 的 `--skip-rwd` 使用，避免同一輪重跑 RWD） |
 
 RWD 檢查說明：
 
@@ -143,11 +148,14 @@ Mock 示範帳號（僅 mock 模式，email 為 example.com 保留網域）：
 - `pnpm phase2:auth`（權限與兌換流程 runtime 測試）
 - `pnpm rwd:check`（版面自動檢查）
 - `pnpm cms:verify` / `pnpm cms-integration:verify` / `pnpm search:verify`（Phase 2.9 CMS 內容與搜尋，需本機 `supabase start`）
+- `pnpm payment:verify` / `pnpm commerce:verify` / `pnpm commerce-integration:verify` / `pnpm cart:verify`（Phase 3.0 購物車 / 結帳 / Sandbox 付款，後三者需本機 `supabase start`）
 - 資料庫：`supabase/tests/*.sql`（DB SQL v2.0 smoke tests，需本機 `supabase start`）
 
 ## 環境變數與安全
 
 - `.env.example` 只保留空白值（`DATA_SOURCE=mock` 除外），不可提交正式 key、正式專案 ref、正式金流資訊或正式網域。
+- 正式付款未開放：唯一能完成付款的是本機 Sandbox 模擬付款（`PAYMENT_SANDBOX_ENABLED=true` + `PAYMENT_SANDBOX_SECRET`，兩者在 `.env.example` 都是空白）。
+  綠界與 LINE Pay 沒有憑證時一律顯示「未設定」，不會 fallback 成假成功；資料庫 feature flag `commerce.live_payments` 維持 `false`。
 - `PUBLIC_*` 會進入瀏覽器，只能放 Supabase anon key 等公開值。
 - `SUPABASE_SERVICE_ROLE_KEY` 只在 `apps/admin/src/lib/supabase/service-role.ts`（`server-only`）讀取；proxy、client component、Astro 前台都不讀取。Phase 2 沒有任何頁面使用 service role。
 - 一般查詢一律使用「使用者 session」client（anon key + Auth cookie），資料範圍由 RLS 決定。
@@ -175,6 +183,7 @@ Mock 示範帳號（僅 mock 模式，email 為 example.com 保留網域）：
 - `docs/PHASE_2_7_BRAND_SEO_ASSET_NOTES.md`
 - `docs/PHASE_2_8_SUPABASE_SITE_SETTINGS_NOTES.md`
 - `docs/PHASE_2_9_CMS_CONTENT_NOTES.md`
+- `docs/PHASE_3_0_COMMERCE_NOTES.md`
 - `docs/performance/PHASE_2_7_IMAGE_BUDGET.md`
 - `docs/森映品牌官網_CMS與SEO規劃_v1.0.md`
 - `docs/森映品牌官網_整體架構設計_v1.0.md`

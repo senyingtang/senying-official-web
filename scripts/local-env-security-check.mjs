@@ -79,16 +79,32 @@ try {
 // 3–4. build output
 // ---------------------------------------------------------------------------
 {
-  const buildFiles = [
+  const SERVABLE = /\.(html|js|css|json|txt|xml|map)$/;
+  // 瀏覽器看得到的輸出：連「SUPABASE_SERVICE_ROLE_KEY」這個字都不該出現
+  const browserFiles = [
     ...walk(path.join(MARKETING_DIR, 'dist')),
     ...walk(path.join(ROOT, '.phase28-report', 'supabase-dist')),
     ...walk(path.join(ADMIN_DIR, '.next', 'static')),
-  ].filter((file) => /\.(html|js|css|json|txt|xml|map)$/.test(file));
-  const leaks = buildFiles.filter((file) => {
-    const text = readFileSync(file, 'utf8');
-    return text.includes(env.serviceRoleKey) || /SUPABASE_SERVICE_ROLE_KEY/.test(text);
-  });
-  record(3, `本機 service role key 不在 build output（marketing dist、supabase-dist、admin .next/static；${buildFiles.length} files）`, buildFiles.length > 0 && leaks.length === 0, leaks.map(rel).slice(0, 3).join(', ') || `service role ${maskSecret(env.serviceRoleKey)} not found`);
+    ...walk(path.join(ADMIN_DIR, '.next-supabase', 'static')),
+  ].filter((file) => SERVABLE.test(file));
+  // 後台 server bundle：process.env.SUPABASE_SERVICE_ROLE_KEY 是正常的（runtime 才讀），
+  // 但 key 的「值」不可以被內嵌進 build output
+  const serverFiles = [...walk(path.join(ADMIN_DIR, '.next-supabase'))]
+    .filter((file) => SERVABLE.test(file) && !file.includes(`${path.sep}static${path.sep}`));
+  const buildFiles = [...browserFiles, ...serverFiles];
+  const leaks = [
+    ...browserFiles.filter((file) => {
+      const text = readFileSync(file, 'utf8');
+      return text.includes(env.serviceRoleKey) || /SUPABASE_SERVICE_ROLE_KEY/.test(text);
+    }),
+    ...serverFiles.filter((file) => readFileSync(file, 'utf8').includes(env.serviceRoleKey)),
+  ];
+  record(
+    3,
+    `本機 service role key 不在 build output（瀏覽器輸出連變數名都沒有；後台 server bundle 只允許 process.env 讀取；${buildFiles.length} files）`,
+    browserFiles.length > 0 && leaks.length === 0,
+    leaks.map(rel).slice(0, 3).join(', ') || `service role ${maskSecret(env.serviceRoleKey)} not found`,
+  );
 
   const anonFiles = buildFiles.filter((file) => readFileSync(file, 'utf8').includes(env.anonKey)).map(rel);
   record(4, '本機 anon key 可存在 browser（公開 key）；Astro static 讀取設定只在 build 時使用', true, anonFiles.length ? `出現在 ${anonFiles.slice(0, 3).join(', ')}` : 'build output 未包含 anon key（build 時讀取，不送到瀏覽器）');
@@ -98,7 +114,7 @@ try {
 // 5–7. repo / 報告
 // ---------------------------------------------------------------------------
 {
-  const repoFiles = walk(ROOT, new Set([...SKIP, 'dist', '.next', 'supabase-dist'])).filter((file) => TEXT.test(file) || path.basename(file).startsWith('.env'));
+  const repoFiles = walk(ROOT, new Set([...SKIP, 'dist', '.next', '.next-supabase', 'supabase-dist'])).filter((file) => TEXT.test(file) || path.basename(file).startsWith('.env'));
   const PRODUCTION_PATTERNS = [
     ['正式 Supabase 專案網址', /https?:\/\/[a-z0-9]{20}\.supabase\.(co|in)\b/i],
     ['sb_secret key', /\bsb_secret_[A-Za-z0-9_-]{16,}/],

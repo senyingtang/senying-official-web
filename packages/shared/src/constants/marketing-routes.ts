@@ -35,7 +35,8 @@ export const MARKETING_ROUTES: readonly MarketingRouteInfo[] = [
   { route: '/blog', name: '部落格', purpose: 'SEO 優化、網站設計、內容行銷與品牌經營的實作筆記。', group: 'content', indexable: true, keywords: ['部落格', '文章', 'SEO', '內容行銷'] },
   { route: '/about', name: '關於我們', purpose: '森映的品牌介紹、做事方式與服務範圍。', group: 'main', indexable: true, keywords: ['關於', '品牌', '團隊', '森映'] },
   { route: '/contact', name: '聯絡我們', purpose: '網站建置、電商與客製需求的詢問與報價聯絡方式。', group: 'main', indexable: true, keywords: ['聯絡', '詢問', '報價', '諮詢'] },
-  { route: '/checkout', name: '價格方案', purpose: '方案、權限代碼與付款方式說明（頁面為 noindex，不收錄於搜尋）。', group: 'main', indexable: false, keywords: ['價格', '方案', '付款'] },
+  { route: '/cart', name: '購物車', purpose: '購物車內容與數量調整（頁面為 noindex，不收錄於搜尋與 sitemap）。', group: 'main', indexable: false, keywords: ['購物車', '結帳'] },
+  { route: '/checkout', name: '結帳', purpose: '確認購物車、填寫訂購資料並選擇付款方式（頁面為 noindex，不收錄於搜尋與 sitemap）。', group: 'main', indexable: false, keywords: ['結帳', '付款', '方案', '權限代碼'] },
   { route: '/legal/terms', name: '服務條款', purpose: '森映自助建站平台服務條款。', group: 'legal', indexable: true, keywords: ['條款', '服務條款', '法律'] },
   { route: '/legal/privacy', name: '隱私權政策', purpose: '森映自助建站平台隱私權政策。', group: 'legal', indexable: true, keywords: ['隱私', '個資', '政策'] },
 ];

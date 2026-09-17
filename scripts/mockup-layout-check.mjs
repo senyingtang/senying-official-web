@@ -234,24 +234,31 @@ for (const [route, expectedCount] of Object.entries(EXPECTED_COUNTS)) {
 {
   const html = pages.get('/checkout') ?? '';
   const text = visibleText(html);
-  const phrases = ['目前尚未開放正式付款', '付款流程為示意', '預約討論', '人工開單', '銀行轉帳', '綠界', 'LINE Pay', '預留'];
+  // Phase 3.0：這一頁是真的結帳流程，但只開放本機 Sandbox 模擬付款。
+  // 必須守住的是：明確標示模擬付款、不收集卡號 / CVV、不提供任何真實金流方式、顯示金額時一併標示測試價格。
+  const phrases = ['Sandbox', '模擬', '不會真的扣款', '隱私權政策', '權限代碼'];
   const missing = phrases.filter((phrase) => !text.includes(phrase));
   const forms = html.match(/<form\b[^>]*>/g) ?? [];
-  const enabledSubmit = (html.match(/<button\b[^>]*>/g) ?? []).filter((tag) => /type="submit"/.test(tag) && !/\sdisabled/.test(tag));
+  const inputs = html.match(/<input\b[^>]*>/g) ?? [];
+  const CARD_FIELD = /\s(?:name|id|autocomplete)="[^"]*(?:card|cvv|cvc|credit[-_]?card|security[-_]?code|cc[-_]?num)[^"]*"/i;
+  const cardFields = inputs.filter((tag) => CARD_FIELD.test(tag));
   const paymentSection = sectionHtml(html, 'payment-methods');
   const paymentInputs = paymentSection.match(/<input\b[^>]*>/g) ?? [];
-  const enabledPayment = paymentInputs.filter((tag) => !/\sdisabled/.test(tag));
+  const REAL_MONEY = /value="(ecpay|linepay|bank_transfer)[^"]*"/i;
+  const realMoneyOptions = paymentInputs.filter((tag) => REAL_MONEY.test(tag));
   const summary = sectionHtml(html, 'order-summary');
   const payButton = (summary.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) ?? []).find((tag) => tag.includes('付款'));
+  const amounts = text.match(/NT\$|NTD|新台幣|\$\s?[\d,]{3,}|\d{1,3}(?:,\d{3})+\s*元/g) ?? [];
   const problems = [];
   if (missing.length) problems.push(`缺少：${missing.join('、')}`);
-  if (!/data-checkout-notice/.test(html)) problems.push('沒有 data-checkout-notice');
-  if (forms.some((tag) => /\saction=/.test(tag))) problems.push('有 form action');
-  if (enabledSubmit.length) problems.push(`可送出按鈕 ${enabledSubmit.length}`);
-  if (paymentInputs.length === 0 || enabledPayment.length) problems.push(`付款方式可選取 ${enabledPayment.length}`);
-  if (!payButton || !/\sdisabled/.test(payButton)) problems.push('付款按鈕未停用');
-  if (/NT\$|NTD|新台幣|\d{1,3}(,\d{3})+\s*元/.test(text)) problems.push('出現金額');
-  record(16, '/checkout 標示尚未開放正式付款、付款為示意、無法送出付款', problems.length === 0, problems.join('; ') || phrases.join('、'));
+  if (forms.some((tag) => /\saction=/.test(tag))) problems.push('有 form action（付款資料不可直接 POST 到第三方）');
+  if (cardFields.length) problems.push(`收集卡號 / CVV 欄位 ${cardFields.length}`);
+  if (paymentInputs.length === 0) problems.push('沒有付款方式可選');
+  if (realMoneyOptions.length) problems.push(`提供真實金流方式 ${realMoneyOptions.length}`);
+  if (!payButton) problems.push('訂單摘要沒有付款按鈕');
+  if (payButton && !/\sdisabled/.test(payButton)) problems.push('付款按鈕預設未停用（應在購物車載入後才啟用）');
+  if (amounts.length && !(text.includes('測試價格') && text.includes('非正式售價'))) problems.push(`顯示金額但沒有標示測試價格：${amounts.slice(0, 3).join(', ')}`);
+  record(16, '/checkout 明確標示 Sandbox 模擬付款、不收卡號 / CVV、不提供真實金流', problems.length === 0, problems.join('; ') || phrases.join('、'));
 }
 
 // ---------------------------------------------------------------------------

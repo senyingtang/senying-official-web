@@ -130,7 +130,7 @@ const verifyHome = htmlOf(VERIFY_DIST, '/');
   const defaultPages = walk(DIST).filter((file) => file.endsWith('.html'));
   // 只比對實際輸出的元素屬性（Astro 會把小型 client script 內嵌到 HTML，script 內的 selector 字串不算購物車 UI）
   const CART_ELEMENT = /<[a-z][^>]*\sdata-cart-(link|badge|count-text)(?=[\s=>])/;
-  const cartHits = defaultPages.filter((file) => CART_ELEMENT.test(read(file).replace(/<script[\s\S]*?<\/script>/g, ''))).map(rel);
+  const cartHits = defaultPages.filter((file) => CART_ELEMENT.test(read(file).replace(/<script\b[\s\S]*?<\/script>/g, ''))).map(rel);
   record(8, 'cartEnabled=false（預設）時完全不 render 購物車 UI', defaultSettings.floatingActions.cartEnabled === false && cartHits.length === 0 && /data-cart-link/.test(verifyHome), cartHits.slice(0, 3).join(', ') || `${defaultPages.length} 頁無購物車；驗收 build 有購物車`);
 }
 

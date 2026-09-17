@@ -17,6 +17,9 @@ export default async function PaymentProvidersPage() {
         description="對應 commerce_payment_provider_configs 與 commerce_payment_methods。勾選啟用後才顯示設定欄位；只有 owner / admin 可以檢視與修改。"
       />
       <div className="grid gap-4">
+        <Notice tone="warning" title="目前只啟用本機 Sandbox 模擬付款">
+          綠界與 LINE Pay 只有骨架：沒有 sandbox credentials 時一律顯示「未設定」，不會 fallback 成假成功。
+        </Notice>
         <Notice tone="danger" title="不要在這裡填入正式金流資訊">
           HashKey、HashIV、Channel Secret 等密鑰只存放在 Supabase Vault 或 Edge Function Secrets，這裡只填「參照名稱」，例如 vault:ecpay_sandbox_hash_key。
         </Notice>

@@ -6,6 +6,9 @@ const monorepoRoot = path.resolve(process.cwd(), '../..');
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // 驗收腳本（pnpm commerce-integration:verify）以本機 Supabase 設定另外 build 一份時使用；
+  // 一般 build 固定輸出到 .next。PUBLIC_* 會在 build 時內嵌，所以不同設定必須分開 build。
+  distDir: process.env.ADMIN_DIST_DIR || '.next',
   transpilePackages: ['@syt/auth', '@syt/database', '@syt/shared', '@syt/ui'],
   outputFileTracingRoot: monorepoRoot,
   turbopack: { root: monorepoRoot },

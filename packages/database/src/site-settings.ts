@@ -80,7 +80,7 @@ export const DEFAULT_FLOATING_ACTION_SETTINGS: FloatingActionSettings = {
   desktopEnabled: true,
   mobileEnabled: true,
   cartEnabled: false,
-  cartHref: '/checkout',
+  cartHref: '/cart',
   cartLabel: '購物車',
   cartBadgeEnabled: true,
 };
@@ -143,7 +143,7 @@ export function getMockMarketingSiteSettings(preset: string | undefined = 'defau
       social('email', 70, { enabled: true, url: 'mailto:hello@example.com', openInNewTab: false }),
       social('phone', 80, { enabled: true, url: '' }),
     ],
-    floatingActions: { ...settings.floatingActions, cartEnabled: true, cartHref: '/checkout', cartBadgeEnabled: true },
+    floatingActions: { ...settings.floatingActions, cartEnabled: true, cartHref: '/cart', cartBadgeEnabled: true },
   };
 }
 

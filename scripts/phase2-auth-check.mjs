@@ -21,7 +21,7 @@ const results = [];
 const record = (group, name, ok, detail = '') => results.push({ group, name, ok: Boolean(ok), detail: String(detail ?? '') });
 const rel = (file) => path.relative(ROOT, file).split(path.sep).join('/');
 const read = (file) => (existsSync(file) ? readFileSync(file, 'utf8') : '');
-const SKIP_DIRS = new Set(['node_modules', '.next', 'dist', '.astro', '.turbo', '.rwd-report']);
+const SKIP_DIRS = new Set(['node_modules', '.next', '.next-supabase', 'dist', '.astro', '.turbo', '.rwd-report']);
 
 function walk(dir, skip = SKIP_DIRS) {
   if (!existsSync(dir)) return [];
@@ -278,8 +278,8 @@ if (args.has('--rebuild') || stale) {
 }
 
 const clientBundle = [...walkBuild(path.join(ADMIN_DIR, '.next', 'static')), ...walkBuild(path.join(MARKETING_DIR, 'dist'))].filter((file) => /\.(js|mjs|css|html|json|txt|xml)$/.test(file));
-const SERVER_ONLY_MARKERS = ['SUPABASE_SERVICE_ROLE_KEY', 'AUTH_COOKIE_SECRET', 'EC_PAY_HASH_KEY', 'EC_PAY_HASH_IV', 'LINE_PAY_CHANNEL_SECRET', 'CLOUDFLARE_API_TOKEN', 'syt-local-mock-session-signing-key'];
-for (const key of ['SUPABASE_SERVICE_ROLE_KEY', 'AUTH_COOKIE_SECRET', 'EC_PAY_HASH_KEY', 'EC_PAY_HASH_IV', 'LINE_PAY_CHANNEL_SECRET', 'CLOUDFLARE_API_TOKEN']) {
+const SERVER_ONLY_MARKERS = ['SUPABASE_SERVICE_ROLE_KEY', 'AUTH_COOKIE_SECRET', 'EC_PAY_HASH_KEY', 'EC_PAY_HASH_IV', 'LINE_PAY_CHANNEL_SECRET', 'PAYMENT_SANDBOX_SECRET', 'CLOUDFLARE_API_TOKEN', 'syt-local-mock-session-signing-key'];
+for (const key of ['SUPABASE_SERVICE_ROLE_KEY', 'AUTH_COOKIE_SECRET', 'EC_PAY_HASH_KEY', 'EC_PAY_HASH_IV', 'LINE_PAY_CHANNEL_SECRET', 'PAYMENT_SANDBOX_SECRET', 'CLOUDFLARE_API_TOKEN']) {
   if ((process.env[key] ?? '').trim().length >= 8) SERVER_ONLY_MARKERS.push(process.env[key].trim());
 }
 const bundleLeaks = [];
