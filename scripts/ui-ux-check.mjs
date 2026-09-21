@@ -9,7 +9,8 @@
 //   6. 文案：禁用 AI 套話、不寫死未確認價格、重要內容不靠 hover 才出現
 //   7. 安全：正式 Supabase URL / key、正式金流資料、前台不讀 server-only env
 //   8. 效能：無影片、無大型動畫套件、JS / CSS / 圖片 / HTML 大小預算、img 尺寸
-//   9. runtime（Chrome）：Hero 高度、CTA 不需 hover 即可見、手機 CTA 直向排列、Mockup 不超出、LCP
+//   9. runtime（Chrome）：Hero 高度、CTA 不需 hover 即可見、手機 CTA 直向排列、Mockup 不超出、LCP、
+//      首頁精選作品 rail 為有限輪播（375 / 430 / 1440：滑到最後一張停住、不回第一張）
 //  10. RWD：pnpm rwd:check marketing（375 / 430 / 768 / 1024 / 1280 / 1440）
 //  11. 圖片（Phase 2.6）：media.ts 與 IMAGE_SELECTION_PLAN.csv 對齊、各頁引用對應 final 圖、src 規則、alt / width / height、
 //      首頁 Hero 圖 eager + fetchpriority high、每頁最多 1 張 eager、og:image 使用對應的 1200×630 正式 OG 圖（Phase 2.7）
@@ -541,6 +542,72 @@ try {
     );
     record('9. LCP', `${width}px 首頁 LCP ≤ 2500 ms（本機靜態服務）`, lcp >= 0 && lcp <= 2500, `${Math.round(lcp)} ms`);
     await context.close();
+  }
+
+  // 首頁「精選作品」rail：有限輪播（不循環）。一路往右滑到最後一張，scrollLeft 只能往右增加；
+  // 停在最後一張 ≥ 2 秒不可被拉回第一張；桌機 / 手機都維持 scroll-snap（snap 點在每張卡片，不是整條 ul）
+  {
+    // 原始碼：rail 沒有 JS 輪播（autoplay / 程式捲動 / clone 無限循環）；唯一的程式捲動是回到頁首（window.scrollTo）
+    const railScripts = walk(SRC)
+      .filter((file) => /\.(ts|astro)$/.test(file))
+      .filter((file) => /scrollLeft\s*=|\.scrollTo\(|\.scrollBy\(|scrollIntoView\(|setInterval\(/.test(read(file)) && !/back-to-top-client\.ts$/.test(file))
+      .map(rel);
+    const component = read(path.join(SRC, 'components', 'HorizontalShowcaseRail.astro'));
+    record(
+      '9. 精選作品 carousel',
+      '沒有 JS 強制捲動 / autoplay / clone 無限循環（rail 只用原生捲動 + scroll-snap）',
+      railScripts.length === 0 && !/<script\b/.test(component),
+      railScripts.join(', ') || 'HorizontalShowcaseRail 無 client script',
+    );
+  }
+  for (const width of [375, 430, 1440]) {
+    const railContext = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1 });
+    const page = await railContext.newPage();
+    await page.goto(`${server.url}/`, { waitUntil: 'networkidle' });
+    const rail = page.locator('[data-section="featured-works"] .syt-rail').first();
+    await rail.scrollIntoViewIfNeeded();
+    const readRail = () =>
+      rail.evaluate((element) => {
+        const items = [...element.querySelectorAll(':scope > ul > li')];
+        const railRect = element.getBoundingClientRect();
+        const last = items.at(-1)?.getBoundingClientRect();
+        return {
+          left: element.scrollLeft,
+          max: element.scrollWidth - element.clientWidth,
+          step: items[0]?.getBoundingClientRect().width ?? 0,
+          count: items.length,
+          snapType: getComputedStyle(element).scrollSnapType,
+          itemSnap: items.map((item) => getComputedStyle(item).scrollSnapAlign),
+          listSnap: getComputedStyle(element.firstElementChild).scrollSnapAlign,
+          lastVisible: Boolean(last) && last.right <= railRect.right + 1 && last.left >= railRect.left - 1,
+        };
+      });
+    const start = await readRail();
+    const box = await rail.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const positions = [start.left];
+    // 以卡片寬度為一步的水平滾輪（trackpad / wheel），每步等 snap 結束
+    for (let step = 0; step < start.count + 2; step += 1) {
+      await page.mouse.wheel(Math.round(start.step * 0.9), 0);
+      await page.waitForTimeout(700);
+      positions.push((await readRail()).left);
+      if (positions.at(-1) >= start.max - 1) break;
+    }
+    const atEnd = await readRail();
+    await page.waitForTimeout(2500);
+    const afterWait = await readRail();
+    const monotonic = positions.every((value, index) => index === 0 || value >= positions[index - 1] - 1);
+    const strictlyAdvanced = start.max <= 1 || positions.slice(1).every((value, index) => value > positions[index] + 1 || value >= start.max - 1);
+    const reachedEnd = atEnd.left >= start.max - 1 && atEnd.lastVisible;
+    const stayed = Math.abs(afterWait.left - atEnd.left) <= 1 && (start.max <= 1 || afterWait.left > 1);
+    const snapKept = start.snapType.includes('x') && start.snapType.includes('mandatory') && start.itemSnap.every((value) => value === 'start') && start.listSnap === 'none';
+    record(
+      '9. 精選作品 carousel',
+      `${width}px 由第一張滑到最後一張：scrollLeft 單調往右、停在最後一張 2.5 秒不回第一張、維持 scroll-snap（${start.count} 張）`,
+      start.count > 0 && monotonic && strictlyAdvanced && reachedEnd && stayed && snapKept,
+      `scrollLeft ${positions.map(Math.round).join('→')} / max ${Math.round(start.max)} · 2.5s 後 ${Math.round(afterWait.left)} · snap=${start.snapType} li=${[...new Set(start.itemSnap)].join(',')} ul=${start.listSnap}${start.max <= 1 ? ' · 此寬度全部卡片已在畫面內' : ''}`,
+    );
+    await railContext.close();
   }
 
   const context = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 1 });

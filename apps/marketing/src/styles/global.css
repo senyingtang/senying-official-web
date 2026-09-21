@@ -106,14 +106,27 @@
   }
 
   /* 水平輪播：原生捲動 + scroll-snap，不需 JS；捲軸細而可見 */
+  /*
+   * 有限輪播（不循環）：snap 點是每一張卡片（ul > li），第一張不能再往左、最後一張停住。
+   * 之前 snap-align 設在唯一的直接子元素 <ul> 上 → 整條 rail 只有「第一張」一個 snap 點，
+   * mandatory 會在每次滑動後把位置拉回第一張。
+   * scroll-padding 對齊 rail 的左右留白（手機 px-4，sm 以上 px-0），卡片停在留白之後。
+   */
   .syt-rail {
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
     scrollbar-width: thin;
     scrollbar-color: rgb(148 163 184 / 0.5) transparent;
     -webkit-overflow-scrolling: touch;
   }
 
-  .syt-rail > * {
+  @media (min-width: 430px) {
+    .syt-rail {
+      scroll-padding-inline: 0;
+    }
+  }
+
+  .syt-rail > ul > li {
     scroll-snap-align: start;
   }
 
