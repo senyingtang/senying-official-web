@@ -13,6 +13,7 @@ import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright-core';
+import { buildsMarketing, cleanMarketingOutDir, mockBuildEnv } from './lib/build-env.mjs';
 import { ADMIN_DIR, MARKETING_DIR, ROOT, findChrome, installSignalCleanup, startMarketingServer, stopAll } from './lib/servers.mjs';
 
 const args = new Set(process.argv.slice(2));
@@ -37,7 +38,10 @@ function walk(dir, skip = new Set(['node_modules', 'cache'])) {
 
 function run(command, env = {}) {
   console.log(`\n[global-ui] $ ${command}${Object.keys(env).length ? `  (${Object.entries(env).map(([k, v]) => `${k}=${v}`).join(' ')})` : ''}`);
-  return spawnSync(command, { cwd: ROOT, stdio: 'inherit', shell: true, env: { ...process.env, DATA_SOURCE: 'mock', ...env } }).status === 0;
+  // 官網 build：清 outDir + 顯式清掉 PUBLIC_SUPABASE_*（scripts/lib/build-env.mjs）
+  if (buildsMarketing(command)) cleanMarketingOutDir(env.ASTRO_OUT_DIR || 'dist');
+  const childEnv = buildsMarketing(command) ? mockBuildEnv(env) : { ...process.env, DATA_SOURCE: 'mock', ...env };
+  return spawnSync(command, { cwd: ROOT, stdio: 'inherit', shell: true, env: childEnv }).status === 0;
 }
 
 const tagAttr = (tag, name) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1] ?? null;

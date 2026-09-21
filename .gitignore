@@ -16,6 +16,8 @@ next-env.d.ts
 .env
 .env.*
 !.env.example
+# Phase 3.1.1：正式 Supabase 憑證只放這裡（Vite 不會自動載入；只由 supabase build 顯式注入 PUBLIC_*）
+apps/marketing/.env.supabase.local
 
 # logs / os
 npm-debug.log*
@@ -34,6 +36,7 @@ test-results/
 .phase28-report/
 .phase29-report/
 .phase30-report/
+.phase31-report/
 
 # supabase local
 supabase/.branches/

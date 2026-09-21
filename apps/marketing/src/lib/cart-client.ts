@@ -5,9 +5,9 @@ import { dispatchCartUpdated } from './cart';
 /**
  * 瀏覽器端購物車（Phase 3.0）。
  *
- * - 有設定 Supabase（PUBLIC_SUPABASE_URL / ANON_KEY）：所有操作都呼叫 SECURITY DEFINER RPC，
+ * - DATA_SOURCE=supabase 的 build：所有操作都呼叫 SECURITY DEFINER RPC，
  *   金額與可購買性由資料庫判斷；瀏覽器只持有 cart token（資料庫存 sha256）
- * - 沒有設定（DATA_SOURCE=mock 的示範 build）：使用 localStorage 示範購物車，
+ * - DATA_SOURCE=mock 的示範 build（不論是否帶 PUBLIC_SUPABASE_*）：使用 localStorage 示範購物車，
  *   畫面會明確標示「示範購物車（未連線資料庫）」
  *
  * 這裡刻意不使用 @supabase/supabase-js：只需要一個 POST，避免把整包 SDK 放進官網 bundle。
@@ -28,8 +28,15 @@ export interface CartClient {
 const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL as string | undefined;
 const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string | undefined;
 
+/**
+ * 是否使用資料庫購物車（Phase 3.1.1）。
+ *
+ * 只看 build 時由 BaseLayout 寫入的 <html data-commerce-backend>（lib/commerce.ts commerceBackendKind()），
+ * 不看 PUBLIC_SUPABASE_* 是否存在：DATA_SOURCE=mock 的 build 即使帶了憑證也一律使用示範購物車，不會讀寫任何資料庫購物車。
+ */
 export function isCommerceBackendConfigured(): boolean {
-  return Boolean(SUPABASE_URL?.trim() && SUPABASE_ANON_KEY?.trim());
+  if (typeof document === 'undefined') return false;
+  return document.documentElement.dataset.commerceBackend === 'supabase';
 }
 
 /** 隨機 cart token（只存在瀏覽器；資料庫保存 sha256） */
@@ -63,6 +70,8 @@ export class CartRpcError extends Error {
 }
 
 async function rpc<T>(fn: string, args: Record<string, unknown>, parse: (value: unknown) => T): Promise<T> {
+  // build 時 DATA_SOURCE=supabase 缺憑證會直接失敗；這裡只是防線，明確報錯而不是改用示範購物車
+  if (!SUPABASE_URL?.trim() || !SUPABASE_ANON_KEY?.trim()) throw new CartRpcError('購物車後端設定不完整（缺 PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY）。', 'config');
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: {

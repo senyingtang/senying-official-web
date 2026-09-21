@@ -1,6 +1,6 @@
 // RWD 驗收用的本機服務管理：建置檢查、找空閒 port、啟動 / 等待 / 關閉服務
 import { spawn, spawnSync } from 'node:child_process';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, rmSync, statSync } from 'node:fs';
 import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
@@ -37,7 +37,11 @@ export function ensureBuilt(apps, { force = false } = {}) {
   const missing = apps.filter((app) => force || !existsSync(markers[app]));
   if (missing.length === 0) return;
   console.log(`[rwd] build output missing for ${missing.join(', ')} → running pnpm build`);
-  const result = spawnSync('pnpm build', { cwd: ROOT, stdio: 'inherit', shell: true });
+  // 驗收服務一律使用 mock build：顯式 DATA_SOURCE=mock 並清掉 PUBLIC_SUPABASE_*（與 scripts/lib/build-env.mjs 相同規則）
+  const env = { ...process.env, DATA_SOURCE: 'mock' };
+  for (const key of ['PUBLIC_SUPABASE_URL', 'PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']) delete env[key];
+  if (missing.includes('marketing')) rmSync(path.join(MARKETING_DIR, 'dist'), { recursive: true, force: true });
+  const result = spawnSync('pnpm build', { cwd: ROOT, stdio: 'inherit', shell: true, env });
   if (result.status !== 0) throw new Error('pnpm build failed');
 }
 

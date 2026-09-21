@@ -21,6 +21,7 @@ import Header from '../components/Header.astro';
 import NavSheet from '../components/NavSheet.astro';
 import { ogImages, type OgImageAsset } from '../content/ogImages';
 import { BRAND_ASSET_FALLBACKS, getBrandRuntime } from '../lib/brand-runtime';
+import { commerceBackendKind } from '../lib/commerce';
 import { allowIndexing, siteUrl, siteUrlIsFallback } from '../lib/site';
 import { floatingActionsView, getMarketingSiteSettings } from '../lib/site-settings';
 
@@ -61,6 +62,9 @@ const robots = allowIndexing ? resolved.robots : 'noindex,nofollow';
 const siteSettings = await getMarketingSiteSettings();
 const floating = floatingActionsView(siteSettings);
 
+// 購物車後端（build 時決定，瀏覽器端 cart-client.ts 只讀 data-commerce-backend）
+const commerceBackend = commerceBackendKind();
+
 const faqJsonLd = faqPageJsonLd(faq);
 const structuredData: JsonLd[] = [breadcrumbJsonLd(siteUrl, breadcrumbs), ...(faqJsonLd ? [faqJsonLd] : []), ...jsonLd];
 
@@ -70,7 +74,7 @@ if (import.meta.env.DEV && resolved.warnings.length > 0) {
 ---
 
 <!doctype html>
-<html lang="zh-Hant-TW" data-shell-bottom-nav data-fa-rail={floating.desktop ? '' : undefined} data-fa-mobile={floating.mobile ? '' : undefined}>
+<html lang="zh-Hant-TW" data-commerce-backend={commerceBackend} data-shell-bottom-nav data-fa-rail={floating.desktop ? '' : undefined} data-fa-mobile={floating.mobile ? '' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

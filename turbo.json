@@ -17,6 +17,7 @@
         "SITE_ALLOW_INDEXING",
         "SITE_SETTINGS_MOCK_PRESET"
       ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local", ".env.production", ".env.production.local"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {

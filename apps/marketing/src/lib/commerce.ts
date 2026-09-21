@@ -27,12 +27,30 @@ export function getStorefront(): Promise<StorefrontData> {
   return pending;
 }
 
-async function load(): Promise<StorefrontData> {
-  const config = resolveDataSourceConfig({
+function dataSourceConfig() {
+  return resolveDataSourceConfig({
     DATA_SOURCE: import.meta.env.DATA_SOURCE,
     PUBLIC_SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL,
     PUBLIC_SUPABASE_ANON_KEY: import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
   });
+}
+
+/**
+ * 購物車後端（Supabase RPC）是否啟用，build 時決定（Phase 3.1.1）。
+ *
+ * - DATA_SOURCE=mock（或未設定）→ 'mock'：即使 PUBLIC_SUPABASE_* 存在也不連線
+ * - DATA_SOURCE=supabase + URL / key → 'supabase'
+ * - DATA_SOURCE=supabase 缺 URL / key → resolveDataSourceConfig 丟出錯誤，build 直接失敗（不默默改用 mock）
+ *
+ * 結果由 BaseLayout 寫到 <html data-commerce-backend>，瀏覽器端（cart-client.ts）只讀這個值、
+ * 不自行猜 DATA_SOURCE（DATA_SOURCE 不是 PUBLIC_* 變數，本來就不會進 client bundle）。
+ */
+export function commerceBackendKind(): 'supabase' | 'mock' {
+  return dataSourceConfig().kind;
+}
+
+async function load(): Promise<StorefrontData> {
+  const config = dataSourceConfig();
 
   if (config.kind === 'mock') {
     const { createMockRepositories } = await import('@syt/database');

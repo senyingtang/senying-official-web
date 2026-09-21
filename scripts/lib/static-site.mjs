@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { buildEnvFor, buildsMarketing, cleanMarketingOutDir } from './build-env.mjs';
 import { MARKETING_DIR, ROOT } from './servers.mjs';
 
 export const DIST = path.join(MARKETING_DIR, 'dist');
@@ -112,7 +113,11 @@ export function matchingParen(text, openIndex) {
 
 export function run(label, command, env = {}) {
   console.log(`\n[${label}] $ ${command}${Object.keys(env).length ? `  (${Object.entries(env).map(([key, value]) => `${key}=${value}`).join(' ')})` : ''}`);
-  return spawnSync(command, { cwd: ROOT, stdio: 'inherit', shell: true, env: { ...process.env, DATA_SOURCE: process.env.DATA_SOURCE || 'mock', ...env } }).status === 0;
+  const merged = { DATA_SOURCE: process.env.DATA_SOURCE || 'mock', ...env };
+  // 官網 build：清 outDir + mock 顯式清掉 PUBLIC_SUPABASE_* / supabase 顯式注入（scripts/lib/build-env.mjs）
+  if (buildsMarketing(command)) cleanMarketingOutDir(merged.ASTRO_OUT_DIR || 'dist');
+  const childEnv = buildsMarketing(command) ? buildEnvFor(merged) : { ...process.env, ...merged };
+  return spawnSync(command, { cwd: ROOT, stdio: 'inherit', shell: true, env: childEnv }).status === 0;
 }
 
 export function createReport(title) {

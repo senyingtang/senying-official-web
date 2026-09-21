@@ -24,6 +24,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright-core';
+import { supabaseBuildEnv } from './lib/build-env.mjs';
 import { cleanupTestAccounts, ensureTestAccounts } from './lib/local-fixtures.mjs';
 import { appEnv, getLocalSupabaseEnv, maskSecret, psql, psqlJson, sqlLiteral } from './lib/local-supabase.mjs';
 import { ADMIN_DIR, MARKETING_DIR, ROOT, findChrome, installSignalCleanup, startAdminServer, stopAll } from './lib/servers.mjs';
@@ -78,8 +79,7 @@ async function loadDatabaseBundle() {
 }
 
 function buildMarketing(env) {
-  const childEnv = { ...process.env, ...appEnv(env), ASTRO_OUT_DIR: path.relative(MARKETING_DIR, SUPABASE_DIST).split(path.sep).join('/'), SITE_SETTINGS_MOCK_PRESET: '' };
-  delete childEnv.SUPABASE_SERVICE_ROLE_KEY;
+  const childEnv = supabaseBuildEnv(appEnv(env), { ASTRO_OUT_DIR: path.relative(MARKETING_DIR, SUPABASE_DIST).split(path.sep).join('/'), SITE_SETTINGS_MOCK_PRESET: '' });
   rmSync(SUPABASE_DIST, { recursive: true, force: true });
   console.log(`\n[site-settings] $ pnpm --filter @syt/marketing build  (DATA_SOURCE=supabase PUBLIC_SUPABASE_URL=${env.apiUrl} anon=${maskSecret(env.anonKey)} → ${rel(SUPABASE_DIST)})`);
   const result = spawnSync('pnpm --filter @syt/marketing build', { cwd: ROOT, shell: true, stdio: 'inherit', env: childEnv });

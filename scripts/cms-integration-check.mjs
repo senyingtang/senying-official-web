@@ -13,6 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { supabaseBuildEnv } from './lib/build-env.mjs';
 import { cleanupTestAccounts, ensureTestAccounts } from './lib/local-fixtures.mjs';
 import { loadDatabaseBundle } from './lib/database-bundle.mjs';
 import { appEnv, getLocalSupabaseEnv, maskSecret, psql, psqlJson, sqlLiteral } from './lib/local-supabase.mjs';
@@ -56,8 +57,7 @@ try {
 }
 
 function buildMarketing(label) {
-  const childEnv = { ...process.env, ...appEnv(env), ASTRO_OUT_DIR: path.relative(MARKETING_DIR, SUPABASE_DIST).split(path.sep).join('/') };
-  delete childEnv.SUPABASE_SERVICE_ROLE_KEY;
+  const childEnv = supabaseBuildEnv(appEnv(env), { ASTRO_OUT_DIR: path.relative(MARKETING_DIR, SUPABASE_DIST).split(path.sep).join('/') });
   rmSync(SUPABASE_DIST, { recursive: true, force: true });
   console.log(`\n[cms-integration] $ pnpm --filter @syt/marketing build  (${label} → ${rel(SUPABASE_DIST)})`);
   const result = spawnSync('pnpm --filter @syt/marketing build', { cwd: ROOT, shell: true, stdio: 'inherit', env: childEnv });

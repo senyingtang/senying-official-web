@@ -8,16 +8,24 @@
 //   - 結帳頁不收卡號 / CVV、沒有 form action、付款按鈕預設停用
 //   - 官網不打包 @supabase/supabase-js（購物車只用 fetch 打 RPC）
 //
-// 預設會先 build（DATA_SOURCE=mock）；已經有 build 時可加 --skip-build。
+//   - 購物車後端由 build 時的 DATA_SOURCE 決定（Phase 3.1.1）：mock 即使帶憑證也不連線；supabase 缺憑證 build 失敗
 //
-// 用法：pnpm cart:verify [--skip-build]
+// 預設會先 build（DATA_SOURCE=mock）；已經有 build 時可加 --skip-build。
+// 19–21 會另外 build 到 .phase31-report（mock + 假憑證、supabase + 缺憑證）；可加 --skip-env-matrix 略過。
+//
+// 用法：pnpm cart:verify [--skip-build] [--skip-env-matrix]
+import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { MARKETING_DIR, ROOT } from './lib/servers.mjs';
+import { chromium } from 'playwright-core';
+import { cleanMarketingOutDir } from './lib/build-env.mjs';
+import { MARKETING_DIR, ROOT, findChrome, startMarketingServer } from './lib/servers.mjs';
 import { DIST, SRC, createReport, htmlPath, read, rel, run, walk } from './lib/static-site.mjs';
 
 const report = createReport('Phase 3.0 cart verify（購物車 / 結帳前台）');
 const { record } = report;
 const skipBuild = process.argv.includes('--skip-build');
+const skipEnvMatrix = process.argv.includes('--skip-env-matrix');
 
 const PRODUCT_ROUTES = ['/products/seo-website', '/products/landing-page', '/products/ecommerce-website', '/products/promo-page-design', '/products/seo-article-generator'];
 const COMMERCE_ROUTES = ['/cart', '/checkout', '/checkout/success', '/checkout/failed'];
@@ -264,6 +272,91 @@ const metaContent = (html, name) => {
     '浮動購物車由全站設定控制（cartEnabled / cartHref），預設連到 /cart 且只允許站內路徑',
     gated && hrefFromSettings && defaultsToCart && internalOnly,
     `gated=${gated} href=設定值(${hrefFromSettings}) 預設=/cart(${defaultsToCart}) 站內限制=${internalOnly}`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 19–21. 購物車後端由 DATA_SOURCE 決定（Phase 3.1.1）
+// ---------------------------------------------------------------------------
+const commerceBackendOf = (html) => html.match(/<html\b[^>]*\sdata-commerce-backend="([^"]*)"/)?.[1] ?? null;
+
+{
+  // 原始碼：瀏覽器端只看 build 時寫入的 <html data-commerce-backend>，不以 PUBLIC_SUPABASE_* 是否存在判斷
+  const client = read(path.join(SRC, 'lib', 'cart-client.ts'));
+  const guard = client.match(/export function isCommerceBackendConfigured\(\)[^{]*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+  const readsAttribute = /dataset\.commerceBackend === 'supabase'/.test(guard) && !/SUPABASE_URL|SUPABASE_ANON_KEY|import\.meta\.env/.test(guard);
+  const layout = read(path.join(SRC, 'layouts', 'BaseLayout.astro'));
+  const layoutSetsAttribute = /data-commerce-backend=\{commerceBackend\}/.test(layout) && /commerceBackendKind\(\)/.test(layout);
+  const htmlFiles = walk(DIST).filter((file) => file.endsWith('.html'));
+  const notMock = htmlFiles.filter((file) => commerceBackendOf(read(file)) !== 'mock').map(rel);
+  record(
+    19,
+    `isCommerceBackendConfigured() 只看 build 時的 data-commerce-backend；mock build 每頁都是 mock（${htmlFiles.length} 頁）`,
+    readsAttribute && layoutSetsAttribute && htmlFiles.length > 0 && notMock.length === 0,
+    notMock.slice(0, 3).join(', ') || `guard=${readsAttribute} layout=${layoutSetsAttribute}`,
+  );
+}
+
+if (skipEnvMatrix) {
+  record(20, 'DATA_SOURCE=mock + 帶憑證：購物車仍是示範模式（--skip-env-matrix）', true, 'skipped');
+  record(21, 'DATA_SOURCE=supabase + 缺憑證：build 明確失敗（--skip-env-matrix）', true, 'skipped');
+} else {
+  const REPORT = path.join(ROOT, '.phase31-report');
+  const toOutDir = (dir) => path.relative(MARKETING_DIR, dir).split(path.sep).join('/');
+  // 20. mock + 顯式注入憑證（不可連線的假端點，不使用任何真實 key）：build 後瀏覽器端不得打任何 RPC
+  const MOCK_CRED_DIST = path.join(REPORT, 'mock-with-credentials-dist');
+  const FAKE_URL = 'http://127.0.0.1:9';
+  cleanMarketingOutDir(toOutDir(MOCK_CRED_DIST));
+  console.log(`\n[cart] $ pnpm --filter @syt/marketing build  (DATA_SOURCE=mock + PUBLIC_SUPABASE_URL=${FAKE_URL} + 假 anon key → ${rel(MOCK_CRED_DIST)})`);
+  const mockCredEnv = { ...process.env, DATA_SOURCE: 'mock', PUBLIC_SUPABASE_URL: FAKE_URL, PUBLIC_SUPABASE_ANON_KEY: 'phase311-fake-anon-key-not-a-secret', ASTRO_OUT_DIR: toOutDir(MOCK_CRED_DIST) };
+  delete mockCredEnv.SUPABASE_SERVICE_ROLE_KEY;
+  const mockCredBuilt = spawnSync('pnpm --filter @syt/marketing build', { cwd: ROOT, shell: true, stdio: 'inherit', env: mockCredEnv }).status === 0;
+  const mockCredPages = walk(MOCK_CRED_DIST).filter((file) => file.endsWith('.html'));
+  const mockCredNotMock = mockCredPages.filter((file) => commerceBackendOf(read(file)) !== 'mock').map(rel);
+  let runtime = { rpcRequests: [], cartMock: null, checkoutMock: null, error: null };
+  if (mockCredBuilt && mockCredPages.length > 0) {
+    let server;
+    let browser;
+    try {
+      server = await startMarketingServer({ distDir: MOCK_CRED_DIST });
+      browser = await chromium.launch({ executablePath: findChrome(), headless: true });
+      const page = await browser.newPage();
+      page.on('request', (request) => {
+        if (request.url().startsWith(FAKE_URL) || request.url().includes('/rest/v1/')) runtime.rpcRequests.push(request.url());
+      });
+      await page.goto(`${server.url}/cart`, { waitUntil: 'networkidle' });
+      runtime.cartMock = await page.locator('[data-cart-root]').getAttribute('data-mock');
+      await page.goto(`${server.url}/checkout`, { waitUntil: 'networkidle' });
+      runtime.checkoutMock = await page.evaluate(() => document.documentElement.dataset.commerceBackend ?? null);
+    } catch (error) {
+      runtime.error = error.message;
+    } finally {
+      await browser?.close().catch(() => undefined);
+      await server?.stop().catch(() => undefined);
+    }
+  }
+  record(
+    20,
+    `DATA_SOURCE=mock + 帶憑證：每頁仍是 data-commerce-backend="mock"，/cart 使用示範購物車，瀏覽器沒有任何 RPC 請求（${mockCredPages.length} 頁）`,
+    mockCredBuilt && mockCredPages.length > 0 && mockCredNotMock.length === 0 && runtime.error === null && runtime.rpcRequests.length === 0 && runtime.cartMock === 'true' && runtime.checkoutMock === 'mock',
+    runtime.error ?? (mockCredNotMock.slice(0, 3).join(', ') || `build=${mockCredBuilt} cart data-mock=${runtime.cartMock} checkout=${runtime.checkoutMock} rpc=${runtime.rpcRequests.length}`),
+  );
+
+  // 21. supabase + 缺憑證：build 必須失敗並說明原因，不可默默改用 mock
+  const MISSING_DIST = path.join(REPORT, 'supabase-missing-credentials-dist');
+  cleanMarketingOutDir(toOutDir(MISSING_DIST));
+  console.log(`\n[cart] $ pnpm --filter @syt/marketing build  (DATA_SOURCE=supabase，不帶 PUBLIC_SUPABASE_* → 預期失敗)`);
+  const missingEnv = { ...process.env, DATA_SOURCE: 'supabase', ASTRO_OUT_DIR: toOutDir(MISSING_DIST) };
+  for (const key of ['PUBLIC_SUPABASE_URL', 'PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']) delete missingEnv[key];
+  const missing = spawnSync('pnpm --filter @syt/marketing build', { cwd: ROOT, shell: true, encoding: 'utf8', env: missingEnv });
+  const output = `${missing.stdout ?? ''}${missing.stderr ?? ''}`;
+  const explained = /DATA_SOURCE=supabase requires PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY/.test(output) && /Refusing to fall back to mock/.test(output);
+  const noOutput = !existsSync(path.join(MISSING_DIST, 'index.html'));
+  record(
+    21,
+    'DATA_SOURCE=supabase + 缺憑證：build 明確失敗（DataSourceConfigError），沒有產生任何頁面',
+    missing.status !== 0 && explained && noOutput,
+    `exit=${missing.status} 錯誤訊息=${explained} 無輸出=${noOutput}`,
   );
 }
 
